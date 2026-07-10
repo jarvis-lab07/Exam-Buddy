@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { Reveal } from "@/components/landing/reveal";
 
 const faqs = [
   {
@@ -32,20 +33,23 @@ export function FAQ() {
   return (
     <section id="faq" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto w-full max-w-3xl px-5 sm:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-primary">FAQ</span>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Frequently asked questions
           </h2>
-        </div>
+        </Reveal>
 
         <div className="mt-12 flex flex-col gap-3">
           {faqs.map((faq, i) => {
             const isOpen = open === i;
             return (
-              <div
+              <Reveal
                 key={faq.q}
-                className="rounded-xl border border-border bg-card"
+                delay={i * 60}
+                className={`rounded-xl border bg-card transition-colors ${
+                  isOpen ? "border-primary/40" : "border-border hover:border-primary/20"
+                }`}
               >
                 <button
                   type="button"
@@ -73,7 +77,7 @@ export function FAQ() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>

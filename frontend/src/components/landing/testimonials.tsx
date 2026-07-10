@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { Reveal } from "@/components/landing/reveal";
 
 const testimonials = [
   {
@@ -52,18 +53,20 @@ export function Testimonials() {
       className="scroll-mt-20 border-y border-border bg-card/40 py-20 sm:py-28"
     >
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-primary">Testimonials</span>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Students love studying with Exam Buddy
           </h2>
-        </div>
+        </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t) => (
-            <figure
+          {testimonials.map((t, i) => (
+            <Reveal
+              as="figure"
               key={t.name}
-              className="flex flex-col rounded-xl border border-border bg-card p-6"
+              delay={(i % 3) * 90}
+              className="flex flex-col rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30"
             >
               <div className="flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -88,7 +91,7 @@ export function Testimonials() {
                   </span>
                 </span>
               </figcaption>
-            </figure>
+            </Reveal>
           ))}
         </div>
       </div>

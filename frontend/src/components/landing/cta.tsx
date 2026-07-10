@@ -1,12 +1,22 @@
 import { ArrowRight } from "lucide-react";
+import { Reveal } from "@/components/landing/reveal";
 
 export function CTA() {
   return (
     <section id="cta" className="scroll-mt-20 px-5 pb-24 pt-4 sm:px-8">
-      <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-16 text-center sm:px-12">
+      <Reveal className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-card px-6 py-16 text-center sm:px-12">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl rounded-full bg-primary/25 blur-[120px]"
+          className="animate-aurora pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl rounded-full bg-primary/25 blur-[120px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
         />
         <div className="relative">
           <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -32,7 +42,7 @@ export function CTA() {
             </a>
           </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { Upload, Wand2, GraduationCap } from "lucide-react";
+import { Reveal } from "@/components/landing/reveal";
 
 const steps = [
   {
@@ -31,19 +32,19 @@ export function HowItWorks() {
       className="scroll-mt-20 border-y border-border bg-card/40 py-20 sm:py-28"
     >
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-primary">How it works</span>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             From notes to mastery in three steps
           </h2>
-        </div>
+        </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
           {steps.map(({ icon: Icon, step, title, description }, i) => (
-            <div key={step} className="relative">
-              <div className="rounded-xl border border-border bg-card p-6">
+            <Reveal key={step} delay={i * 120} className="relative">
+              <div className="group rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40">
                 <div className="flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-110">
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="font-mono text-sm text-muted-foreground">
@@ -63,7 +64,7 @@ export function HowItWorks() {
                   className="absolute -right-3 top-1/2 hidden h-px w-6 -translate-y-1/2 bg-border md:block"
                 />
               )}
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import { Reveal } from "@/components/landing/reveal";
 
 type Feature = {
   icon: LucideIcon;
@@ -57,7 +58,7 @@ export function Features() {
   return (
     <section id="features" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
-        <div className="mx-auto max-w-2xl text-center">
+        <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-medium text-primary">Features</span>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Everything you need to prepare with confidence
@@ -66,15 +67,16 @@ export function Features() {
             A complete AI study toolkit that meets you wherever you are in your
             revision.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, description }) => (
-            <div
+          {features.map(({ icon: Icon, title, description }, i) => (
+            <Reveal
               key={title}
-              className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary/40"
+              delay={(i % 3) * 90}
+              className="group rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mt-5 text-lg font-medium tracking-tight">
@@ -83,7 +85,7 @@ export function Features() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {description}
               </p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
