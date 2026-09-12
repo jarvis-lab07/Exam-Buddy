@@ -1,0 +1,37 @@
+# Exam-Buddy — Cursor AI Rules & Tech Stack Conventions
+
+This file configures Cursor AI to adhere to the exact same conventions as Antigravity and the rest of the team.
+
+---
+
+## 1. Tech Stack
+- **Framework:** Next.js 16 (App Router)
+- **Directory:** All frontend code resides inside `frontend/`
+- **Language:** TypeScript 5+ (strict mode)
+- **Styling:** Tailwind CSS v4 (dark mode first, glassmorphic obsidian `#0B0F17` aesthetic)
+- **Icons:** Lucide React (`lucide-react`)
+- **Backend / Database:** Supabase (Auth, PostgreSQL, Storage, pgvector)
+
+---
+
+## 2. Directory Architecture
+- Pages & Routes: `frontend/src/app/`
+- Reusable UI Components: `frontend/src/components/`
+- Helper Utilities & Mock Data: `frontend/src/lib/`
+- TypeScript Types: `frontend/src/types/`
+- Custom React Hooks: `frontend/src/hooks/`
+
+---
+
+## 3. Collaboration & Git Protocol
+- **NEVER** push directly to `main`.
+- Always work in dedicated feature branches: `feature/<member>-<feature-name>`.
+- Keep commits atomic and descriptive (e.g. `feat: implement flashcard 3D flip card`).
+- Do not delete or overwrite teammate components without confirmation.
+
+---
+
+## 4. UI Design Standards
+- Premium dark glassmorphism: `#0B0F17` / `#131926` background, subtle glow borders (`border-white/10`), vibrant blue/violet accents.
+- Never use basic, unstyled HTML elements.
+- Ensure full mobile and desktop responsiveness.
