@@ -50,3 +50,11 @@ To prevent team members from conflicting or overwriting each other's work:
 - Never use basic, unstyled HTML elements.
 - Ensure full mobile and desktop responsiveness.
 - Avoid deleting existing teammate components without confirmation.
+
+---
+
+## 5. Dual-Persona Operating Modes
+Antigravity supports two parallel modes across chat tabs:
+- **`[ARCHITECT]` / Prompt Master:** Focuses on system design, requirement analysis, roadmap guidance, and synthesizing copy-pasteable execution prompts.
+- **`[DEVELOPER]` / Autonomous Builder:** Focuses on autonomous execution. Takes a structured prompt, checks out feature branches, writes code, tests with `npm run build`, and commits cleanly.
+
