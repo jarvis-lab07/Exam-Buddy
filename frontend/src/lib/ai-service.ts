@@ -1,6 +1,6 @@
-// Client-side BYOK (Bring Your Own Key) AI Search and Tutor Service for Exam-Buddy
+// Client-side BYOK (Bring Your Own Key) & Local Ollama AI Service for Exam-Buddy
 
-export type AIProvider = "gemini" | "groq" | "openai";
+export type AIProvider = "gemini" | "groq" | "openai" | "ollama";
 
 export interface ProviderMeta {
   id: AIProvider;
@@ -8,6 +8,7 @@ export interface ProviderMeta {
   defaultModel: string;
   tagline: string;
   isFreeTier: boolean;
+  isLocal?: boolean;
   getApiKeyUrl: string;
   placeholder: string;
 }
@@ -26,10 +27,20 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
     id: "groq",
     name: "Groq (Llama 3.3)",
     defaultModel: "llama-3.3-70b-versatile",
-    tagline: "Ultra-fast inference (500+ tokens/sec)",
+    tagline: "Ultra-fast cloud inference (500+ tokens/sec)",
     isFreeTier: true,
     getApiKeyUrl: "https://console.groq.com/keys",
     placeholder: "gsk_...",
+  },
+  ollama: {
+    id: "ollama",
+    name: "Ollama (Local AI)",
+    defaultModel: "llama3.2",
+    tagline: "100% offline & private on your local GPU/CPU",
+    isFreeTier: true,
+    isLocal: true,
+    getApiKeyUrl: "https://ollama.com",
+    placeholder: "http://localhost:11434",
   },
   openai: {
     id: "openai",
@@ -46,20 +57,26 @@ const STORAGE_KEYS: Record<AIProvider, string> = {
   gemini: "exambuddy_key_gemini",
   groq: "exambuddy_key_groq",
   openai: "exambuddy_key_openai",
+  ollama: "exambuddy_ollama_endpoint",
 };
 
+export const OLLAMA_MODEL_KEY = "exambuddy_ollama_model";
 const ACTIVE_PROVIDER_KEY = "exambuddy_active_provider";
 
 export interface StoredKeys {
   gemini?: string;
   groq?: string;
   openai?: string;
+  ollama?: string;
 }
 
 // ----------------- Storage Helpers -----------------
 
 export function getStoredApiKey(provider: AIProvider): string {
   if (typeof window === "undefined") return "";
+  if (provider === "ollama") {
+    return localStorage.getItem(STORAGE_KEYS.ollama) || "http://localhost:11434";
+  }
   return localStorage.getItem(STORAGE_KEYS[provider]) || "";
 }
 
@@ -73,12 +90,33 @@ export function saveApiKey(provider: AIProvider, key: string): void {
   }
 }
 
+export function getOllamaEndpoint(): string {
+  if (typeof window === "undefined") return "http://localhost:11434";
+  return localStorage.getItem(STORAGE_KEYS.ollama) || "http://localhost:11434";
+}
+
+export function saveOllamaEndpoint(endpoint: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_KEYS.ollama, endpoint.trim() || "http://localhost:11434");
+}
+
+export function getOllamaModel(): string {
+  if (typeof window === "undefined") return "llama3.2";
+  return localStorage.getItem(OLLAMA_MODEL_KEY) || "llama3.2";
+}
+
+export function saveOllamaModel(model: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(OLLAMA_MODEL_KEY, model.trim());
+}
+
 export function getAllStoredKeys(): StoredKeys {
   if (typeof window === "undefined") return {};
   return {
     gemini: localStorage.getItem(STORAGE_KEYS.gemini) || undefined,
     groq: localStorage.getItem(STORAGE_KEYS.groq) || undefined,
     openai: localStorage.getItem(STORAGE_KEYS.openai) || undefined,
+    ollama: localStorage.getItem(STORAGE_KEYS.ollama) || undefined,
   };
 }
 
@@ -88,9 +126,9 @@ export function getActiveProvider(): AIProvider {
   if (stored && AI_PROVIDERS[stored]) {
     return stored;
   }
-  // Auto select provider with key, default to gemini
   const keys = getAllStoredKeys();
   if (keys.gemini) return "gemini";
+  if (keys.ollama) return "ollama";
   if (keys.groq) return "groq";
   if (keys.openai) return "openai";
   return "gemini";
@@ -101,13 +139,67 @@ export function setActiveProvider(provider: AIProvider): void {
   localStorage.setItem(ACTIVE_PROVIDER_KEY, provider);
 }
 
-// ----------------- Validation -----------------
+// ----------------- Validation & Local Inspection -----------------
+
+export async function fetchOllamaModels(endpoint?: string): Promise<{
+  success: boolean;
+  models: { name: string; sizeMb?: number }[];
+  error?: string;
+}> {
+  try {
+    const cleanEndpoint = (endpoint || getOllamaEndpoint()).trim();
+    const res = await fetch("/api/ollama", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "tags",
+        endpoint: cleanEndpoint,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      return { success: false, models: [], error: data.error || "Failed to reach Ollama" };
+    }
+    return { success: true, models: data.models || [] };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Network error";
+    return { success: false, models: [], error: msg };
+  }
+}
 
 export async function validateApiKey(
   provider: AIProvider,
   key: string
 ): Promise<{ valid: boolean; error?: string }> {
   const trimmed = key.trim();
+
+  // Ollama validation
+  if (provider === "ollama") {
+    try {
+      const endpoint = trimmed || getOllamaEndpoint();
+      const res = await fetch("/api/ollama", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ping", endpoint }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return {
+          valid: false,
+          error:
+            data.error ||
+            "Could not reach Ollama at " +
+              endpoint +
+              ". Run `ollama serve` in your terminal to start it.",
+        };
+      }
+      return { valid: true };
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Connection failed";
+      return { valid: false, error: errorMsg };
+    }
+  }
+
   if (!trimmed) {
     return { valid: false, error: "API key cannot be empty" };
   }
@@ -208,7 +300,7 @@ export async function executeAISearch(options: SearchOptions): Promise<AISearchR
   const apiKey = getStoredApiKey(provider);
   const scopeTitle = options.scopeTitle || "Entire Semester Syllabus";
 
-  // Build the curriculum system prompt
+  // Build curriculum system prompt
   const systemPrompt = `You are Exam-Buddy AI Tutor, an elite university engineering academic assistant.
 Your goal is to answer student queries with precision, high visual structure, and exam-oriented clarity.
 
@@ -231,9 +323,9 @@ FORMAT YOUR RESPONSE IN CLEAN GITHUB MARKDOWN WITH THESE EXACT SECTIONS:
 ### 💡 Likely Exam Questions (PYQ)
 (2 likely university exam questions [5-mark or 10-mark style] on this topic.)`;
 
-  // If no API key is set, return rich simulated response so students can preview immediately
-  if (!apiKey) {
-    await new Promise((res) => setTimeout(res, 850)); // simulate fast latency
+  // Demo fallback if no key (except for ollama which uses endpoint)
+  if (provider !== "ollama" && !apiKey) {
+    await new Promise((res) => setTimeout(res, 800));
     const mockContent = generateCurriculumMockResponse(options.query, scopeTitle);
     return {
       query: options.query,
@@ -250,7 +342,39 @@ FORMAT YOUR RESPONSE IN CLEAN GITHUB MARKDOWN WITH THESE EXACT SECTIONS:
     let markdown = "";
     let modelName = AI_PROVIDERS[provider].defaultModel;
 
-    if (provider === "gemini") {
+    if (provider === "ollama") {
+      const endpoint = getOllamaEndpoint();
+      const localModel = getOllamaModel();
+      modelName = `Ollama (${localModel})`;
+
+      const res = await fetch("/api/ollama", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "chat",
+          endpoint,
+          model: localModel,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: options.query },
+          ],
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data.error ||
+            "Could not query local Ollama. Please ensure `ollama serve` is running and model `" +
+              localModel +
+              "` is downloaded (`ollama run " +
+              localModel +
+              "`)."
+        );
+      }
+
+      markdown = data.content || "No response generated by local Ollama.";
+    } else if (provider === "gemini") {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: "POST",
@@ -336,7 +460,7 @@ FORMAT YOUR RESPONSE IN CLEAN GITHUB MARKDOWN WITH THESE EXACT SECTIONS:
     return {
       query: options.query,
       provider,
-      model: `${AI_PROVIDERS[provider].name} (${modelName})`,
+      model: modelName,
       scopeTitle,
       markdown,
       latencyMs: Date.now() - startTime,
@@ -344,14 +468,13 @@ FORMAT YOUR RESPONSE IN CLEAN GITHUB MARKDOWN WITH THESE EXACT SECTIONS:
     };
   } catch (error: unknown) {
     console.error("AI Search API failed:", error);
-    // If real API fails (e.g. quota exceeded or invalid key), fall back gracefully with clear message
     const errorMsg = error instanceof Error ? error.message : "Unknown API error";
     return {
       query: options.query,
       provider,
       model: `${AI_PROVIDERS[provider].name} (Error: ${errorMsg})`,
       scopeTitle,
-      markdown: `> [!WARNING]\n> **API Call Failed:** ${errorMsg}\n\nFalling back to curriculum preview for your study session:\n\n${generateCurriculumMockResponse(
+      markdown: `> [!WARNING]\n> **AI Provider Error:** ${errorMsg}\n\nFalling back to curriculum preview for your study session:\n\n${generateCurriculumMockResponse(
         options.query,
         scopeTitle
       )}`,
