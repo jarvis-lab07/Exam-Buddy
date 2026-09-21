@@ -1,34 +1,57 @@
+export type DegreeType =
+  | "All"
+  | "Engineering"
+  | "Medicine"
+  | "Law"
+  | "Commerce"
+  | "Management"
+  | "Sciences"
+  | "Other";
+
+export type UnitStatus = "mastered" | "in_progress" | "not_started";
+
+export interface Unit {
+  id: string;
+  unitNumber: number;
+  title: string;
+  topics: string[];
+  status: UnitStatus;
+  progressPercentage: number;
+  notesCount: number;
+  flashcardsCount: number;
+  description?: string;
+  estimatedHours?: number;
+  subjectId?: string;
+  topicsCount?: number;
+  masteredTopicsCount?: number;
+  isCompleted?: boolean;
+  isCurrent?: boolean;
+}
+
 export interface Subject {
   id: string;
   name: string;
+  title?: string;
   code: string;
-  category: string;
+  degree: "Engineering" | "Medicine" | "Law" | "Commerce" | "Management" | "Sciences" | "Other";
+  semesterOrYear: string;
+  color: string;
   accentColor: string;
-  bgGradient: string;
-  totalUnits: number;
-  completedUnits: number;
-  totalTopics: number;
-  masteredTopics: number;
-  currentUnit: {
+  bgGradient?: string;
+  category?: string;
+  examDate: string;
+  nextExamDate?: string;
+  units: Unit[];
+  totalUnits?: number;
+  completedUnits?: number;
+  totalTopics?: number;
+  masteredTopics?: number;
+  currentUnit?: {
     unitNumber: number;
     title: string;
     progressPercentage: number;
   };
-  lastAccessed: string;
-  nextExamDate?: string;
-}
-
-export interface Unit {
-  id: string;
-  subjectId: string;
-  unitNumber: number;
-  title: string;
-  description: string;
-  topicsCount: number;
-  masteredTopicsCount: number;
-  estimatedHours: number;
-  isCompleted: boolean;
-  isCurrent: boolean;
+  lastAccessed?: string;
 }
 
 export interface UserProfile {

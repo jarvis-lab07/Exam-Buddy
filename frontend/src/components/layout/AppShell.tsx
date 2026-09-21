@@ -1,33 +1,63 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, type SidebarState } from "./Sidebar";
 import { Header } from "./Header";
+import { cn } from "@/lib/utils";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarState, setSidebarState] = useState<SidebarState>("open");
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const cycleDesktopSidebar = () => {
+    setSidebarState((current) => {
+      if (current === "open") return "icon";
+      if (current === "icon") return "hidden";
+      return "open";
+    });
+  };
+
+  const toggleFromHeader = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+      cycleDesktopSidebar();
+      return;
+    }
+    setMobileOpen((open) => !open);
+  };
+
+  const toggleFromSidebar = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+      setSidebarState((current) => (current === "open" ? "icon" : "open"));
+      return;
+    }
+    setMobileOpen(false);
+  };
 
   return (
-    <div className="relative min-h-screen bg-[#090D16] text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Background ambient lighting effects */}
+    <div className="relative min-h-screen bg-[#0C0C14] text-[#F1F1F8] selection:bg-violet-500/30 selection:text-violet-100">
       <div className="ambient-glow" />
 
-      {/* Persistent Glassmorphic Sidebar */}
       <Sidebar
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
+        state={sidebarState}
+        onToggle={toggleFromSidebar}
+        isMobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Main Content Area with left offset on lg screens */}
-      <div className="lg:pl-72 flex flex-col min-h-screen relative z-10">
-        {/* Top Header */}
-        <Header onOpenMobileMenu={() => setMobileSidebarOpen(true)} />
+      <div
+        className={cn(
+          "flex flex-col min-h-screen relative z-10 transition-[padding] duration-300 ease-in-out",
+          sidebarState === "open" && "lg:pl-64",
+          sidebarState === "icon" && "lg:pl-16",
+          sidebarState === "hidden" && "lg:pl-0"
+        )}
+      >
+        <Header onToggleSidebar={toggleFromHeader} />
 
-        {/* Page Main Viewport */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>

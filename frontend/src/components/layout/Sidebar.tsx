@@ -14,15 +14,20 @@ import {
   GraduationCap,
   HardDrive,
   Sparkles,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_USER } from "@/lib/mock-data";
 
+export type SidebarState = "open" | "icon" | "hidden";
+
 interface SidebarProps {
-  isOpen?: boolean;
-  onClose?: () => void;
+  state: SidebarState;
+  onToggle: () => void;
+  onCloseMobile?: () => void;
+  isMobileOpen?: boolean;
 }
 
 const navItems = [
@@ -30,50 +35,62 @@ const navItems = [
     name: "Dashboard",
     href: "/",
     icon: LayoutDashboard,
-    badge: null,
+    badge: null as string | null,
+    badgeClass: "",
   },
   {
     name: "Subjects & Units",
     href: "/subjects",
     icon: BookOpen,
     badge: "4 Active",
+    badgeClass: "bg-white/[0.05] text-[#9B99B5] border-white/10",
   },
   {
     name: "Upload Center",
     href: "/upload",
     icon: UploadCloud,
     badge: null,
+    badgeClass: "",
   },
   {
     name: "AI Tutor Chat",
     href: "/chat",
     icon: Bot,
     badge: "GPT-4o",
-    badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    badgeClass: "bg-violet-500/15 text-violet-300 border-violet-500/25",
   },
   {
     name: "Study Planner",
     href: "/planner",
     icon: CalendarDays,
     badge: "3 Due",
-    badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    badgeClass: "badge-streak border-0",
   },
   {
     name: "Flashcards",
     href: "/flashcards",
     icon: Layers,
     badge: null,
+    badgeClass: "",
   },
   {
     name: "AI Manager",
     href: "/ai-manager",
     icon: Cpu,
-    badge: "Beta",
+    badge: null,
+    badgeClass: "",
   },
 ];
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({
+  state,
+  onToggle,
+  onCloseMobile,
+  isMobileOpen = false,
+}: SidebarProps) {
   const pathname = usePathname();
+  const isIcon = state === "icon";
+  const isHidden = state === "hidden";
 
   const storagePercent = Math.round(
     (MOCK_USER.cloudStorageUsedGB / MOCK_USER.cloudStorageTotalGB) * 100
@@ -84,184 +101,208 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile Backdrop Overlay */}
-      {isOpen && (
+      {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity"
-          onClick={onClose}
+          className="fixed inset-0 z-40 bg-[#0C0C14]/70 backdrop-blur-md lg:hidden"
+          onClick={onCloseMobile}
         />
       )}
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col w-72 bg-[#0A0E1A]/90 backdrop-blur-2xl border-r border-white/[0.08] text-slate-200 transition-transform duration-300 ease-in-out lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[#0C0C14]/95 backdrop-blur-2xl text-[#F1F1F8] transition-all duration-300 ease-in-out",
+          "w-64",
+          isMobileOpen ? "translate-x-0" : "translate-x-[-100%]",
+          "lg:translate-x-0",
+          !isMobileOpen && isHidden && "lg:translate-x-[-100%]",
+          !isHidden && isIcon && "lg:w-16",
+          !isHidden && !isIcon && "lg:w-64"
         )}
       >
-        {/* App Logo & Cohort Header */}
-        <div className="p-5 border-b border-white/[0.07]">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="flex items-center gap-3 group focus:outline-none"
-              onClick={onClose}
-            >
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-all duration-300">
-                <GraduationCap className="w-5 h-5 text-white" />
-                <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 opacity-0 group-hover:opacity-30 blur transition duration-300" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-lg tracking-tight text-white font-sans">
-                    Exam<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400">Buddy</span>
-                  </span>
-                  <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    AI
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-medium">Smart Exam Companion</p>
-              </div>
-            </Link>
-
-            {/* Mobile Close Button */}
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] lg:hidden"
-                aria-label="Close Sidebar"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        <div
+          className={cn(
+            "flex items-center border-b border-white/[0.07] h-14 shrink-0",
+            isIcon ? "lg:px-2 lg:justify-center" : "px-4 justify-between"
+          )}
+        >
+          <Link
+            href="/"
+            onClick={onCloseMobile}
+            className={cn(
+              "flex items-center gap-2.5 min-w-0",
+              isIcon && "lg:justify-center"
             )}
-          </div>
-
-          {/* Active Cohort Pill */}
-          <div className="mt-4 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-between">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-xs text-slate-300 font-medium truncate">
-                {MOCK_USER.activeCohort}
-              </span>
+          >
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] shadow-lg shadow-violet-500/25 shrink-0">
+              <GraduationCap className="w-4.5 h-4.5 text-white w-[18px] h-[18px]" />
             </div>
-            <span className="text-[10px] text-slate-400 font-mono bg-white/[0.05] px-1.5 py-0.5 rounded">
-              Sem 3
+            <span
+              className={cn(
+                "font-bold text-[15px] tracking-tight text-[#F1F1F8]",
+                isIcon && "lg:hidden"
+              )}
+            >
+              Exam<span className="text-brand">Buddy</span>
             </span>
-          </div>
+          </Link>
+
+          <button
+            onClick={onToggle}
+            className={cn(
+              "hidden lg:inline-flex p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors",
+              isIcon && "lg:hidden"
+            )}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={onToggle}
+            className={cn(
+              "hidden p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors",
+              isIcon && "lg:inline-flex"
+            )}
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={onCloseMobile}
+            className="p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] lg:hidden"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
-          <div className="px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+        <nav className={cn("flex-1 py-4 overflow-y-auto", isIcon ? "lg:px-2 px-3" : "px-3")}>
+          <div
+            className={cn(
+              "px-3 pb-2 text-[10px] font-semibold text-[#5A5875] uppercase tracking-[0.14em]",
+              isIcon && "lg:hidden"
+            )}
+          >
             Workspace
           </div>
 
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={cn(
-                  "group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-gradient-to-r from-indigo-600/20 to-violet-600/10 text-white border border-indigo-500/30 shadow-sm shadow-indigo-500/10"
-                    : "text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] border border-transparent"
-                )}
-              >
-                {/* Active Left Indicator Pill */}
-                {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-gradient-to-b from-indigo-400 to-violet-500 shadow-sm shadow-indigo-400/50" />
-                )}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onCloseMobile}
+                  title={isIcon ? item.name : undefined}
+                  className={cn(
+                    "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
+                    isIcon ? "lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5 gap-3" : "justify-between px-3 py-2.5",
+                    isActive
+                      ? "bg-gradient-to-r from-violet-600/20 to-indigo-600/10 text-white"
+                      : "text-[#9B99B5] hover:text-[#F1F1F8] hover:bg-[#1A1A2E]"
+                  )}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-[#7C3AED] to-[#6366F1]" />
+                  )}
 
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "p-1.5 rounded-lg transition-colors duration-200",
-                      isActive
-                        ? "text-indigo-400 bg-indigo-500/15"
-                        : "text-slate-400 group-hover:text-indigo-300 group-hover:bg-white/[0.04]"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <span className="truncate">{item.name}</span>
-                </div>
-
-                {item.badge ? (
-                  <span
-                    className={cn(
-                      "text-[10px] font-medium px-2 py-0.5 rounded-full border",
-                      item.badgeColor ||
-                        "bg-white/[0.05] text-slate-400 border-white/[0.08]"
-                    )}
-                  >
-                    {item.badge}
+                  <span className={cn("flex items-center min-w-0", isIcon ? "lg:gap-0 gap-3" : "gap-3")}>
+                    <Icon
+                      className={cn(
+                        "w-4 h-4 shrink-0",
+                        isActive ? "text-violet-300" : "text-[#9B99B5] group-hover:text-violet-300"
+                      )}
+                    />
+                    <span className={cn("truncate", isIcon && "lg:hidden")}>{item.name}</span>
                   </span>
-                ) : (
-                  <ChevronRight
-                    className={cn(
-                      "w-3.5 h-3.5 text-slate-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all",
-                      isActive && "opacity-60 translate-x-0 text-indigo-400"
-                    )}
-                  />
-                )}
-              </Link>
-            );
-          })}
+
+                  {item.badge && (
+                    <span
+                      className={cn(
+                        "text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0",
+                        item.badgeClass,
+                        isIcon && "lg:hidden"
+                      )}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+
+                  {isIcon && (
+                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1A1A2E] px-2 py-1 text-xs text-white border border-white/10 opacity-0 group-hover:opacity-100 z-50 hidden lg:block">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
-        {/* Sidebar Footer Gauges */}
-        <div className="p-4 m-3 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3.5">
-          {/* Cloud Storage Meter */}
-          <div>
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Cloud Storage</span>
-              </div>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {MOCK_USER.cloudStorageUsedGB} / {MOCK_USER.cloudStorageTotalGB} GB
-              </span>
+        <div className={cn("mt-auto border-t border-white/[0.07] p-3 space-y-3", isIcon && "lg:px-2")}>
+          <div
+            className={cn(
+              "flex items-center gap-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2.5",
+              isIcon && "lg:justify-center lg:p-2"
+            )}
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center text-xs font-bold text-white shrink-0">
+              D
             </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div className={cn("min-w-0", isIcon && "lg:hidden")}>
+              <p className="text-xs font-semibold text-[#F1F1F8] truncate">
+                {MOCK_USER.username}
+              </p>
+              <p className="text-[10px] text-[#9B99B5] truncate">VJTI • CS • Sem 3</p>
+            </div>
+          </div>
+
+          <div className={cn(isIcon && "lg:hidden")}>
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <div className="flex items-center gap-1.5 text-[#9B99B5] font-medium">
+                <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
+                <span>4.2 / 10 GB</span>
+              </div>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-[#1A1A2E] overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
                 style={{ width: `${storagePercent}%` }}
               />
             </div>
           </div>
 
-          {/* AI Token Usage Meter */}
-          <div>
+          <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-slate-300 font-medium">
+              <div className="flex items-center gap-1.5 text-[#9B99B5] font-medium">
                 <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                <span>AI Tokens</span>
+                <span>78k / 100k</span>
               </div>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {(MOCK_USER.aiTokensUsed / 1000).toFixed(0)}k / {(MOCK_USER.aiTokensTotal / 1000).toFixed(0)}k
-              </span>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[#1A1A2E] overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6366F1]"
                 style={{ width: `${tokenPercent}%` }}
               />
             </div>
           </div>
 
-          <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400 border-t border-white/[0.05]">
-            <span>Active Model</span>
-            <span className="text-indigo-400 font-medium flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              Claude 3.7 + GPT-4o
+          <div
+            className={cn(
+              "flex items-center gap-2 text-[11px] text-[#9B99B5]",
+              isIcon && "lg:justify-center"
+            )}
+            title="Claude 3.7 + GPT-4o"
+          >
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
+            <span className={cn(isIcon && "lg:hidden")}>Claude 3.7 + GPT-4o</span>
           </div>
         </div>
       </aside>

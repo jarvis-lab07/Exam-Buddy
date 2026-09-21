@@ -1,0 +1,38 @@
+# Exam-Buddy — Trae AI Project Rules & Guidelines
+
+This file configures Trae AI to follow the exact same architecture, tech stack conventions, and team protocols as Antigravity and Cursor.
+
+---
+
+## 1. Project Tech Stack
+- **Framework:** Next.js 16 (App Router)
+- **Directory Root:** All frontend code resides inside `frontend/`
+- **Language:** TypeScript 5+ (Strict Mode)
+- **Styling:** Tailwind CSS v4 (Obsidian glassmorphic dark theme, CSS variables in `globals.css`)
+- **Icons:** Lucide React (`lucide-react`)
+- **Backend / Database:** Supabase (PostgreSQL, pgvector, Auth, Storage)
+
+---
+
+## 2. Directory Architecture
+- Pages & Routes: `frontend/src/app/`
+- Reusable UI Components: `frontend/src/components/` (e.g. `frontend/src/components/subjects/`, `frontend/src/components/layout/`)
+- Helper Utilities & Mock Data: `frontend/src/lib/`
+- TypeScript Types: `frontend/src/types/`
+- Custom React Hooks: `frontend/src/hooks/`
+
+---
+
+## 3. Team Collaboration & Git Protocol
+- **NEVER** push or commit directly to `main`.
+- Always work in dedicated feature branches: `feature/<member>-<feature-name>`.
+- Always run `npm run build` inside `frontend/` to verify TypeScript compile safety before committing.
+- Clean conventional commit format (e.g., `feat: implement flashcards spaced repetition engine`).
+- Never overwrite or delete teammate components without checking first.
+
+---
+
+## 4. Design & Aesthetics Standard
+- Obsidian dark glassmorphism: `#0B0F17` / `#131926` background, subtle glow borders (`border-white/[0.08]`), vibrant accents (indigo, violet, emerald, amber).
+- Never render raw unstyled HTML elements; use polished Tailwind and Lucide components.
+- Ensure full mobile and desktop responsiveness.
