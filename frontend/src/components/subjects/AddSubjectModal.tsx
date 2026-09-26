@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Subject, DegreeType } from "@/types";
-import { X, Plus, Sparkles, BookOpen, Calendar, Palette, GraduationCap } from "lucide-react";
+import { X, Plus, Sparkles, BookOpen, Calendar, Palette, GraduationCap, Hash } from "lucide-react";
 
 interface AddSubjectModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ export function AddSubjectModal({
 }: AddSubjectModalProps) {
   const [title, setTitle] = useState("");
   const [code, setCode] = useState("");
+  const [courseCode, setCourseCode] = useState("");
   const [degree, setDegree] = useState<DegreeType>("Engineering");
   const [semesterOrYear, setSemesterOrYear] = useState("Semester 3");
   const [category, setCategory] = useState("Core Syllabus");
@@ -39,12 +40,17 @@ export function AddSubjectModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !code.trim()) return;
+    if (!title.trim()) return;
+
+    const effectiveCode = code.trim()
+      ? code.trim().toUpperCase()
+      : (title.trim().replace(/\s+/g, "-").slice(0, 6).toUpperCase() + Math.floor(Math.random() * 90 + 10));
+    const effectiveCourseCode = courseCode.trim() ? courseCode.trim().toUpperCase() : undefined;
 
     // Generate initial units
     const initialUnits = Array.from({ length: Math.max(1, unitCount) }).map(
       (_, index) => ({
-        id: `${code.toLowerCase().replace(/\s+/g, "-")}-u${index + 1}`,
+        id: `${effectiveCode.toLowerCase().replace(/\s+/g, "-")}-u${index + 1}`,
         unitNumber: index + 1,
         title: `Unit ${index + 1}: Fundamental Concepts & Core Analysis`,
         topics: [
@@ -63,7 +69,8 @@ export function AddSubjectModal({
       id: `sub-${Date.now()}`,
       name: title.trim(),
       title: title.trim(),
-      code: code.trim().toUpperCase(),
+      code: effectiveCode,
+      courseCode: effectiveCourseCode,
       degree: degree === "All" ? "Engineering" : degree,
       semesterOrYear,
       category,
@@ -86,6 +93,15 @@ export function AddSubjectModal({
     };
 
     onAddSubject(newSub);
+    setTitle("");
+    setCode("");
+    setCourseCode("");
+    setSemesterOrYear("Semester 3");
+    setCategory("Core Syllabus");
+    setExamDate("Nov 30, 2026");
+    setColor("#6366F1");
+    setUnitCount(4);
+    setDegree("Engineering");
     onClose();
   };
 
@@ -122,38 +138,55 @@ export function AddSubjectModal({
 
         {/* Form Fields */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Row 1: Title & Code */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Subject Title <span className="text-rose-400">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Operating Systems"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50"
-              />
-            </div>
+          {/* Row 1: Subject Title */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300">
+              Subject Title <span className="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Operating Systems"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50"
+            />
+          </div>
 
+          {/* Row 2: Subject Code (Optional) + University Course Code (Optional) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Course Code <span className="text-rose-400">*</span>
+              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <Hash className="w-3.5 h-3.5 text-slate-400" />
+                Short Subject Code
+                <span className="text-slate-500 font-normal">(auto-filled if blank)</span>
               </label>
               <input
                 type="text"
-                required
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="e.g. CS304"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 uppercase font-mono focus:outline-none focus:border-indigo-500/50"
               />
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <Hash className="w-3.5 h-3.5 text-slate-400" />
+                University Course Code
+                <span className="text-slate-500 font-normal">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={courseCode}
+                onChange={(e) => setCourseCode(e.target.value)}
+                placeholder="e.g. BTECH-CS-401 or 18CS42"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 uppercase font-mono focus:outline-none focus:border-indigo-500/50"
+              />
+            </div>
           </div>
 
-          {/* Row 2: Degree & Term */}
+          {/* Row 3: Degree & Term */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-300">Degree Field</label>

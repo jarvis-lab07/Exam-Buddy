@@ -71,6 +71,64 @@ export default function SubjectsPage() {
     setSubjects((prev) => [newSubject, ...prev]);
   };
 
+  const handleDeleteSubject = (id: string) => {
+    setSubjects((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleDuplicateSubject = (src: Subject) => {
+    const timestamp = Date.now();
+    const copy: Subject = {
+      ...src,
+      id: `sub-${timestamp}`,
+      name: `${src.name || src.title || "Subject"} (Copy)`,
+      title: `${src.title || src.name || "Subject"} (Copy)`,
+      code: `${src.code}-COPY`,
+      lastAccessed: "Just now",
+      units: (src.units || []).map((u, i) => ({
+        ...u,
+        id: `copy-${timestamp}-u${i + 1}`,
+        status: "not_started" as const,
+        progressPercentage: 0,
+      })),
+    };
+    setSubjects((prev) => [copy, ...prev]);
+  };
+
+  const handleMarkExamDone = (id: string) => {
+    setSubjects((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              completedUnits: s.units?.length || s.totalUnits || 0,
+              masteredTopics: s.totalTopics || 0,
+              units: (s.units || []).map((u) => ({
+                ...u,
+                status: "mastered" as const,
+                progressPercentage: 100,
+              })),
+              category: `${s.category || ""}`.trim() || "Completed Course",
+            }
+          : s
+      )
+    );
+  };
+
+  const handleRemoveUnit = (subjectId: string, unitId: string) => {
+    setSubjects((prev) =>
+      prev.map((s) => {
+        if (s.id !== subjectId) return s;
+        const nextUnits = (s.units || []).filter((u) => u.id !== unitId);
+        return {
+          ...s,
+          units: nextUnits,
+          totalUnits: nextUnits.length,
+          totalTopics: nextUnits.length * 3,
+        };
+      })
+    );
+  };
+
   return (
     <div className="space-y-8 pb-16">
       {/* 1. Page Header & Stats Banner */}
@@ -170,6 +228,10 @@ export default function SubjectsPage() {
               key={subject.id}
               subject={subject}
               defaultExpanded={index === 0 && filteredSubjects.length === 1}
+              onDeleteSubject={handleDeleteSubject}
+              onDuplicateSubject={handleDuplicateSubject}
+              onMarkExamDone={handleMarkExamDone}
+              onRemoveUnit={handleRemoveUnit}
             />
           ))}
         </section>

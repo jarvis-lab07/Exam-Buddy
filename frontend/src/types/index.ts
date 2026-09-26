@@ -33,6 +33,7 @@ export interface Subject {
   name: string;
   title?: string;
   code: string;
+  courseCode?: string;
   degree: "Engineering" | "Medicine" | "Law" | "Commerce" | "Management" | "Sciences" | "Other";
   semesterOrYear: string;
   color: string;
