@@ -12,6 +12,7 @@ import {
   Sparkles,
   Loader2,
   Trash2,
+  Plus,
   Cpu,
   Zap,
   HardDrive,
@@ -23,6 +24,8 @@ import {
   type AIProvider,
   getStoredApiKey,
   saveApiKey,
+  getStoredApiKeys,
+  saveApiKeys,
   validateApiKey,
   getActiveProvider,
   setActiveProvider,
@@ -32,17 +35,21 @@ import {
   getOllamaModel,
   saveOllamaModel,
   fetchOllamaModels,
+  getSelectedModel,
+  saveSelectedModel,
 } from "@/lib/ai-service";
 
 interface ApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onKeysUpdated?: () => void;
+  initialProvider?: AIProvider;
 }
 
-export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps) {
+export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }: ApiKeyModalProps) {
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>("gemini");
   const [currentKey, setCurrentKey] = useState<string>("");
+  const [multiKeys, setMultiKeys] = useState<string[]>([]);
   const [showKey, setShowKey] = useState<boolean>(false);
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [validationResult, setValidationResult] = useState<{
@@ -63,18 +70,23 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
   const [ollamaModelsList, setOllamaModelsList] = useState<{ name: string; sizeMb?: number }[]>([]);
   const [isDetectingOllama, setIsDetectingOllama] = useState<boolean>(false);
 
+  // Cloud provider model selection
+  const [cloudModel, setCloudModel] = useState<string>("");
+  const [isCustomModel, setIsCustomModel] = useState<boolean>(false);
+
   useEffect(() => {
     if (!isOpen) return;
     const active = getActiveProvider();
     setActiveProviderState(active);
-    setSelectedProvider(active);
-    loadProviderKey(active);
+    const target = initialProvider || active;
+    setSelectedProvider(target);
+    loadProviderKey(target);
     updateKeysStatus();
 
     // Load Ollama state
     setOllamaEndpointState(getOllamaEndpoint());
     setOllamaModelState(getOllamaModel());
-  }, [isOpen]);
+  }, [isOpen, initialProvider]);
 
   const updateKeysStatus = () => {
     const keys = getAllStoredKeys();
@@ -89,10 +101,44 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
   const loadProviderKey = (provider: AIProvider) => {
     if (provider === "ollama") {
       setCurrentKey(getOllamaEndpoint());
+      setMultiKeys([]);
     } else {
-      setCurrentKey(getStoredApiKey(provider));
+      const keys = getStoredApiKeys(provider);
+      setMultiKeys(keys);
+      setCurrentKey(""); // new key input starts empty
     }
+    // Load selected model for this provider
+    const model = getSelectedModel(provider);
+    setCloudModel(model);
+    const popularModels = AI_PROVIDERS[provider].popularModels;
+    setIsCustomModel(popularModels.length > 0 && !popularModels.includes(model));
     setValidationResult({ status: "idle" });
+  };
+
+  const handleAddKey = () => {
+    const trimmed = currentKey.trim();
+    if (!trimmed) return;
+    if (multiKeys.includes(trimmed)) {
+      setValidationResult({ status: "error", message: "This key is already added." });
+      return;
+    }
+    const updated = [...multiKeys, trimmed];
+    setMultiKeys(updated);
+    setCurrentKey("");
+    saveApiKeys(selectedProvider, updated);
+    setActiveProvider(selectedProvider);
+    setActiveProviderState(selectedProvider);
+    updateKeysStatus();
+    onKeysUpdated?.();
+    setValidationResult({ status: "success", message: `Key added! ${updated.length} key${updated.length > 1 ? "s" : ""} active for auto-rotation.` });
+  };
+
+  const handleRemoveMultiKey = (idx: number) => {
+    const updated = multiKeys.filter((_, i) => i !== idx);
+    setMultiKeys(updated);
+    saveApiKeys(selectedProvider, updated);
+    updateKeysStatus();
+    onKeysUpdated?.();
   };
 
   const handleProviderSelect = (provider: AIProvider) => {
@@ -171,13 +217,8 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
     if (result.valid) {
       setValidationResult({
         status: "success",
-        message: `Success! Connected to ${AI_PROVIDERS[selectedProvider].name}.`,
+        message: `✅ Valid! Click "Add Key" to add it to rotation.`,
       });
-      saveApiKey(selectedProvider, currentKey);
-      setActiveProvider(selectedProvider);
-      setActiveProviderState(selectedProvider);
-      updateKeysStatus();
-      onKeysUpdated?.();
     } else {
       setValidationResult({
         status: "error",
@@ -194,8 +235,16 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
       setActiveProvider("ollama");
       setActiveProviderState("ollama");
     } else {
-      saveApiKey(selectedProvider, currentKey);
-      if (currentKey.trim()) {
+      // Save the chosen model
+      saveSelectedModel(selectedProvider, cloudModel);
+      // If there's an unsubmitted key in the input, add it
+      if (currentKey.trim() && !multiKeys.includes(currentKey.trim())) {
+        const updated = [...multiKeys, currentKey.trim()];
+        saveApiKeys(selectedProvider, updated);
+      } else {
+        saveApiKeys(selectedProvider, multiKeys);
+      }
+      if (multiKeys.length > 0 || currentKey.trim()) {
         setActiveProvider(selectedProvider);
         setActiveProviderState(selectedProvider);
       }
@@ -210,7 +259,8 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
       saveApiKey("ollama", "");
       setOllamaEndpointState("http://localhost:11434");
     } else {
-      saveApiKey(selectedProvider, "");
+      saveApiKeys(selectedProvider, []);
+      setMultiKeys([]);
       setCurrentKey("");
     }
     setValidationResult({ status: "idle" });
@@ -397,36 +447,171 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated }: ApiKeyModalProps
               </div>
             </div>
           ) : (
-            /* Cloud API Providers Input */
-            <div className="relative">
-              <input
-                type={showKey ? "text" : "password"}
-                value={currentKey}
-                onChange={(e) => {
-                  setCurrentKey(e.target.value);
-                  setValidationResult({ status: "idle" });
-                }}
-                placeholder={currentProviderMeta.placeholder}
-                className="w-full h-11 pl-4 pr-20 rounded-xl bg-[#141624] border border-white/[0.09] text-sm text-white placeholder:text-slate-500 font-mono focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                {currentKey && (
+            /* Cloud API Providers — Multi-Key Input */
+            <div className="space-y-4">
+              {/* Step-by-Step API Key Banner */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-violet-600/10 via-indigo-600/10 to-transparent border border-violet-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-violet-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    How to get your {currentProviderMeta.name} API Key
+                  </span>
+                  <a
+                    href={currentProviderMeta.getApiKeyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-semibold flex items-center gap-1 transition-all shadow-md shadow-violet-600/20 shrink-0"
+                  >
+                    <span>Get API Key</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-1 text-[10px] text-slate-300">
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <span className="font-semibold text-amber-400 block mb-0.5">1. Click link ↗</span>
+                    Opens {currentProviderMeta.name} key creation page
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <span className="font-semibold text-cyan-400 block mb-0.5">2. Copy key</span>
+                    Create free key & copy to clipboard
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <span className="font-semibold text-emerald-400 block mb-0.5">3. Paste below</span>
+                    Paste here and click Add Key!
+                  </div>
+                </div>
+              </div>
+              {/* Existing key chips */}
+              {multiKeys.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    {multiKeys.length} key{multiKeys.length > 1 ? "s" : ""} active — auto-rotation enabled
+                  </p>
+                  {multiKeys.map((k, idx) => (
+                    <div key={idx} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                      <span className="flex-1 text-xs font-mono text-emerald-300 truncate">
+                        {k.slice(0, 8)}{'•'.repeat(12)}{k.slice(-4)}
+                      </span>
+                      <span className="text-[10px] text-emerald-500 shrink-0">Key {idx + 1}</span>
+                      <button
+                        onClick={() => handleRemoveMultiKey(idx)}
+                        className="p-1 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* New key input */}
+              <div>
+                <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                  {multiKeys.length === 0 ? "Add your API key" : "Add another API key (for rotation)"}
+                </label>
+                <div className="relative flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type={showKey ? "text" : "password"}
+                      value={currentKey}
+                      onChange={(e) => {
+                        setCurrentKey(e.target.value);
+                        setValidationResult({ status: "idle" });
+                      }}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddKey(); }}
+                      placeholder={currentProviderMeta.placeholder}
+                      className="w-full h-10 pl-4 pr-10 rounded-xl bg-[#141624] border border-white/[0.09] text-sm text-white placeholder:text-slate-500 font-mono focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKey(!showKey)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
+                    >
+                      {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    onClick={handleRemoveKey}
-                    title="Remove Key"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                    onClick={handleAddKey}
+                    disabled={!currentKey.trim()}
+                    className="h-10 px-3 rounded-xl bg-violet-600/80 hover:bg-violet-600 disabled:opacity-30 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5" />
+                    Add
                   </button>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1.5">
+                  💡 Add 2–5 keys from the same provider to bypass rate limits automatically
+                </p>
+              </div>
+
+              {/* Cloud Model Selector */}
+              <div>
+                <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                  Active Model
+                  <span className="ml-1 text-violet-400 font-normal">(you can type any model ID)</span>
+                </label>
+                {!isCustomModel ? (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={cloudModel}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "__custom__") {
+                          setIsCustomModel(true);
+                          setCloudModel("");
+                        } else {
+                          setCloudModel(val);
+                          saveSelectedModel(selectedProvider, val);
+                        }
+                      }}
+                      className="flex-1 h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white focus:outline-none focus:border-violet-500/50 font-mono"
+                    >
+                      {currentProviderMeta.popularModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                      <option value="__custom__">✏️ Enter custom model ID...</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={cloudModel}
+                      onChange={(e) => {
+                        setCloudModel(e.target.value);
+                      }}
+                      onBlur={() => {
+                        if (cloudModel.trim()) {
+                          saveSelectedModel(selectedProvider, cloudModel.trim());
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && cloudModel.trim()) {
+                          saveSelectedModel(selectedProvider, cloudModel.trim());
+                        }
+                      }}
+                      placeholder="e.g. llama-3.3-70b-versatile, gpt-4o, gemini-3.6-flash..."
+                      className="flex-1 h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white font-mono focus:outline-none focus:border-violet-500/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomModel(false);
+                        const fallback = currentProviderMeta.popularModels[0] || currentProviderMeta.defaultModel;
+                        setCloudModel(fallback);
+                        saveSelectedModel(selectedProvider, fallback);
+                      }}
+                      className="h-10 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-[11px] font-medium border border-white/[0.08] transition-colors shrink-0"
+                    >
+                      Presets
+                    </button>
+                  </div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
-                >
-                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                <p className="text-[10px] text-slate-500 mt-1.5">
+                  💡 Choose a popular model from the dropdown, or enter any custom model ID supported by {currentProviderMeta.name}
+                </p>
               </div>
             </div>
           )}

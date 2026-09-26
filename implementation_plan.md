@@ -8,8 +8,8 @@ Implement the `/subjects` page where students can select **any degree, any semes
 > This change adds new TypeScript interfaces, mock data, UI components, and a new page route. It will modify several directories (`src/types`, `src/lib`, `src/components/subjects`, `src/app/subjects`). Review the component hierarchy and naming conventions before we commit.
 
 ## Open Questions
-- Should we persist newly created subjects to a backend (Supabase) now, or keep them in local state for the MVP?
-- Preferred color‑picker UI library (e.g., `react-colorful` vs custom Tailwind picker)?
+- Decision: Persist newly created subjects to Supabase backend (MVP).
+- Preferred color‑picker UI library: `react-color` (more features, larger bundle).
 
 ## Proposed Changes
 ---

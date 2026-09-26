@@ -22,10 +22,12 @@ import {
   getActiveProvider,
   setActiveProvider,
   getStoredApiKey,
+  getStoredApiKeys,
   getAllStoredKeys,
   getOllamaEndpoint,
   getOllamaModel,
   fetchOllamaModels,
+  getSelectedModel,
 } from "@/lib/ai-service";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 
@@ -37,7 +39,14 @@ export default function AiManagerPage() {
     openai: "",
     ollama: "",
   });
+  const [keyCounts, setKeyCounts] = useState<Record<AIProvider, number>>({
+    gemini: 0,
+    groq: 0,
+    openai: 0,
+    ollama: 0,
+  });
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [modalProvider, setModalProvider] = useState<AIProvider>("gemini");
   const [ollamaModels, setOllamaModels] = useState<{ name: string; sizeMb?: number }[]>([]);
   const [isCheckingOllama, setIsCheckingOllama] = useState(false);
 
@@ -50,6 +59,13 @@ export default function AiManagerPage() {
       groq: stored.groq || "",
       openai: stored.openai || "",
       ollama: stored.ollama || "http://localhost:11434",
+    });
+
+    setKeyCounts({
+      gemini: getStoredApiKeys("gemini").length,
+      groq: getStoredApiKeys("groq").length,
+      openai: getStoredApiKeys("openai").length,
+      ollama: stored.ollama ? 1 : 0,
     });
 
     // Check Ollama models
@@ -70,6 +86,11 @@ export default function AiManagerPage() {
     setActiveProviderState(prov);
   };
 
+  const handleOpenModal = (prov: AIProvider) => {
+    setModalProvider(prov);
+    setIsKeyModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Banner */}
@@ -86,18 +107,63 @@ export default function AiManagerPage() {
               </span>
             </h1>
             <p className="text-sm text-slate-400">
-              Configure personal cloud keys (Gemini, Groq, OpenAI) or connect your local Ollama instance for 100% offline study sessions.
+              Configure cloud keys (Google Gemini, Groq, OpenAI) or connect your local Ollama instance for 100% offline study sessions.
             </p>
           </div>
         </div>
 
         <button
-          onClick={() => setIsKeyModalOpen(true)}
+          onClick={() => handleOpenModal(activeProvider)}
           className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-violet-600/30 transition-all"
         >
           <Key className="w-4 h-4 text-amber-300" />
-          <span>Configure API & Ollama</span>
+          <span>Configure API & Keys</span>
         </button>
+      </div>
+
+      {/* 3-Step Setup Guide Banner */}
+      <div className="glass-card p-5 rounded-3xl border border-violet-500/20 bg-gradient-to-r from-violet-900/20 via-indigo-900/15 to-transparent space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-300" />
+            <h2 className="text-sm font-bold text-white">How Zero-Friction AI Key Setup Works</h2>
+          </div>
+          <span className="text-[11px] text-violet-300 bg-violet-500/10 px-2.5 py-1 rounded-full border border-violet-500/20 font-medium">
+            No technical knowledge needed!
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
+              <span className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center text-[10px]">1</span>
+              <span>Click "Get API Key"</span>
+            </div>
+            <p className="text-slate-400 text-[11px]">
+              Click the link on any provider card to open their official API key page in a new tab.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-1.5 text-cyan-300 font-semibold">
+              <span className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px]">2</span>
+              <span>Paste Key & Auto-Model Setup</span>
+            </div>
+            <p className="text-slate-400 text-[11px]">
+              Paste your key. Exam-Buddy automatically configures the best working model for you!
+            </p>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-1.5 text-emerald-300 font-semibold">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px]">3</span>
+              <span>Add 2+ Keys to Bypass Limits</span>
+            </div>
+            <p className="text-slate-400 text-[11px]">
+              If rate limits hit, create another key from the same site and add it. We automatically rotate keys!
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Provider Selection Grid */}
@@ -105,9 +171,9 @@ export default function AiManagerPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-violet-400" />
-            Active AI Engine for Search & Tutor
+            AI Providers & Active Models
           </h2>
-          <span className="text-xs text-slate-400">Click a card to activate</span>
+          <span className="text-xs text-slate-400">Click a card to set as Active Engine</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -115,7 +181,9 @@ export default function AiManagerPage() {
             const meta = AI_PROVIDERS[prov];
             const isSelected = activeProvider === prov;
             const isOllama = prov === "ollama";
-            const hasKey = Boolean(keys[prov]);
+            const count = keyCounts[prov];
+            const hasKey = count > 0;
+            const currentModel = getSelectedModel(prov);
 
             return (
               <div
@@ -168,11 +236,11 @@ export default function AiManagerPage() {
                       ) : hasKey ? (
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          Ready
+                          {count > 1 ? `${count} Keys` : "Ready"}
                         </span>
                       ) : (
                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                          {meta.isFreeTier ? "No Key" : "Paid"}
+                          No Key
                         </span>
                       )}
                     </div>
@@ -180,25 +248,40 @@ export default function AiManagerPage() {
 
                   <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{meta.tagline}</p>
 
-                  <div className="text-[11px] font-mono text-slate-400 bg-black/30 p-2 rounded-xl border border-white/[0.04] truncate">
-                    {isOllama ? `Model: ${getOllamaModel()}` : `Model: ${meta.defaultModel}`}
+                  <div className="text-[11px] font-mono text-slate-300 bg-black/30 p-2 rounded-xl border border-white/[0.04] truncate">
+                    <span className="text-slate-500">Model:</span> {currentModel}
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
-                  <span className="text-slate-400 text-[11px]">
-                    {isSelected ? "🟢 Active Engine" : "Click to select"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsKeyModalOpen(true);
-                    }}
-                    className="text-violet-400 hover:text-violet-300 font-medium hover:underline flex items-center gap-1"
-                  >
-                    <span>{isOllama ? "Setup" : hasKey ? "Edit" : "Add"}</span>
-                  </button>
+                <div className="pt-3 border-t border-white/[0.06] space-y-2">
+                  {!isOllama && (
+                    <a
+                      href={meta.getApiKeyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-1.5 px-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-amber-300 hover:text-amber-200 text-[11px] font-semibold flex items-center justify-center gap-1 border border-white/[0.08] transition-colors"
+                    >
+                      <span>Get {meta.name.split(" ")[0]} API Key</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400 text-[11px]">
+                      {isSelected ? "🟢 Active Engine" : "Click to select"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenModal(prov);
+                      }}
+                      className="text-violet-400 hover:text-violet-300 font-medium hover:underline flex items-center gap-1"
+                    >
+                      <span>{isOllama ? "Setup" : hasKey ? `Manage (${count})` : "+ Add Key"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -282,6 +365,7 @@ export default function AiManagerPage() {
       {/* API Key Modal */}
       <ApiKeyModal
         isOpen={isKeyModalOpen}
+        initialProvider={modalProvider}
         onClose={() => setIsKeyModalOpen(false)}
         onKeysUpdated={loadData}
       />

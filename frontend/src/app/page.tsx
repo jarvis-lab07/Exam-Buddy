@@ -19,6 +19,11 @@ import {
   Target,
   Calendar,
   CalendarDays,
+  BarChart3,
+  Zap,
+  Activity,
+  ChevronRight,
+  Play,
 } from "lucide-react";
 import {
   MOCK_USER,
@@ -27,8 +32,12 @@ import {
   MOCK_WEEKLY_STUDY,
   MOCK_RECENT_DOCUMENTS,
   MOCK_TODAY_TASKS,
+  MOCK_CALENDAR_EVENTS,
+  MOCK_STUDY_STATS,
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { DailyGoalRing } from "@/components/focus/DailyGoalRing";
+import type { CalendarEvent } from "@/types";
 
 const continueSubjects = MOCK_SUBJECTS.filter((s) => s.degree === "Engineering");
 
@@ -150,28 +159,155 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* 2. Stat chips */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {MOCK_QUICK_METRICS.map((metric) => (
-          <div key={metric.id} className="card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5A5875]">
-                  {metric.label}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-[#F1F1F8] tracking-tight">
-                  {metric.value}
-                </p>
-                <p className="mt-1.5 text-xs text-[#9B99B5]">
-                  {metricTrend(metric.id, metric.trendText)}
-                </p>
+      {/* 2. Bento Grid: Hourly Density + Daily Goal + Mastery + Next 2h + Today Queue */}
+      <section className="grid grid-cols-12 gap-4 auto-rows-min">
+        {/* Card A — Hero: 24-Hour Study Density Bar Chart */}
+        <BentoDensityChart className="col-span-12 lg:col-span-7 lg:row-span-2" />
+
+        {/* Card B — Daily Goal Mega-Ring */}
+        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-1 p-5 flex flex-col items-center">
+          <div className="flex items-center justify-between w-full mb-3 px-0.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-violet-400" />
+              Today's Goal
+            </h3>
+            <span className="text-[10px] font-mono text-violet-300 bg-violet-500/10 px-1.5 py-0.5 rounded-md border border-violet-500/25">
+              {(165 / 210 * 100).toFixed(0)}%
+            </span>
+          </div>
+          <DailyGoalRing size="sm" />
+        </div>
+
+        {/* Card C — Mastered Topics */}
+        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-5 space-y-3">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+              <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+              Topics Mastered
+            </h3>
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+              +2 today
+            </span>
+          </div>
+          <div className="flex items-end gap-2">
+            <div>
+              <div className="text-4xl font-black tracking-tight text-white leading-none">
+                {MOCK_STUDY_STATS.topicsMastered}
+                <span className="text-lg font-semibold text-[#9B99B5]">/{MOCK_STUDY_STATS.totalTopics}</span>
               </div>
-              <div className="p-2 rounded-xl bg-[#1A1A2E] border border-white/[0.06]">
-                {getMetricIcon(metric.id)}
+              <p className="text-[11px] text-[#9B99B5] mt-1">
+                {(MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100).toFixed(0)}% of curriculum
+              </p>
+            </div>
+            <div className="ml-auto text-right space-y-1">
+              <div className="flex items-center gap-2 justify-end text-[11px]">
+                <span className="text-cyan-300 font-semibold">Quiz accuracy</span>
+                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold">
+                  {MOCK_STUDY_STATS.quizAccuracyPercent}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2 justify-end text-[11px]">
+                <span className="text-amber-300 font-semibold">Cohort rank</span>
+                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold">
+                  Top 5%
+                </span>
               </div>
             </div>
           </div>
-        ))}
+          <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-700"
+              style={{ width: `${MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Card D — Next 2 Hours (compact timeline) */}
+        <BentoNextTwoHours className="col-span-12 lg:col-span-5 lg:col-start-8 lg:row-start-3" />
+
+        {/* Card E — Today's Task Queue */}
+        <div className="card col-span-12 lg:col-span-7 lg:row-span-1 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
+              Today&apos;s Task Queue
+            </h3>
+            <Link
+              href="/planner"
+              className="text-[10px] font-semibold text-violet-300 hover:text-violet-200 flex items-center gap-1"
+            >
+              All tasks
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-1.5">
+            {tasks.slice(0, 4).map((task) => (
+              <button
+                key={task.id}
+                type="button"
+                onClick={() => toggleTask(task.id)}
+                className={cn(
+                  "w-full text-left px-2.5 py-2 rounded-xl border transition-all flex items-center gap-2.5",
+                  task.completed
+                    ? "bg-emerald-950/30 border-emerald-500/20 opacity-60"
+                    : "bg-white/[0.015] hover:bg-white/[0.04] border-white/[0.06]"
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex items-center justify-center w-4 h-4 rounded border shrink-0",
+                    task.completed
+                      ? "bg-emerald-500 border-emerald-400"
+                      : "border-[#5A5875]"
+                  )}
+                >
+                  {task.completed && <CheckCircle2 className="w-3 h-3 text-black" />}
+                </span>
+                <span
+                  className="w-1 h-6 rounded-full shrink-0"
+                  style={{ backgroundColor: task.subjectColor, opacity: 0.7 }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="px-1.5 py-px rounded text-[9px] font-bold"
+                      style={{
+                        backgroundColor: `${task.subjectColor}18`,
+                        color: task.subjectColor,
+                      }}
+                    >
+                      {task.subjectName}
+                    </span>
+                    <span className="text-[10px] text-[#5A5875] font-mono">{task.dueText}</span>
+                    {task.isHighPriority && (
+                      <Zap className="w-2.5 h-2.5 text-rose-400 shrink-0" />
+                    )}
+                  </div>
+                  <p
+                    className={cn(
+                      "text-xs font-semibold mt-0.5 truncate",
+                      task.completed ? "line-through text-[#9B99B5]" : "text-[#F1F1F8]"
+                    )}
+                  >
+                    {task.topicTitle}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-white/[0.05] text-[11px]">
+            <span className="text-[#9B99B5]">
+              {completedCount}/{tasks.length} done · {(completedCount / tasks.length * 100).toFixed(0)}%
+            </span>
+            <Link
+              href="/planner"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold hover:from-violet-500 hover:to-indigo-500 transition-colors shadow-md shadow-violet-600/20"
+            >
+              <Play className="w-2.5 h-2.5 fill-white" />
+              Start Next
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* 3. Continue Studying + Today's Revision */}
@@ -471,6 +607,310 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   BENTO SUBCOMPONENTS
+   ────────────────────────────────────────────────────────── */
+
+/* Sample 24-hour subject-split density (mimics what would come from backend) */
+const DENSITY_24H: Array<{
+  hour: number;
+  segments: Array<{ minutes: number; color: string; subject: string }>;
+}> = Array.from({ length: 24 }).map((_, hour) => {
+  switch (hour) {
+    case 8:
+      return { hour, segments: [{ minutes: 25, color: "#7C3AED", subject: "DSA" }] };
+    case 9:
+      return {
+        hour,
+        segments: [
+          { minutes: 30, color: "#10B981", subject: "Chem" },
+          { minutes: 22, color: "#06B6D4", subject: "CN" },
+        ],
+      };
+    case 10:
+      return { hour, segments: [{ minutes: 7, color: "#06B6D4", subject: "CN" }] };
+    case 11:
+      return {
+        hour,
+        segments: [
+          { minutes: 40, color: "#7C3AED", subject: "DSA" },
+          { minutes: 20, color: "#F59E0B", subject: "DBMS" },
+        ],
+      };
+    case 13:
+      return { hour, segments: [{ minutes: 40, color: "#F59E0B", subject: "DBMS" }] };
+    case 14:
+      return {
+        hour,
+        segments: [
+          { minutes: 20, color: "#10B981", subject: "Chem" },
+          { minutes: 15, color: "#EC4899", subject: "Math" },
+        ],
+      };
+    case 15:
+      return {
+        hour,
+        segments: [
+          { minutes: 30, color: "#7C3AED", subject: "DSA" },
+          { minutes: 28, color: "#06B6D4", subject: "CN" },
+        ],
+      };
+    case 16:
+      return { hour, segments: [{ minutes: 18, color: "#EC4899", subject: "Math" }] };
+    case 17:
+      return { hour, segments: [{ minutes: 44, color: "#10B981", subject: "Chem" }] };
+    case 19:
+      return { hour, segments: [{ minutes: 30, color: "#F59E0B", subject: "DBMS" }] };
+    case 20:
+      return {
+        hour,
+        segments: [
+          { minutes: 15, color: "#7C3AED", subject: "DSA" },
+          { minutes: 5, color: "#10B981", subject: "Chem" },
+        ],
+      };
+    default:
+      return { hour, segments: [] };
+  }
+});
+
+function BentoDensityChart({ className }: { className?: string }) {
+  const totalMinutes = DENSITY_24H.reduce(
+    (sum, h) => sum + h.segments.reduce((s, seg) => s + seg.minutes, 0),
+    0
+  );
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+
+  return (
+    <div className={cn("card p-5 space-y-4", className)}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
+            Study Density Today
+          </h3>
+          <p className="text-xs text-[#9B99B5] mt-1">
+            Hour-by-hour subject-split · 00:00 → 23:59
+          </p>
+        </div>
+        <div className="flex items-end gap-3">
+          <div>
+            <div className="text-[10px] font-semibold text-[#5A5875] uppercase tracking-wider">
+              Total logged
+            </div>
+            <div className="text-2xl font-black text-white tracking-tight font-mono">
+              {hours}
+              <span className="text-sm font-semibold text-[#9B99B5]">h {String(mins).padStart(2, "0")}m</span>
+            </div>
+          </div>
+          <span className="px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 text-[10px] font-bold flex items-center gap-1">
+            <Activity className="w-2.5 h-2.5" /> +14% vs yesterday
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-end gap-[3px] h-48 px-0.5">
+        {DENSITY_24H.map((h) => {
+          const minStacked = h.segments.reduce((s, x) => s + x.minutes, 0);
+          const totalPct = Math.min(100, (minStacked / 60) * 100);
+          const now = new Date().getHours();
+          const isNow = now === h.hour;
+          return (
+            <div key={h.hour} className="flex-1 flex flex-col items-center justify-end h-full min-w-0 group relative">
+              <div
+                className={cn(
+                  "w-full flex flex-col justify-end rounded-t-lg overflow-hidden transition-all duration-700 ease-out origin-bottom",
+                  totalPct === 0 ? "bg-white/[0.03]" : "",
+                  isNow && "ring-1 ring-amber-400/60 ring-offset-2 ring-offset-transparent z-10"
+                )}
+                style={{ height: `${Math.max(totalPct, totalPct > 0 ? 6 : 3)}%` }}
+              >
+                {h.segments.length > 0 ? (
+                  h.segments.map((seg, i) => (
+                    <div
+                      key={`${h.hour}-${i}`}
+                      className="w-full transition-all"
+                      style={{
+                        height: `${(seg.minutes / 60) * 100}%`,
+                        backgroundColor: seg.color,
+                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                      }}
+                      title={`${h.hour}:00 — ${seg.subject} (${seg.minutes}m)`}
+                    />
+                  ))
+                ) : (
+                  <div className="w-full h-full bg-white/[0.04]" />
+                )}
+              </div>
+              {/* Hour label */}
+              <span
+                className={cn(
+                  "mt-1.5 text-[9px] font-mono transition-colors",
+                  isNow ? "text-amber-400 font-bold" : "text-[#5A5875]",
+                  h.hour % 3 !== 0 && "opacity-0 group-hover:opacity-100"
+                )}
+              >
+                {String(h.hour).padStart(2, "0")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-white/[0.05]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5A5875]">Subjects</span>
+        {[
+          { color: "#7C3AED", label: "DSA" },
+          { color: "#10B981", label: "Chemistry" },
+          { color: "#06B6D4", label: "Networks" },
+          { color: "#F59E0B", label: "DBMS" },
+          { color: "#EC4899", label: "Mathematics" },
+        ].map((l) => (
+          <span
+            key={l.color}
+            className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#9B99B5]"
+          >
+            <span
+              className="w-2.5 h-2.5 rounded-sm"
+              style={{ backgroundColor: l.color }}
+            />
+            {l.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Card D: compact next-2h event timeline ── */
+function parseStartMin(ts: string): number {
+  const [h, m] = ts.split("-")[0].trim().split(":").map(Number);
+  return h * 60 + m;
+}
+
+function BentoNextTwoHours({ className }: { className?: string }) {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const horizonMin = nowMin + 120;
+
+  const upcoming = useMemo(() => {
+    return [...MOCK_CALENDAR_EVENTS]
+      .map((ev) => ({ ev, start: parseStartMin(ev.timeSlot) }))
+      .filter((x) => x.start >= nowMin && x.start <= horizonMin)
+      .sort((a, b) => a.start - b.start)
+      .slice(0, 3);
+  }, []);
+
+  return (
+    <div className={cn("card p-5 space-y-3", className)}>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+          Next 2 Hours
+        </h3>
+        <Link
+          href="/planner"
+          className="text-[10px] font-semibold text-violet-300 hover:text-violet-200 flex items-center gap-1"
+        >
+          Full timeline
+          <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+
+      {upcoming.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-6 text-center">
+          <Zap className="w-8 h-8 text-[#5A5875] mb-2" />
+          <p className="text-xs font-semibold text-[#9B99B5]">No sessions scheduled</p>
+          <p className="text-[11px] text-[#5A5875] mt-1">Open Planner to plan your next block</p>
+          <Link
+            href="/planner"
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-bold text-white border border-white/[0.08]"
+          >
+            <Play className="w-2.5 h-2.5 fill-white" />
+            Plan a session
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {upcoming.map(({ ev, start }, i) => {
+            const minutesUntil = start - nowMin;
+            return (
+              <div
+                key={ev.id}
+                className="relative flex items-start gap-3 p-2.5 rounded-xl border border-white/[0.05] bg-white/[0.015] hover:bg-white/[0.03] transition-colors"
+              >
+                <div
+                  className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
+                  style={{ backgroundColor: ev.subjectColor }}
+                />
+                <div className="pl-2 flex flex-col items-center gap-1 shrink-0">
+                  <span className="text-[10px] font-black font-mono text-white">
+                    {String(Math.floor(start / 60)).padStart(2, "0")}:
+                    {String(start % 60).padStart(2, "0")}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[9px] font-semibold px-1.5 py-0.5 rounded-md",
+                      i === 0
+                        ? "bg-violet-500/15 text-violet-300 border border-violet-500/25"
+                        : "bg-white/[0.04] text-[#9B99B5]"
+                    )}
+                  >
+                    {i === 0
+                      ? minutesUntil < 60
+                        ? `${minutesUntil}m left`
+                        : `${Math.floor(minutesUntil / 60)}h ${minutesUntil % 60}m`
+                      : `+${Math.ceil(minutesUntil / 60)}h block`}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      className="px-1.5 py-px rounded text-[9px] font-bold"
+                      style={{
+                        backgroundColor: `${ev.subjectColor}18`,
+                        color: ev.subjectColor,
+                      }}
+                    >
+                      {ev.subjectName}
+                    </span>
+                    {ev.type === "quiz" && (
+                      <span className="text-[9px] font-semibold px-1.5 py-px rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
+                        Quiz
+                      </span>
+                    )}
+                    {ev.type === "lecture" && (
+                      <span className="text-[9px] font-semibold px-1.5 py-px rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">
+                        Lecture
+                      </span>
+                    )}
+                    {ev.type === "revision" && (
+                      <span className="text-[9px] font-semibold px-1.5 py-px rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25">
+                        Revision
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-[#F1F1F8] mt-0.5 truncate">
+                    {ev.title}
+                  </p>
+                  {ev.roomOrPlatform && (
+                    <p className="text-[10px] text-[#5A5875] truncate flex items-center gap-1 mt-0.5">
+                      <BookOpen className="w-2.5 h-2.5" />
+                      {ev.roomOrPlatform}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

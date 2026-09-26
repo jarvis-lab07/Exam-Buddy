@@ -124,3 +124,103 @@ export interface QuickMetric {
   badgeText?: string;
   accent: "indigo" | "violet" | "cyan" | "emerald" | "amber";
 }
+
+export type FlashcardDifficulty = "easy" | "medium" | "hard";
+export type FlashcardDeckType = "high-yield" | "mistake-notebook" | "formulas" | "standard";
+export type FlashcardMastery = "new" | "learning" | "mastered";
+
+export interface Flashcard {
+  id: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  subjectColor: string;
+  unitNumber?: number;
+  unitTitle?: string;
+  question: string;
+  answer: string;
+  formula?: string;
+  codeSnippet?: string;
+  examTip?: string;
+  hint?: string;
+  difficulty: FlashcardDifficulty;
+  deckType: FlashcardDeckType;
+  masteryStatus: FlashcardMastery;
+  reviewIntervalDays?: number;
+  lastReviewed?: string;
+}
+
+export interface FlashcardDeck {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectCode: string;
+  color: string;
+  cardCount: number;
+  masteredCount: number;
+  tag: string;
+  description: string;
+}
+
+export type DocumentCategory =
+  | "Lecture Notes"
+  | "Syllabus / PPT"
+  | "Question Bank / PYQ"
+  | "Cheat Sheet"
+  | "Lab Manual";
+
+export type DocumentStatus = "vectorized" | "processing" | "indexing" | "ready";
+
+export interface DocumentUploadItem {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  subjectColor: string;
+  unitTitle?: string;
+  fileType: "pdf" | "ppt" | "doc" | "notes";
+  fileSize: string;
+  category: DocumentCategory;
+  status: DocumentStatus;
+  uploadDate: string;
+  pages: number;
+  vectorCount: number;
+  summary: string;
+  keyTopics: string[];
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectName: string;
+  subjectColor: string;
+  dayOfWeek: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+  timeSlot: string; // e.g. "09:00 - 10:30"
+  durationMinutes: number;
+  type: "revision" | "lecture" | "quiz" | "flashcards" | "exam";
+  roomOrPlatform?: string;
+  unitTitle?: string;
+}
+
+export type PomodoroMode = "focus" | "shortBreak" | "longBreak";
+
+export interface PomodoroSettings {
+  focusMinutes: number;
+  shortBreakMinutes: number;
+  longBreakMinutes: number;
+  roundsUntilLongBreak: number;
+  autoAdvance: boolean;
+}
+
+export interface PomodoroSession {
+  mode: PomodoroMode;
+  isRunning: boolean;
+  timeLeftSeconds: number;
+  completedRounds: number;
+  todayTotalFocusMinutes: number;
+  settings: PomodoroSettings;
+  dateKey: string;
+}
+

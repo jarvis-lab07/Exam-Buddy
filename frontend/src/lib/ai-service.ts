@@ -1,11 +1,21 @@
 // Client-side BYOK (Bring Your Own Key) & Local Ollama AI Service for Exam-Buddy
 
+import {
+  GEMINI_FALLBACK_MODELS,
+  GROQ_FALLBACK_MODELS,
+  OLLAMA_FALLBACK_MODELS,
+  OPENAI_FALLBACK_MODELS,
+  buildModelsToTry,
+  isModelUnavailableStatus,
+} from "@/lib/ai-model-fallbacks";
+
 export type AIProvider = "gemini" | "groq" | "openai" | "ollama";
 
 export interface ProviderMeta {
   id: AIProvider;
   name: string;
   defaultModel: string;
+  popularModels: string[];
   tagline: string;
   isFreeTier: boolean;
   isLocal?: boolean;
@@ -17,7 +27,14 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
   gemini: {
     id: "gemini",
     name: "Google Gemini",
-    defaultModel: "gemini-2.0-flash",
+    defaultModel: "gemini-3.6-flash",
+    popularModels: [
+      "gemini-3.6-flash",
+      "gemini-3.6-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-1.5-flash",
+    ],
     tagline: "Free tier with 15 RPM • Fast & accurate",
     isFreeTier: true,
     getApiKeyUrl: "https://aistudio.google.com/app/apikey",
@@ -25,8 +42,17 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
   },
   groq: {
     id: "groq",
-    name: "Groq (Llama 3.3)",
-    defaultModel: "llama-3.3-70b-versatile",
+    name: "Groq",
+    defaultModel: "llama-3.1-8b-instant",
+    popularModels: [
+      "llama-3.1-8b-instant",
+      "llama-3.3-70b-versatile",
+      "llama-3.2-90b-vision-preview",
+      "mixtral-8x7b-32768",
+      "gemma2-9b-it",
+      "qwen-qwq-32b",
+      "deepseek-r1-distill-llama-70b",
+    ],
     tagline: "Ultra-fast cloud inference (500+ tokens/sec)",
     isFreeTier: true,
     getApiKeyUrl: "https://console.groq.com/keys",
@@ -36,6 +62,7 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
     id: "ollama",
     name: "Ollama (Local AI)",
     defaultModel: "llama3:latest",
+    popularModels: [],
     tagline: "100% offline & private on your local GPU/CPU",
     isFreeTier: true,
     isLocal: true,
@@ -46,6 +73,14 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
     id: "openai",
     name: "OpenAI",
     defaultModel: "gpt-4o-mini",
+    popularModels: [
+      "gpt-4o-mini",
+      "gpt-4o",
+      "gpt-4-turbo",
+      "gpt-3.5-turbo",
+      "o1-mini",
+      "o1-preview",
+    ],
     tagline: "High reasoning standard for university exams",
     isFreeTier: false,
     getApiKeyUrl: "https://platform.openai.com/api-keys",
@@ -60,8 +95,72 @@ const STORAGE_KEYS: Record<AIProvider, string> = {
   ollama: "exambuddy_ollama_endpoint",
 };
 
+// Multi-key storage (arrays of keys for rotation)
+const MULTI_KEY_STORAGE: Record<AIProvider, string> = {
+  gemini: "exambuddy_keys_gemini",
+  groq: "exambuddy_keys_groq",
+  openai: "exambuddy_keys_openai",
+  ollama: "exambuddy_keys_ollama",
+};
+
+export function getStoredApiKeys(provider: AIProvider): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(MULTI_KEY_STORAGE[provider]);
+    const parsed: string[] = raw ? JSON.parse(raw) : [];
+    // Also include the single legacy key if not already present
+    const legacy = localStorage.getItem(STORAGE_KEYS[provider]);
+    if (legacy && !parsed.includes(legacy)) parsed.unshift(legacy);
+    return parsed.filter(Boolean);
+  } catch {
+    const legacy = localStorage.getItem(STORAGE_KEYS[provider]);
+    return legacy ? [legacy] : [];
+  }
+}
+
+export function saveApiKeys(provider: AIProvider, keys: string[]): void {
+  if (typeof window === "undefined") return;
+  const cleaned = keys.map((k) => k.trim()).filter(Boolean);
+  localStorage.setItem(MULTI_KEY_STORAGE[provider], JSON.stringify(cleaned));
+  // Keep single-key slot in sync with first key for backwards compat
+  if (cleaned[0]) {
+    localStorage.setItem(STORAGE_KEYS[provider], cleaned[0]);
+  } else {
+    localStorage.removeItem(STORAGE_KEYS[provider]);
+  }
+}
+
 export const OLLAMA_MODEL_KEY = "exambuddy_ollama_model";
 const ACTIVE_PROVIDER_KEY = "exambuddy_active_provider";
+
+// Per-provider custom model selection storage
+const MODEL_SELECTION_KEY_PREFIX = "exambuddy_model_";
+
+export function getSelectedModel(provider: AIProvider): string {
+  if (typeof window === "undefined") return AI_PROVIDERS[provider].defaultModel;
+  if (provider === "ollama") return getOllamaModel();
+  const stored = localStorage.getItem(`${MODEL_SELECTION_KEY_PREFIX}${provider}`);
+  if (stored && provider === "gemini" && (stored.includes("2.0") || stored.includes("preview"))) {
+    const updated = AI_PROVIDERS.gemini.defaultModel;
+    saveSelectedModel("gemini", updated);
+    return updated;
+  }
+  return stored || AI_PROVIDERS[provider].defaultModel;
+}
+
+export function saveSelectedModel(provider: AIProvider, model: string): void {
+  if (typeof window === "undefined") return;
+  if (provider === "ollama") {
+    saveOllamaModel(model);
+    return;
+  }
+  const trimmed = model.trim();
+  if (trimmed) {
+    localStorage.setItem(`${MODEL_SELECTION_KEY_PREFIX}${provider}`, trimmed);
+  } else {
+    localStorage.removeItem(`${MODEL_SELECTION_KEY_PREFIX}${provider}`);
+  }
+}
 
 export interface StoredKeys {
   gemini?: string;
@@ -206,66 +305,84 @@ export async function validateApiKey(
 
   try {
     if (provider === "gemini") {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${trimmed}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: "Hello" }] }],
-          generationConfig: { maxOutputTokens: 5 },
-        }),
-      });
-
-      if (!res.ok) {
+      const modelsToTry = buildModelsToTry(AI_PROVIDERS.gemini.defaultModel, GEMINI_FALLBACK_MODELS);
+      let lastMessage = "";
+      for (const targetModel of modelsToTry) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${trimmed}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "Hello" }] }],
+            generationConfig: { maxOutputTokens: 5 },
+          }),
+        });
+        if (res.ok) return { valid: true };
         const data = await res.json().catch(() => ({}));
-        const message = data?.error?.message || `HTTP ${res.status}: Invalid Gemini API Key`;
-        return { valid: false, error: message };
+        lastMessage = data?.error?.message || `HTTP ${res.status}: Invalid Gemini API Key`;
+        if (isModelUnavailableStatus(res.status)) {
+          console.warn(`[Gemini] Model ${targetModel} unavailable (${res.status}): ${lastMessage}`);
+          continue;
+        }
+        return { valid: false, error: lastMessage };
       }
-      return { valid: true };
+      return { valid: false, error: lastMessage || "All Gemini models failed validation" };
     }
 
     if (provider === "groq") {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${trimmed}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{ role: "user", content: "hi" }],
-          max_tokens: 5,
-        }),
-      });
-
-      if (!res.ok) {
+      const modelsToTry = buildModelsToTry(getSelectedModel("groq"), GROQ_FALLBACK_MODELS);
+      let lastMessage = "";
+      for (const targetModel of modelsToTry) {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${trimmed}`,
+          },
+          body: JSON.stringify({
+            model: targetModel,
+            messages: [{ role: "user", content: "hi" }],
+            max_tokens: 5,
+          }),
+        });
+        if (res.ok) return { valid: true };
         const data = await res.json().catch(() => ({}));
-        const message = data?.error?.message || `HTTP ${res.status}: Invalid Groq API Key`;
-        return { valid: false, error: message };
+        lastMessage = data?.error?.message || `HTTP ${res.status}: Invalid Groq API Key`;
+        if (isModelUnavailableStatus(res.status)) {
+          console.warn(`[Groq] Model ${targetModel} unavailable (${res.status}): ${lastMessage}`);
+          continue;
+        }
+        return { valid: false, error: lastMessage };
       }
-      return { valid: true };
+      return { valid: false, error: lastMessage || "All Groq models failed validation" };
     }
 
     if (provider === "openai") {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${trimmed}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: "hi" }],
-          max_tokens: 5,
-        }),
-      });
-
-      if (!res.ok) {
+      const modelsToTry = buildModelsToTry("gpt-4o-mini", OPENAI_FALLBACK_MODELS);
+      let lastMessage = "";
+      for (const targetModel of modelsToTry) {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${trimmed}`,
+          },
+          body: JSON.stringify({
+            model: targetModel,
+            messages: [{ role: "user", content: "hi" }],
+            max_tokens: 5,
+          }),
+        });
+        if (res.ok) return { valid: true };
         const data = await res.json().catch(() => ({}));
-        const message = data?.error?.message || `HTTP ${res.status}: Invalid OpenAI API Key`;
-        return { valid: false, error: message };
+        lastMessage = data?.error?.message || `HTTP ${res.status}: Invalid OpenAI API Key`;
+        if (isModelUnavailableStatus(res.status)) {
+          console.warn(`[OpenAI] Model ${targetModel} unavailable (${res.status}): ${lastMessage}`);
+          continue;
+        }
+        return { valid: false, error: lastMessage };
       }
-      return { valid: true };
+      return { valid: false, error: lastMessage || "All OpenAI models failed validation" };
     }
 
     return { valid: false, error: "Unknown provider" };
@@ -355,117 +472,202 @@ FORMAT IN 4 CONCISE SECTIONS:
 
   try {
     let markdown = "";
-    let modelName = AI_PROVIDERS[provider].defaultModel;
+    let modelName = getSelectedModel(provider);
 
     if (provider === "ollama") {
       const endpoint = getOllamaEndpoint();
       const localModel = getOllamaModel();
-
-      const res = await fetch("/api/ollama", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "chat",
-          endpoint,
-          model: localModel,
-          messages: [
-            { role: "system", content: localOllamaPrompt },
-            { role: "user", content: options.query },
-          ],
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(
-          data.error ||
-            "Could not query local Ollama. Please ensure `ollama serve` is running."
-        );
+      let installed: string[] = [];
+      const tags = await fetchOllamaModels(endpoint);
+      if (tags.success) {
+        installed = tags.models.map((m) => m.name).filter(Boolean);
       }
+      const modelsToTry = Array.from(
+        new Set([...buildModelsToTry(localModel, OLLAMA_FALLBACK_MODELS), ...installed])
+      );
+      let lastErr = "";
 
-      markdown = data.content || "No response generated by local Ollama.";
-      modelName = `Ollama (${data.model || localModel})`;
-    } else if (provider === "gemini") {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `${systemPrompt}\n\nSTUDENT EXAM QUESTION:\n${options.query}`,
-                },
+      for (const targetModel of modelsToTry) {
+        try {
+          const res = await fetch("/api/ollama", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "chat",
+              endpoint,
+              model: targetModel,
+              messages: [
+                { role: "system", content: localOllamaPrompt },
+                { role: "user", content: options.query },
               ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 1500,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `Gemini API error (Status ${res.status})`);
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.content) {
+            markdown = data.content;
+            modelName = `Ollama (${data.model || targetModel})`;
+            break;
+          }
+          lastErr = data.error || `Model ${targetModel} not available`;
+          if (isModelUnavailableStatus(res.status)) {
+            console.warn(`[Ollama] Model ${targetModel} unavailable (${res.status}): ${lastErr}`);
+          }
+        } catch (e: unknown) {
+          lastErr = e instanceof Error ? e.message : "Ollama connection error";
+          console.warn(`[Ollama] Model ${targetModel} failed:`, lastErr);
+        }
       }
 
-      const data = await res.json();
-      markdown =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No response generated. Please check your query.";
+      if (!markdown) {
+        throw new Error(lastErr || "Could not query local Ollama. Please ensure `ollama serve` is running.");
+      }
+    } else if (provider === "gemini") {
+      const apiKeys = getStoredApiKeys("gemini");
+      const keysToUse = apiKeys.length > 0 ? apiKeys : [apiKey];
+      let cleanModel = (modelName || "gemini-3.6-flash").replace(/^models\//, "").trim();
+      if (cleanModel.includes("2.0") || cleanModel.includes("preview")) {
+        cleanModel = "gemini-3.6-flash";
+      }
+      const modelsToTry = buildModelsToTry(cleanModel, GEMINI_FALLBACK_MODELS);
+      let lastErrorMsg = "";
+
+      geminiLoop: for (const targetModel of modelsToTry) {
+        for (const k of keysToUse) {
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${k.trim()}`;
+            const res = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `${systemPrompt}\n\nSTUDENT EXAM QUESTION:\n${options.query}` }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              markdown = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+              if (markdown) {
+                modelName = targetModel;
+                break geminiLoop;
+              }
+            } else {
+              const errJson = await res.json().catch(() => ({}));
+              lastErrorMsg = errJson?.error?.message || `Gemini API error (Status ${res.status})`;
+              if (isModelUnavailableStatus(res.status)) {
+                console.warn(`[Gemini] Model ${targetModel} unavailable (${res.status}): ${lastErrorMsg}`);
+                continue geminiLoop;
+              }
+            }
+          } catch (e: unknown) {
+            lastErrorMsg = e instanceof Error ? e.message : "Gemini fetch error";
+          }
+        }
+      }
+
+      if (!markdown) {
+        throw new Error(lastErrorMsg || "All Gemini models/keys failed to generate response.");
+      }
     } else if (provider === "groq") {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: options.query },
-          ],
-          temperature: 0.2,
-          max_tokens: 1500,
-        }),
-      });
+      const apiKeys = getStoredApiKeys("groq");
+      const keysToUse = apiKeys.length > 0 ? apiKeys : [apiKey];
+      const modelsToTry = buildModelsToTry(modelName || "llama-3.1-8b-instant", GROQ_FALLBACK_MODELS);
+      let lastErrorMsg = "";
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `Groq API error (Status ${res.status})`);
+      groqLoop: for (const targetModel of modelsToTry) {
+        for (const k of keysToUse) {
+          try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${k.trim()}`,
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: options.query },
+                ],
+                temperature: 0.2,
+                max_tokens: 1500,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              markdown = data?.choices?.[0]?.message?.content || "";
+              if (markdown) {
+                modelName = targetModel;
+                break groqLoop;
+              }
+            } else {
+              const errJson = await res.json().catch(() => ({}));
+              lastErrorMsg = errJson?.error?.message || `Groq API error (Status ${res.status})`;
+              if (isModelUnavailableStatus(res.status)) {
+                console.warn(`[Groq] Model ${targetModel} unavailable (${res.status}): ${lastErrorMsg}`);
+                continue groqLoop;
+              }
+            }
+          } catch (e: unknown) {
+            lastErrorMsg = e instanceof Error ? e.message : "Groq fetch error";
+          }
+        }
       }
 
-      const data = await res.json();
-      markdown = data?.choices?.[0]?.message?.content || "No response generated.";
+      if (!markdown) {
+        throw new Error(lastErrorMsg || "All Groq models/keys failed to generate response.");
+      }
     } else if (provider === "openai") {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: options.query },
-          ],
-          temperature: 0.2,
-          max_tokens: 1500,
-        }),
-      });
+      const apiKeys = getStoredApiKeys("openai");
+      const keysToUse = apiKeys.length > 0 ? apiKeys : [apiKey];
+      const modelsToTry = buildModelsToTry(modelName || "gpt-4o-mini", OPENAI_FALLBACK_MODELS);
+      let lastErrorMsg = "";
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `OpenAI API error (Status ${res.status})`);
+      openaiLoop: for (const targetModel of modelsToTry) {
+        for (const k of keysToUse) {
+          try {
+            const res = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${k.trim()}`,
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: options.query },
+                ],
+                temperature: 0.2,
+                max_tokens: 1500,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              markdown = data?.choices?.[0]?.message?.content || "";
+              if (markdown) {
+                modelName = targetModel;
+                break openaiLoop;
+              }
+            } else {
+              const errJson = await res.json().catch(() => ({}));
+              lastErrorMsg = errJson?.error?.message || `OpenAI API error (Status ${res.status})`;
+              if (isModelUnavailableStatus(res.status)) {
+                console.warn(`[OpenAI] Model ${targetModel} unavailable (${res.status}): ${lastErrorMsg}`);
+                continue openaiLoop;
+              }
+            }
+          } catch (e: unknown) {
+            lastErrorMsg = e instanceof Error ? e.message : "OpenAI fetch error";
+          }
+        }
       }
 
-      const data = await res.json();
-      markdown = data?.choices?.[0]?.message?.content || "No response generated.";
+      if (!markdown) {
+        throw new Error(lastErrorMsg || "All OpenAI models/keys failed to generate response.");
+      }
     }
 
     return {

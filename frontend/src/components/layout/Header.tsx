@@ -1,16 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Flame, Bell, Menu, Sparkles, Key } from "lucide-react";
+import { Search, Flame, Bell, Menu, Sparkles, Key, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
+  onToggleFocusDock?: () => void;
+  focusDockExpanded?: boolean;
 }
 
-export function Header({ onToggleSidebar }: HeaderProps) {
+export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
@@ -42,13 +45,35 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 h-14 px-3 sm:px-5 bg-[#0C0C14]/80 backdrop-blur-xl border-b border-white/[0.07]">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 rounded-xl text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors"
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-xl text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {onToggleFocusDock !== undefined && (
+            <button
+              onClick={onToggleFocusDock}
+              className={cn(
+                "hidden lg:flex items-center p-2 rounded-xl transition-colors",
+                focusDockExpanded
+                  ? "text-violet-300 bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/30"
+                  : "text-[#9B99B5] hover:text-white hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.12]"
+              )}
+              aria-label={focusDockExpanded ? "Collapse focus dock" : "Expand focus dock"}
+              title={focusDockExpanded ? "Hide Focus Dock" : "Show Focus Dock"}
+            >
+              {focusDockExpanded ? (
+                <PanelRightClose className="w-4.5 w-[18px] h-[18px]" />
+              ) : (
+                <PanelRightOpen className="w-4.5 w-[18px] h-[18px]" />
+              )}
+            </button>
+          )}
+        </div>
 
         <div className="flex justify-center min-w-0">
           <button
@@ -147,4 +172,3 @@ export function Header({ onToggleSidebar }: HeaderProps) {
     </>
   );
 }
-
