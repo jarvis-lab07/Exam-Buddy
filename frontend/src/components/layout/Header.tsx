@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Flame, Bell, Menu, Sparkles, Key, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { Search, Flame, Bell, Menu, Sparkles, Key, PanelRightClose, PanelRightOpen, LogIn, UserCheck } from "lucide-react";
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +19,11 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
+
+  const { user, signOut, isConfigured } = useAuth();
 
   const refreshKeyStatus = () => {
     const prov = getActiveProvider();
@@ -142,16 +147,33 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
             )}
           </div>
 
-          <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center text-white font-bold text-xs">
-              D
-            </div>
-            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#0C0C14]" />
-          </div>
+          {/* User Account / Auth Trigger */}
+          {user ? (
+            <button
+              onClick={() => signOut()}
+              title={`Logged in as ${user.email}. Click to sign out.`}
+              className="relative flex items-center gap-2 p-1 pr-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
+            >
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs">
+                {user.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <span className="hidden md:inline text-xs text-slate-300 max-w-[90px] truncate">
+                {user.email?.split('@')[0]}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-xl bg-violet-600/80 hover:bg-violet-600 text-white text-xs font-semibold transition-all shadow-md shadow-violet-500/20"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </header>
 
-      {/* Global AI Search & BYOK Modals */}
+      {/* Global Modals */}
       <AiSearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -166,6 +188,12 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         onClose={() => setIsKeyModalOpen(false)}
         onKeysUpdated={refreshKeyStatus}
       />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </>
   );
 }
+

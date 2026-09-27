@@ -1,7 +1,13 @@
 "use client";
 
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <PomodoroProvider>{children}</PomodoroProvider>;
+  return (
+    <AuthProvider>
+      <PomodoroProvider>{children}</PomodoroProvider>
+    </AuthProvider>
+  );
 }
+
