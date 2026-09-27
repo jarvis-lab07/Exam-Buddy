@@ -12,11 +12,13 @@ import {
   AlertCircle,
   Tag,
   BookOpen,
+  HardDrive,
+  Cloud,
 } from "lucide-react";
 import { MOCK_SUBJECTS } from "@/lib/mock-data";
 import { DocumentUploadItem, DocumentCategory } from "@/types";
 import { uploadStudyDocumentToStorage } from "@/lib/storage-service";
-
+import { uploadToStudentGoogleDrive } from "@/lib/google-drive-service";
 
 interface FileDropzoneProps {
   onFileUploaded: (item: DocumentUploadItem) => void;
@@ -31,15 +33,18 @@ const CATEGORIES: DocumentCategory[] = [
 ];
 
 type IngestionStage = "idle" | "uploading" | "extracting" | "vectorizing" | "completed";
+type StorageMode = "gdrive_byos" | "supabase_cloud";
 
 export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("dsa");
   const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("Lecture Notes");
+  const [storageMode, setStorageMode] = useState<StorageMode>("gdrive_byos");
   const [stage, setStage] = useState<IngestionStage>("idle");
   const [progress, setProgress] = useState(0);
   const [currentFileName, setCurrentFileName] = useState("");
   const [currentFileSize, setCurrentFileSize] = useState("");
+  const [driveUrl, setDriveUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,25 +77,30 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
     setCurrentFileName(file.name);
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
     setCurrentFileSize(`${sizeMb} MB`);
+    setDriveUrl(null);
 
-    // Stage 1: Uploading to Supabase Storage
+    // Stage 1: Uploading
     setStage("uploading");
     setProgress(25);
 
     try {
-      const storageResult = await uploadStudyDocumentToStorage(
-        file,
-        "current-user",
-        selectedSubject.id
-      );
+      let gdriveResult = null;
+
+      if (storageMode === "gdrive_byos") {
+        // Upload directly to student's personal Google Drive folder
+        gdriveResult = await uploadToStudentGoogleDrive(file);
+        if (gdriveResult.driveUrl) setDriveUrl(gdriveResult.driveUrl);
+      } else {
+        // Upload to Supabase Storage Bucket
+        await uploadStudyDocumentToStorage(file, "current-user", selectedSubject.id);
+      }
 
       // Stage 2: OCR & Text Extraction
       setProgress(55);
       setStage("extracting");
 
-      // Extract text content (from file or sample text)
       const textContent = await file.text().catch(() => 
-        `Lecture notes and exam syllabus for ${file.name}. Subject: ${selectedSubject.name}. Code: ${selectedSubject.code}. Contains key definitions, formulas, and PYQ solutions for midterm review.`
+        `Lecture notes and exam syllabus for ${file.name}. Subject: ${selectedSubject.name}. Code: ${selectedSubject.code}. Key concepts, definitions, and formulas for midterm review.`
       );
 
       // Stage 3: Vector Embeddings Generation
@@ -114,7 +124,6 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       setProgress(100);
       setStage("completed");
 
-      // Determine file extension icon type
       let fileType: "pdf" | "ppt" | "doc" | "notes" = "pdf";
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext === "ppt" || ext === "pptx") fileType = "ppt";
@@ -136,8 +145,10 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         uploadDate: "Just now",
         pages: Math.max(4, Math.floor(Math.random() * 30) + 5),
         vectorCount: ingestData.totalChunks ? ingestData.totalChunks * 8 : 96,
-        summary: `Successfully parsed into ${ingestData.totalChunks || 12} vector chunks. Key concepts and exam definitions indexed in Supabase.`,
-        keyTopics: [selectedSubject.name, selectedCategory, "Exam Formulas", "PYQ Target"],
+        summary: storageMode === "gdrive_byos"
+          ? `Uploaded to Google Drive (/Exam-Buddy-Notes/) & indexed into ${ingestData.totalChunks || 12} vector chunks.`
+          : `Successfully stored in Supabase & indexed into ${ingestData.totalChunks || 12} vector chunks.`,
+        keyTopics: [selectedSubject.name, selectedCategory, storageMode === "gdrive_byos" ? "Google Drive BYOS" : "Cloud Storage"],
       };
 
       onFileUploaded(newItem);
@@ -145,20 +156,66 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       setTimeout(() => {
         setStage("idle");
         setProgress(0);
-      }, 2500);
+      }, 3000);
     } catch (err) {
       console.error("[FileDropzone] Process file error:", err);
       setStage("completed");
       setTimeout(() => {
         setStage("idle");
         setProgress(0);
-      }, 2500);
+      }, 3000);
     }
   };
 
-
   return (
     <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] space-y-6">
+      {/* Storage Mode BYOS Selector */}
+      <div className="p-3.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-indigo-500/10 border border-emerald-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
+            <HardDrive className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+              Storage Engine
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                100% $0 Cost Architecture
+              </span>
+            </h4>
+            <p className="text-[11px] text-slate-400">
+              Save files to your personal Google Drive (15 GB Free) or Supabase Cloud Bucket
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+          <button
+            type="button"
+            onClick={() => setStorageMode("gdrive_byos")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              storageMode === "gdrive_byos"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            Google Drive (BYOS)
+          </button>
+          <button
+            type="button"
+            onClick={() => setStorageMode("supabase_cloud")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              storageMode === "supabase_cloud"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Cloud className="w-3.5 h-3.5" />
+            Supabase Cloud
+          </button>
+        </div>
+      </div>
+
       {/* Subject & Category Target Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-white/[0.06]">
         {/* Subject Selector */}
@@ -180,6 +237,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             ))}
           </select>
         </div>
+
 
         {/* Category Selector */}
         <div className="space-y-1.5">
