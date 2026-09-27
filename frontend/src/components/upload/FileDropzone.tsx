@@ -137,7 +137,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         subjectName: selectedSubject.name,
         subjectCode: selectedSubject.code,
         subjectColor: selectedSubject.color,
-        unitTitle: selectedSubject.currentUnit?.title || "Core Syllabus Module",
+        unitTitle: `${file.name.replace(/\.[^/.]+$/, "")} Module`,
         fileType,
         fileSize: `${sizeMb} MB`,
         category: selectedCategory,

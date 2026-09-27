@@ -27,13 +27,13 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
   gemini: {
     id: "gemini",
     name: "Google Gemini",
-    defaultModel: "gemini-3.6-flash",
+    defaultModel: "gemini-2.5-flash",
     popularModels: [
-      "gemini-3.6-flash",
-      "gemini-3.6-pro",
       "gemini-2.5-flash",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
       "gemini-2.5-pro",
-      "gemini-1.5-flash",
+      "gemini-1.5-flash-latest",
     ],
     tagline: "Free tier with 15 RPM • Fast & accurate",
     isFreeTier: true,
@@ -140,7 +140,7 @@ export function getSelectedModel(provider: AIProvider): string {
   if (typeof window === "undefined") return AI_PROVIDERS[provider].defaultModel;
   if (provider === "ollama") return getOllamaModel();
   const stored = localStorage.getItem(`${MODEL_SELECTION_KEY_PREFIX}${provider}`);
-  if (stored && provider === "gemini" && (stored.includes("2.0") || stored.includes("preview"))) {
+  if (stored && provider === "gemini" && (stored.includes("3.6") || stored.includes("2.5") || stored === "gemini-1.5-flash")) {
     const updated = AI_PROVIDERS.gemini.defaultModel;
     saveSelectedModel("gemini", updated);
     return updated;
@@ -524,9 +524,9 @@ FORMAT IN 4 CONCISE SECTIONS:
     } else if (provider === "gemini") {
       const apiKeys = getStoredApiKeys("gemini");
       const keysToUse = apiKeys.length > 0 ? apiKeys : [apiKey];
-      let cleanModel = (modelName || "gemini-3.6-flash").replace(/^models\//, "").trim();
-      if (cleanModel.includes("2.0") || cleanModel.includes("preview")) {
-        cleanModel = "gemini-3.6-flash";
+      let cleanModel = (modelName || "gemini-2.5-flash").replace(/^models\//, "").trim();
+      if (cleanModel.includes("3.6") || cleanModel === "gemini-2.5-flash" || cleanModel === "gemini-1.5-flash") {
+        cleanModel = "gemini-2.5-flash";
       }
       const modelsToTry = buildModelsToTry(cleanModel, GEMINI_FALLBACK_MODELS);
       let lastErrorMsg = "";

@@ -1,43 +1,39 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Sidebar, type SidebarState } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
 import { FocusDock } from "@/components/focus/FocusDock";
+import { X } from "lucide-react";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
-const STUDY_ROUTE_PREFIXES = ["/planner", "/flashcards", "/subjects"];
 const DOCK_EXPANDED_KEY = "exam_buddy_dock_expanded";
 
-function isStudyRoute(pathname: string) {
-  if (pathname === "/") return true;
-  return STUDY_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
-}
-
 export function AppShell({ children }: AppShellProps) {
-  const pathname = usePathname();
-  const onStudyRoute = useMemo(() => isStudyRoute(pathname ?? "/"), [pathname]);
-
   const [sidebarState, setSidebarState] = useState<SidebarState>("open");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dockExpanded, setDockExpanded] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(DOCK_EXPANDED_KEY) !== "0";
-    } catch {
-      return true;
-    }
-  });
+  const [dockExpanded, setDockExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     try {
-      localStorage.setItem(DOCK_EXPANDED_KEY, dockExpanded ? "1" : "0");
+      const stored = localStorage.getItem(DOCK_EXPANDED_KEY);
+      if (stored === "1") setDockExpanded(true);
     } catch {}
-  }, [dockExpanded]);
+  }, []);
+
+  const toggleFocusDock = () => {
+    setDockExpanded((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem(DOCK_EXPANDED_KEY, next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  };
 
   const cycleDesktopSidebar = () => {
     setSidebarState((current) => {
@@ -63,12 +59,8 @@ export function AppShell({ children }: AppShellProps) {
     setMobileOpen(false);
   };
 
-  const toggleFocusDock = () => setDockExpanded((v) => !v);
-
-  const showDock = onStudyRoute && dockExpanded;
-
   return (
-    <div className="relative min-h-screen bg-[#0C0C14] text-[#F1F1F8] selection:bg-violet-500/30 selection:text-violet-100">
+    <div className="relative min-h-screen text-var(--text-primary) selection:bg-violet-500/30 selection:text-violet-100">
       <div className="ambient-glow" />
 
       <Sidebar
@@ -83,32 +75,48 @@ export function AppShell({ children }: AppShellProps) {
           "flex flex-col min-h-screen relative z-10 transition-[padding] duration-300 ease-in-out",
           sidebarState === "open" && "lg:pl-64",
           sidebarState === "icon" && "lg:pl-16",
-          sidebarState === "hidden" && "lg:pl-0",
-          showDock && "lg:pr-80"
+          sidebarState === "hidden" && "lg:pl-0"
         )}
       >
         <Header
           onToggleSidebar={toggleFromHeader}
-          onToggleFocusDock={onStudyRoute ? toggleFocusDock : undefined}
-          focusDockExpanded={showDock}
+          onToggleFocusDock={toggleFocusDock}
+          focusDockExpanded={dockExpanded}
         />
 
         <div className="flex flex-1 w-full">
-          <main
-            className={cn(
-              "flex-1 p-4 sm:p-6 lg:p-8 transition-[max-width] duration-300 ease-in-out",
-              onStudyRoute ? "max-w-none w-full" : "max-w-7xl mx-auto w-full"
-            )}
-          >
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-none w-full transition-all duration-300 ease-in-out">
             {children}
           </main>
         </div>
       </div>
 
-      {showDock && (
-        <div className="hidden lg:block fixed top-16 right-0 z-20 animate-[fadeIn_0.25s_ease-out]">
-          <FocusDock />
-        </div>
+      {/* Floating Focus Hub Drawer (Does NOT compress main workspace) */}
+      {dockExpanded && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden"
+            onClick={toggleFocusDock}
+          />
+          <div className="fixed top-16 right-4 z-50 w-80 sm:w-88 animate-in slide-in-from-right-4 duration-200 shadow-2xl rounded-2xl overflow-hidden border border-white/[0.12] bg-var(--bg-card) backdrop-blur-2xl">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.04] border-b border-white/[0.08]">
+              <span className="text-xs font-bold text-var(--text-primary) uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
+                Focus Hub Drawer
+              </span>
+              <button
+                type="button"
+                onClick={toggleFocusDock}
+                className="p-1 rounded-lg text-var(--text-muted) hover:text-white hover:bg-white/[0.08]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-3 max-h-[calc(100vh-100px)] overflow-y-auto">
+              <FocusDock />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

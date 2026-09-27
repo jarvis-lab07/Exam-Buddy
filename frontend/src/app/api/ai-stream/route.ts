@@ -115,9 +115,9 @@ async function streamGemini(
     parts: [{ text: m.content }],
   }));
 
-  let cleanModel = (model || "gemini-3.6-flash").replace(/^models\//, "").trim();
-  if (cleanModel.includes("2.0") || cleanModel.includes("preview")) {
-    cleanModel = "gemini-3.6-flash";
+  let cleanModel = (model || "gemini-2.5-flash").replace(/^models\//, "").trim();
+  if (cleanModel.includes("3.6") || cleanModel === "gemini-2.5-flash" || cleanModel === "gemini-1.5-flash") {
+    cleanModel = "gemini-2.5-flash";
   }
 
   const modelsToTry = buildModelsToTry(cleanModel, GEMINI_FALLBACK_MODELS);

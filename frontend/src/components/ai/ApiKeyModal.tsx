@@ -592,7 +592,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                           saveSelectedModel(selectedProvider, cloudModel.trim());
                         }
                       }}
-                      placeholder="e.g. llama-3.3-70b-versatile, gpt-4o, gemini-3.6-flash..."
+                      placeholder="e.g. llama-3.3-70b-versatile, gpt-4o, gemini-2.5-flash..."
                       className="flex-1 h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white font-mono focus:outline-none focus:border-violet-500/50"
                     />
                     <button

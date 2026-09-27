@@ -323,20 +323,34 @@ function ChatContent() {
     setMessages((prev) => [...prev, userMsg, assistantPlaceholder]);
     setIsLoading(true);
 
+    // Extract document title from prompt if user uploaded/asked about a specific note
+    const fileMatch = text.match(/([a-zA-Z0-9_\-]+\.(pdf|pptx|ppt|docx|doc|txt))/i);
+    const docNameFromPrompt = fileMatch ? fileMatch[1] : undefined;
+
     // 1. Retrieve RAG Context matches from Supabase pgvector
     const ragMatches = await retrieveRagContext(
       text,
       activeScope,
-      selectedSubject !== "all" ? selectedSubject : undefined
+      docNameFromPrompt ? undefined : (selectedSubject !== "all" ? selectedSubject : undefined)
     );
 
     const activeSubjectObj = MOCK_SUBJECTS.find((s) => s.id === selectedSubject);
+
+    // Determine subject name & unit title dynamically
+    const effectiveSubjectName = docNameFromPrompt
+      ? `Uploaded Document (${docNameFromPrompt})`
+      : activeSubjectObj?.name;
+
+    const effectiveUnitTitle = docNameFromPrompt
+      ? `Document: ${docNameFromPrompt}`
+      : activeSubjectObj?.currentUnit?.title;
+
     const systemPrompt = buildRagSystemPrompt(
       activeScope,
       explanationLevel,
       ragMatches,
-      activeSubjectObj?.name,
-      activeSubjectObj?.currentUnit?.title
+      effectiveSubjectName,
+      effectiveUnitTitle
     );
 
     // Build full conversation history for context

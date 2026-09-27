@@ -1,11 +1,24 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Flame, Bell, Menu, Sparkles, Key, PanelRightClose, PanelRightOpen, LogIn, UserCheck } from "lucide-react";
+import {
+  Search,
+  Flame,
+  Bell,
+  Menu,
+  Sparkles,
+  Key,
+  Timer,
+  LogIn,
+  Moon,
+  Sun,
+  Trees,
+} from "lucide-react";
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +36,8 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  const { user, signOut, isConfigured } = useAuth();
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const refreshKeyStatus = () => {
     const prov = getActiveProvider();
@@ -49,46 +63,44 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
 
   return (
     <>
-      <header className="sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 h-14 px-3 sm:px-5 bg-[#0C0C14]/80 backdrop-blur-xl border-b border-white/[0.07]">
-        <div className="flex items-center gap-1">
+      <header className="sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 h-14 px-3 sm:px-5 bg-color-surface/90 backdrop-blur-xl border-b border-white/[0.08]">
+        <div className="flex items-center gap-2">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-xl text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-xl text-var(--text-muted) hover:text-white hover:bg-white/[0.06] transition-colors"
             aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />
           </button>
 
+          {/* Focus Drawer Toggle */}
           {onToggleFocusDock !== undefined && (
             <button
               onClick={onToggleFocusDock}
               className={cn(
-                "hidden lg:flex items-center p-2 rounded-xl transition-colors",
+                "flex items-center gap-1.5 h-8 px-2.5 rounded-xl text-xs font-semibold transition-all border",
                 focusDockExpanded
-                  ? "text-violet-300 bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/30"
-                  : "text-[#9B99B5] hover:text-white hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.12]"
+                  ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-500/20"
+                  : "bg-white/[0.04] text-var(--text-secondary) hover:bg-white/[0.08] border-white/[0.08]"
               )}
-              aria-label={focusDockExpanded ? "Collapse focus dock" : "Expand focus dock"}
-              title={focusDockExpanded ? "Hide Focus Dock" : "Show Focus Dock"}
+              title="Toggle Focus Hub (Pomodoro & Ambient Lo-Fi)"
             >
-              {focusDockExpanded ? (
-                <PanelRightClose className="w-4.5 w-[18px] h-[18px]" />
-              ) : (
-                <PanelRightOpen className="w-4.5 w-[18px] h-[18px]" />
-              )}
+              <Timer className="w-3.5 h-3.5 text-violet-400" />
+              <span className="hidden sm:inline">Focus</span>
             </button>
           )}
         </div>
 
+        {/* Global Search Bar */}
         <div className="flex justify-center min-w-0">
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="relative flex items-center w-full max-w-xl h-9 pl-9 pr-16 rounded-xl bg-[#13131F] hover:bg-[#181827] border border-white/[0.08] hover:border-violet-500/40 text-sm text-[#5A5875] hover:text-slate-300 transition-all text-left group"
+            className="relative flex items-center w-full max-w-xl h-9 pl-9 pr-16 rounded-xl bg-var(--input-bg) hover:bg-var(--bg-elevated) border border-white/[0.08] hover:border-violet-500/40 text-sm text-var(--text-muted) hover:text-var(--text-secondary) transition-all text-left group"
           >
-            <Search className="absolute left-3 w-4 h-4 text-[#5A5875] group-hover:text-violet-400 transition-colors" />
+            <Search className="absolute left-3 w-4 h-4 text-var(--text-muted) group-hover:text-violet-400 transition-colors" />
             <span className="truncate">Ask AI Tutor or search syllabus...</span>
-            <span className="hidden sm:inline-flex absolute right-2 items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-[10px] font-medium text-[#9B99B5]">
+            <span className="hidden sm:inline-flex absolute right-2 items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-[10px] font-medium text-var(--text-muted)">
               <Sparkles className="w-2.5 h-2.5 text-violet-400" />
               Ctrl+K
             </span>
@@ -96,6 +108,42 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* 3-Way Theme Switcher Toggle */}
+          <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/[0.08] gap-1">
+            <button
+              onClick={() => setTheme("dark")}
+              className={cn(
+                "p-1.5 rounded-lg text-xs transition-colors",
+                theme === "dark" ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+              )}
+              title="Night Study (Midnight Dark)"
+            >
+              <Moon className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              onClick={() => setTheme("light")}
+              className={cn(
+                "p-1.5 rounded-lg text-xs transition-colors",
+                theme === "light" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+              )}
+              title="Pro Daylight (Clean White)"
+            >
+              <Sun className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              onClick={() => setTheme("nature")}
+              className={cn(
+                "p-1.5 rounded-lg text-xs transition-colors",
+                theme === "nature" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+              )}
+              title="Nature Calm (Live Motion Wallpaper)"
+            >
+              <Trees className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* Quick BYOK Key Badge */}
           <button
             type="button"
@@ -122,7 +170,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <div className="relative">
             <button
               onClick={() => setShowNotifications((v) => !v)}
-              className="relative p-2 rounded-xl text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
@@ -140,8 +188,8 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
                     Mark all read
                   </button>
                 </div>
-                <p className="text-xs text-[#9B99B5] leading-relaxed">
-                  AVL Trees summary is ready. Your 7-day streak is still active.
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  AVL Trees summary is ready. Your 7-day streak is active.
                 </p>
               </div>
             )}
@@ -196,4 +244,3 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
     </>
   );
 }
-

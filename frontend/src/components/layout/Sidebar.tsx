@@ -44,6 +44,13 @@ interface SidebarProps {
 
 const navItems = [
   {
+    name: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+    badge: null as string | null,
+    badgeClass: "",
+  },
+  {
     name: "Subjects & Units",
     href: "/subjects",
     icon: BookOpen,
@@ -65,11 +72,11 @@ const navItems = [
     badgeClass: "bg-violet-500/15 text-violet-300 border-violet-500/25",
   },
   {
-    name: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    badge: null as string | null,
-    badgeClass: "",
+    name: "AI Tutor Chat",
+    href: "/chat",
+    icon: Bot,
+    badge: "GPT-4o",
+    badgeClass: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25",
   },
   {
     name: "Upload Center",
@@ -77,13 +84,6 @@ const navItems = [
     icon: UploadCloud,
     badge: null,
     badgeClass: "",
-  },
-  {
-    name: "AI Tutor Chat",
-    href: "/chat",
-    icon: Bot,
-    badge: "GPT-4o",
-    badgeClass: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25",
   },
   {
     name: "AI Manager",

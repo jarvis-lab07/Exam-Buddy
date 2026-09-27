@@ -128,8 +128,8 @@ export async function retrieveRagContext(
 
     if (scope === 'scope3_subject') {
       filterUnit = null; // Search all units of this subject
-    } else if (scope === 'scope4_global') {
-      filterSubject = null; // Search all subjects globally
+    } else if (scope === 'scope4_global' || prompt.match(/([a-zA-Z0-9_\-]+\.(pdf|pptx|ppt|docx|doc|txt))/i)) {
+      filterSubject = null; // Search all subjects globally if document name present
       filterUnit = null;
     }
 
@@ -170,27 +170,29 @@ export function buildRagSystemPrompt(
     exam: 'University academic exam standard with 5/10-mark structured answers (Definition ➔ Architecture ➔ Pros/Cons ➔ Example).',
   };
 
-  const safeUnitName = unitName && !unitName.toLowerCase().includes('balancing') 
-    ? unitName 
-    : 'Selected Document / Unit Module';
+  const isDocQuery = subjectName?.includes('Uploaded Document') || unitName?.includes('Document:');
+
+  const safeUnitName = isDocQuery 
+    ? (unitName || 'Uploaded Notes / Slide Deck')
+    : (unitName && !unitName.toLowerCase().includes('balancing') ? unitName : 'Selected Syllabus Unit');
 
   const scopeDescriptions = {
-    scope1_unit: `Scope 1: Deep focus on requested study notes / unit (${safeUnitName}). Ground response strictly in the provided document context below. Do NOT mention unrelated Data Structures or Trees unless the document is explicitly about Trees.`,
-    scope2_multi_unit: `Scope 2: Multi-Unit Synthesis combining Units 1 & 2 for midterm revision.`,
+    scope1_unit: `Scope 1: Deep focus on requested study notes / module (${safeUnitName}). Ground response strictly in the user's document context. Do NOT talk about unrelated subjects or Data Structures trees unless the document is explicitly about Trees.`,
+    scope2_multi_unit: `Scope 2: Multi-Unit Synthesis combining syllabus modules for midterm revision.`,
     scope3_subject: `Scope 3: Full Subject Master Tutor for ${subjectName || 'Course'}.`,
     scope4_global: `Scope 4: Cross-subject Academic Strategist & Timetable Tutor.`,
   };
 
   const contextBlock = retrievedMatches.length > 0
     ? retrievedMatches.map((m, idx) => `[Source Chunk ${idx + 1}]:\n${m.content}`).join('\n\n')
-    : 'No external document sections matches found. Rely on verified core academic principles.';
+    : 'No external document sections matches found. Rely on verified core academic principles for the requested document/topic.';
 
   return `You are Exam-Buddy AI Tutor, an expert academic assistant for university students.
 
 Mode & Rules:
 - ${scopeDescriptions[scope]}
 - Target Explanation Depth: ${levelDescriptions[explanationLevel]}
-- Ground your answer ONLY in the subject/document specified in the query and retrieved context below.
+- Ground your answer strictly in the subject and document specified in the prompt and retrieved context below. Do NOT assume the query is about Data Structures or AVL Trees unless explicitly requested.
 
 === RETRIEVED COURSE CONTEXT ===
 ${contextBlock}

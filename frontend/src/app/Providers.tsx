@@ -2,12 +2,16 @@
 
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <PomodoroProvider>{children}</PomodoroProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <PomodoroProvider>{children}</PomodoroProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
+
 
