@@ -31,6 +31,7 @@ import {
 } from "@/lib/ai-service";
 import { MOCK_SUBJECTS } from "@/lib/mock-data";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
+import { retrieveRagContext, buildRagSystemPrompt, type ChatScope, type ExplanationLevel } from "@/lib/rag-service";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,9 @@ interface Message {
   isStreaming?: boolean;
   isError?: boolean;
   timestamp: string;
+  ragSourcesCount?: number;
 }
+
 
 // ─── Markdown renderer (bold, code, headers, lists, inline code) ──────────────
 
@@ -232,13 +235,15 @@ function ChatContent() {
   const queryParam = searchParams.get("q");
 
   const [chatMode, setChatMode] = useState<"general" | "subject">("subject");
+  const [activeScope, setActiveScope] = useState<ChatScope>("scope1_unit");
+  const [explanationLevel, setExplanationLevel] = useState<ExplanationLevel>("medium");
   const [selectedSubject, setSelectedSubject] = useState<string>(subjectParam || "all");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I'm your **Exam-Buddy AI Tutor** 👋\n\nI'm here to help you with any concept, algorithm, exam question, or topic from your syllabus. I have full **conversation memory** — so you can ask follow-ups just like with ChatGPT.\n\n**Getting started:**\n- Ask any concept or past-year question\n- Switch to **Subject Chat** to get syllabus-aligned answers\n- Add multiple API keys below for uninterrupted usage",
+        "Hello! I'm your **Exam-Buddy AI Tutor** 👋\n\nI'm here to help you with any concept, algorithm, exam question, or topic from your syllabus. Powered by **4-Scope RAG vector search**, I retrieve verified context from your uploaded notes and textbooks.\n\n**Getting started:**\n- Select your target **Scope** (Unit, Multi-Unit, Subject, or Global)\n- Choose explanation depth (**Simple**, **Conceptual**, or **5/10-Mark Exam Format**)\n- Ask any question to get document-grounded answers!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -251,7 +256,6 @@ function ChatContent() {
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showScrollDown, setShowScrollDown] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -290,26 +294,6 @@ function ChatContent() {
     ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
   };
 
-  // Resolve scope
-  const resolveScope = useCallback((): { scopeTitle: string; syllabusContext: string } => {
-    if (chatMode === "general") return { scopeTitle: "General", syllabusContext: "" };
-    if (selectedSubject === "all") return { scopeTitle: "All Semester 3 Subjects", syllabusContext: "" };
-
-    const custom = typeof window !== "undefined" ? localStorage.getItem("customSyllabus") : null;
-    const customData = custom ? JSON.parse(custom) : null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const subj = customData?.subjects?.find((s: any) => s.id === selectedSubject) ||
-      MOCK_SUBJECTS.find((s) => s.id === selectedSubject);
-
-    if (!subj) return { scopeTitle: "All Semester 3 Subjects", syllabusContext: "" };
-    return {
-      scopeTitle: `${subj.code}: ${subj.name}`,
-      syllabusContext: (subj.units || [])
-        .map((u: { unitNumber: number; title: string; topics: string[] }) => `Unit ${u.unitNumber}: ${u.title} (${u.topics.join(", ")})`)
-        .join("\n"),
-    };
-  }, [chatMode, selectedSubject]);
-
   const handleSendMessage = useCallback(async (textToSend?: string) => {
     const text = (textToSend ?? input).trim();
     if (!text || isLoading) return;
@@ -339,8 +323,21 @@ function ChatContent() {
     setMessages((prev) => [...prev, userMsg, assistantPlaceholder]);
     setIsLoading(true);
 
-    const { scopeTitle, syllabusContext } = resolveScope();
-    const systemPrompt = buildSystemPrompt(scopeTitle, syllabusContext, chatMode);
+    // 1. Retrieve RAG Context matches from Supabase pgvector
+    const ragMatches = await retrieveRagContext(
+      text,
+      activeScope,
+      selectedSubject !== "all" ? selectedSubject : undefined
+    );
+
+    const activeSubjectObj = MOCK_SUBJECTS.find((s) => s.id === selectedSubject);
+    const systemPrompt = buildRagSystemPrompt(
+      activeScope,
+      explanationLevel,
+      ragMatches,
+      activeSubjectObj?.name,
+      activeSubjectObj?.currentUnit?.title
+    );
 
     // Build full conversation history for context
     const history = messages
@@ -375,6 +372,7 @@ function ChatContent() {
           ollamaModel: getOllamaModel(),
         }),
       });
+
 
       if (!res.body) throw new Error("No response body from server");
 
@@ -443,8 +441,8 @@ function ChatContent() {
 
     setIsLoading(false);
     abortRef.current = null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, isLoading, messages, chatMode, resolveScope, activeProvider]);
+  }, [input, isLoading, messages, chatMode, activeScope, explanationLevel, selectedSubject, activeProvider]);
+
 
   const stopGeneration = () => {
     abortRef.current?.abort();
@@ -499,27 +497,81 @@ function ChatContent() {
           </div>
         </div>
 
-        {/* Mode Tabs */}
-        <div className="flex gap-1.5 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+        {/* 4-Scope RAG Selector Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-[#121324] p-1 rounded-xl border border-white/[0.08]">
           <button
-            onClick={() => setChatMode("general")}
-            className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-              chatMode === "general"
-                ? "bg-violet-600 text-white border border-violet-500/40"
+            onClick={() => setActiveScope("scope1_unit")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+              activeScope === "scope1_unit"
+                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <Globe className="w-3 h-3" /> General
+            Scope 1: Unit Focus
           </button>
           <button
-            onClick={() => setChatMode("subject")}
-            className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-              chatMode === "subject"
-                ? "bg-violet-600 text-white border border-violet-500/40"
+            onClick={() => setActiveScope("scope2_multi_unit")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+              activeScope === "scope2_multi_unit"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <BookOpen className="w-3 h-3" /> Subject
+            Scope 2: Multi-Unit
+          </button>
+          <button
+            onClick={() => setActiveScope("scope3_subject")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+              activeScope === "scope3_subject"
+                ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Scope 3: Full Subject
+          </button>
+          <button
+            onClick={() => setActiveScope("scope4_global")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+              activeScope === "scope4_global"
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Scope 4: Global Tutor
+          </button>
+        </div>
+
+        {/* Explanation Level Toggles */}
+        <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+          <button
+            onClick={() => setExplanationLevel("simple")}
+            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+              explanationLevel === "simple"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Simple
+          </button>
+          <button
+            onClick={() => setExplanationLevel("medium")}
+            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+              explanationLevel === "medium"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Medium
+          </button>
+          <button
+            onClick={() => setExplanationLevel("exam")}
+            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+              explanationLevel === "exam"
+                ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            5/10-Mark Exam
           </button>
         </div>
 
@@ -539,6 +591,7 @@ function ChatContent() {
               ))}
             </select>
           )}
+
 
           <button
             onClick={() => setIsKeyModalOpen(true)}
