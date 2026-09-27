@@ -117,24 +117,24 @@ export default function DashboardPage() {
               <span>Smart Revision Assistant</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#F1F1F8]">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
               Welcome back, {MOCK_USER.name}.
             </h1>
 
-            <p className="text-[#9B99B5] text-sm sm:text-base leading-relaxed">
-              You have <strong className="text-[#F1F1F8] font-semibold">3 exam topics</strong> scheduled
+            <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
+              You have <strong className="text-[var(--text-primary)] font-bold">3 exam topics</strong> scheduled
               for spaced revision today. Keep your{" "}
-              <strong className="text-[#F1F1F8] font-semibold">7-day streak</strong> going.
+              <strong className="text-[var(--text-primary)] font-bold">7-day streak</strong> going.
             </p>
 
-            <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#9B99B5]">
+            <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="w-4 h-4 text-slate-400" />
+                <CalendarDays className="w-4 h-4 text-violet-400" />
                 Sem 3 Midterms — Oct 18, 2026
               </span>
-              <span className="hidden sm:inline text-[#5A5875]">·</span>
+              <span className="hidden sm:inline opacity-40">·</span>
               <span className="flex items-center gap-1.5">
-                <BrainCircuit className="w-4 h-4 text-slate-400" />
+                <BrainCircuit className="w-4 h-4 text-cyan-400" />
                 AI Mastery Prediction: 89%
               </span>
             </div>

@@ -34,7 +34,6 @@ import { usePomodoro } from "@/contexts/PomodoroContext";
 
 export type SidebarState = "open" | "icon" | "hidden";
 
-
 interface SidebarProps {
   state: SidebarState;
   onToggle: () => void;
@@ -55,7 +54,7 @@ const navItems = [
     href: "/subjects",
     icon: BookOpen,
     badge: "4 Active",
-    badgeClass: "bg-white/[0.05] text-[#9B99B5] border-white/10",
+    badgeClass: "bg-white/[0.05] text-[var(--text-secondary)] border-white/10",
   },
   {
     name: "Study Planner",
@@ -126,19 +125,18 @@ export function Sidebar({
     (userProfile.aiTokensUsed / userProfile.aiTokensTotal) * 100
   );
 
-
   return (
     <>
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[#0C0C14]/70 backdrop-blur-md lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md lg:hidden"
           onClick={onCloseMobile}
         />
       )}
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[#0C0C14]/95 backdrop-blur-xl text-[#F1F1F8] transition-all duration-300 ease-in-out",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-[var(--text-primary)] transition-all duration-300 ease-in-out shadow-2xl",
           "w-64",
           isMobileOpen ? "translate-x-0" : "translate-x-[-100%]",
           "lg:translate-x-0",
@@ -149,7 +147,7 @@ export function Sidebar({
       >
         <div
           className={cn(
-            "flex items-center border-b border-white/[0.07] h-14 shrink-0",
+            "flex items-center border-b border-white/[0.08] h-14 shrink-0",
             isIcon ? "lg:px-2 lg:justify-center" : "px-4 justify-between"
           )}
         >
@@ -161,12 +159,12 @@ export function Sidebar({
               isIcon && "lg:justify-center"
             )}
           >
-            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] shrink-0">
-              <GraduationCap className="w-4.5 h-4.5 text-white w-[18px] h-[18px]" />
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shrink-0 shadow-md">
+              <GraduationCap className="w-[18px] h-[18px] text-white" />
             </div>
             <span
               className={cn(
-                "font-bold text-[15px] tracking-tight text-[#F1F1F8]",
+                "font-bold text-[15px] tracking-tight text-[var(--text-primary)]",
                 isIcon && "lg:hidden"
               )}
             >
@@ -177,7 +175,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden lg:inline-flex p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors",
+              "hidden lg:inline-flex p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] transition-colors",
               isIcon && "lg:hidden"
             )}
             aria-label="Collapse sidebar"
@@ -188,7 +186,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors",
+              "hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] transition-colors",
               isIcon && "lg:inline-flex"
             )}
             aria-label="Expand sidebar"
@@ -198,7 +196,7 @@ export function Sidebar({
 
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-[#9B99B5] hover:text-white hover:bg-white/[0.06] lg:hidden"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] lg:hidden"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -211,7 +209,7 @@ export function Sidebar({
         <nav className={cn("flex-1 py-4 overflow-y-auto", isIcon ? "lg:px-2 px-3" : "px-3")}>
           <div
             className={cn(
-              "px-3 pb-2 text-[10px] font-semibold text-[#5A5875] uppercase tracking-[0.14em]",
+              "px-3 pb-2 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.14em]",
               isIcon && "lg:hidden"
             )}
           >
@@ -233,19 +231,19 @@ export function Sidebar({
                     "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                     isIcon ? "lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5 gap-3" : "justify-between px-3 py-2.5",
                     isActive
-                      ? "bg-gradient-to-r from-violet-600/20 to-indigo-600/10 text-white"
-                      : "text-[#9B99B5] hover:text-[#F1F1F8] hover:bg-[#1A1A2E]"
+                      ? "bg-violet-600/20 text-white font-bold"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.06]"
                   )}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-[#7C3AED] to-[#6366F1]" />
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-violet-500" />
                   )}
 
                   <span className={cn("flex items-center min-w-0", isIcon ? "lg:gap-0 gap-3" : "gap-3")}>
                     <Icon
                       className={cn(
                         "w-4 h-4 shrink-0",
-                        isActive ? "text-violet-300" : "text-[#9B99B5] group-hover:text-violet-300"
+                        isActive ? "text-violet-400" : "text-[var(--text-muted)] group-hover:text-violet-300"
                       )}
                     />
                     <span className={cn("truncate", isIcon && "lg:hidden")}>{item.name}</span>
@@ -264,7 +262,7 @@ export function Sidebar({
                   )}
 
                   {isIcon && (
-                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#1A1A2E] px-2 py-1 text-xs text-white border border-white/10 opacity-0 group-hover:opacity-100 z-50 hidden lg:block">
+                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--bg-elevated)] px-2.5 py-1 text-xs text-white border border-white/10 opacity-0 group-hover:opacity-100 z-50 hidden lg:block shadow-lg">
                       {item.name}
                     </span>
                   )}
@@ -274,67 +272,26 @@ export function Sidebar({
           </div>
         </nav>
 
-        <div className={cn("mt-auto border-t border-white/[0.07] p-3 space-y-3", isIcon && "lg:px-2")}>
-          {/* ── Focus Hub Section (Pomodoro + Ambient Lo-Fi) ── */}
-          {!isIcon && (
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setIsFocusOpen((v) => !v)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-white/[0.04] transition-colors group"
-                title="Toggle focus tools"
-              >
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9B99B5] uppercase tracking-[0.14em]">
-                  <Timer className="w-3.5 h-3.5 text-violet-400" />
-                  Focus Hub
-                </span>
-                {isFocusOpen ? (
-                  <ChevronUp className="w-3.5 h-3.5 text-[#5A5875] group-hover:text-white transition-colors" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5 text-[#5A5875] group-hover:text-white transition-colors" />
-                )}
-              </button>
-
-              {isFocusOpen && (
-                <div className="space-y-2 px-0.5 animate-[fadeIn_0.2s_ease-out]">
-                  <PomodoroTimer size="compact" />
-                  <AmbientPlayer />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Icon-only compact focus indicator */}
-          {isIcon && (
-            <div className="lg:flex hidden justify-center">
-              <div
-                className="p-2 rounded-xl bg-violet-500/15 text-violet-400 border border-violet-500/25"
-                title="Focus Hub — Pomodoro & Lo-Fi (expand sidebar to access)"
-              >
-                <Timer className="w-4 h-4" />
-              </div>
-            </div>
-          )}
-
+        <div className={cn("mt-auto border-t border-white/[0.08] p-3 space-y-3", isIcon && "lg:px-2")}>
           <div
             onClick={() => setIsProfileModalOpen(true)}
             className={cn(
-              "flex items-center gap-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-violet-500/30 p-2.5 cursor-pointer transition-all group",
+              "flex items-center gap-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] hover:border-violet-500/40 p-2.5 cursor-pointer transition-all group",
               isIcon && "lg:justify-center lg:p-2"
             )}
             title="Click to edit student profile"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#6366F1] flex items-center justify-center text-xs font-bold text-white shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
               {userProfile.name.charAt(0).toUpperCase()}
             </div>
             <div className={cn("min-w-0 flex-1", isIcon && "lg:hidden")}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-[#F1F1F8] truncate group-hover:text-violet-300 transition-colors">
+                <p className="text-xs font-semibold text-[var(--text-primary)] truncate group-hover:text-violet-300 transition-colors">
                   {userProfile.username}
                 </p>
-                <Edit2 className="w-3 h-3 text-slate-500 group-hover:text-violet-400 transition-colors" />
+                <Edit2 className="w-3 h-3 text-[var(--text-muted)] group-hover:text-violet-400 transition-colors" />
               </div>
-              <p className="text-[10px] text-[#9B99B5] truncate">
+              <p className="text-[10px] text-[var(--text-secondary)] truncate">
                 {userProfile.college.split(" ")[0]} • {userProfile.branch.split(" ")[0]} • {userProfile.semester}
               </p>
             </div>
@@ -342,12 +299,12 @@ export function Sidebar({
 
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-[#9B99B5] font-medium">
+              <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
                 <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{userProfile.cloudStorageUsedGB} / {userProfile.cloudStorageTotalGB} GB</span>
               </div>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#1A1A2E] overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
                 style={{ width: `${storagePercent}%` }}
@@ -357,14 +314,14 @@ export function Sidebar({
 
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-[#9B99B5] font-medium">
+              <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
                 <Sparkles className="w-3.5 h-3.5 text-violet-400" />
                 <span>{Math.round(userProfile.aiTokensUsed / 1000)}k / {Math.round(userProfile.aiTokensTotal / 1000)}k</span>
               </div>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-[#1A1A2E] overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#7C3AED] to-[#6366F1]"
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600"
                 style={{ width: `${tokenPercent}%` }}
               />
             </div>
@@ -372,7 +329,7 @@ export function Sidebar({
 
           <div
             className={cn(
-              "flex items-center gap-2 text-[11px] text-[#9B99B5]",
+              "flex items-center gap-2 text-[11px] text-[var(--text-muted)]",
               isIcon && "lg:justify-center"
             )}
             title="Claude 3.7 + GPT-4o"
@@ -395,10 +352,6 @@ export function Sidebar({
     </>
   );
 }
-
-/* ──────────────────────────────────────────────────────────
-   SUBCOMPONENTS
-   ────────────────────────────────────────────────────────── */
 
 function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
   const router = useRouter();
@@ -424,7 +377,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
             "relative p-2 rounded-xl border transition-all",
             nowStudying.active
               ? "bg-white/[0.06] border-l-2 border-l-indigo-500/60 text-indigo-300 border-indigo-500/40"
-              : "bg-white/[0.03] text-[#9B99B5] border-white/[0.06]"
+              : "bg-white/[0.03] text-[var(--text-muted)] border-white/[0.06]"
           )}
           title={
             nowStudying.active
@@ -434,7 +387,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
         >
           <Brain className="w-4 h-4" />
           {nowStudying.active && (
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#0C0C14]" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-black" />
           )}
         </div>
       </div>
@@ -444,17 +397,17 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
   if (!nowStudying.active) {
     return (
       <div
-        className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] flex items-center justify-between gap-2 animate-[fadeIn_0.2s_ease-out]"
+        className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-between gap-2 animate-[fadeIn_0.2s_ease-out]"
       >
         <div className="min-w-0 flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[#5A5875] shrink-0">
+          <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[var(--text-muted)] shrink-0">
             <Brain className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-[#5A5875]">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
               Now Studying
             </div>
-            <div className="text-[11px] font-medium text-[#9B99B5]">No active session</div>
+            <div className="text-[11px] font-medium text-[var(--text-secondary)]">No active session</div>
           </div>
         </div>
         <button
@@ -474,7 +427,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
 
   return (
     <div
-      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/20 border-l-4 border-l-violet-400/50 bg-white/[0.03] relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
+      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/30 border-l-4 border-l-violet-400 bg-white/[0.04] relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
     >
       <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0 flex items-start gap-2.5">
@@ -489,7 +442,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
             <Brain className="w-4 h-4" />
             <span className="absolute -top-0.5 -right-0.5 flex w-2.5 h-2.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 ring-2 ring-[#0C0C14]" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 ring-2 ring-black" />
             </span>
           </div>
           <div className="min-w-0">
@@ -497,20 +450,20 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               ◉ LIVE · {nowStudying.mode === "focus" ? "Focus" : nowStudying.mode === "shortBreak" ? "Short Break" : "Long Break"}
             </div>
-            <div className="text-sm font-bold text-white truncate">
+            <div className="text-sm font-bold text-[var(--text-primary)] truncate">
               {nowStudying.subjectName}
               <span className="text-[10px] font-mono ml-1 text-violet-300">
                 {nowStudying.subjectCode}
               </span>
             </div>
-            <div className="text-[10px] text-[#9B99B5] truncate">{nowStudying.unitTitle}</div>
+            <div className="text-[10px] text-[var(--text-secondary)] truncate">{nowStudying.unitTitle}</div>
           </div>
         </div>
         <div className="flex flex-col items-end shrink-0">
-          <span className="text-[10px] font-semibold text-[#5A5875] uppercase tracking-wider">
+          <span className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
             Remaining
           </span>
-          <span className="font-mono text-base font-black text-white leading-none mt-0.5">
+          <span className="font-mono text-base font-black text-[var(--text-primary)] leading-none mt-0.5">
             {String(mins).padStart(2, "0")}
             <span className="text-violet-300">:</span>
             {String(secs).padStart(2, "0")}
@@ -526,4 +479,3 @@ function formatSeconds(sec: number) {
   const s = sec % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
-

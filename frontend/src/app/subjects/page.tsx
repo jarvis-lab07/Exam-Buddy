@@ -160,11 +160,11 @@ export default function SubjectsPage() {
               <span>Universal Academic Syllabus Tree</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
               Syllabus & Course Explorer
             </h1>
 
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed font-medium">
               Browse syllabus trees, topic checklists, lecture notes, and AI-powered active recall units across all degree disciplines.
             </p>
 
