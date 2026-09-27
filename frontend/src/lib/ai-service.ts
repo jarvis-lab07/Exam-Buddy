@@ -9,7 +9,7 @@ import {
   isModelUnavailableStatus,
 } from "@/lib/ai-model-fallbacks";
 
-export type AIProvider = "gemini" | "groq" | "openai" | "ollama";
+export type AIProvider = "gemini" | "groq" | "openai" | "ollama" | "anthropic";
 
 export interface ProviderMeta {
   id: AIProvider;
@@ -86,6 +86,16 @@ export const AI_PROVIDERS: Record<AIProvider, ProviderMeta> = {
     getApiKeyUrl: "https://platform.openai.com/api-keys",
     placeholder: "sk-proj-...",
   },
+  anthropic: {
+    id: "anthropic",
+    name: "Anthropic Claude",
+    defaultModel: "claude-3-5-sonnet",
+    popularModels: ["claude-3-5-sonnet", "claude-3-haiku"],
+    tagline: "Superior technical reasoning & academic writing",
+    isFreeTier: false,
+    getApiKeyUrl: "https://console.anthropic.com/settings/keys",
+    placeholder: "sk-ant-...",
+  },
 };
 
 const STORAGE_KEYS: Record<AIProvider, string> = {
@@ -93,6 +103,7 @@ const STORAGE_KEYS: Record<AIProvider, string> = {
   groq: "exambuddy_key_groq",
   openai: "exambuddy_key_openai",
   ollama: "exambuddy_ollama_endpoint",
+  anthropic: "exambuddy_key_anthropic",
 };
 
 // Multi-key storage (arrays of keys for rotation)
@@ -101,6 +112,7 @@ const MULTI_KEY_STORAGE: Record<AIProvider, string> = {
   groq: "exambuddy_keys_groq",
   openai: "exambuddy_keys_openai",
   ollama: "exambuddy_keys_ollama",
+  anthropic: "exambuddy_keys_anthropic",
 };
 
 export function getStoredApiKeys(provider: AIProvider): string[] {

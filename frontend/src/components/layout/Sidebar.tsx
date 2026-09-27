@@ -78,6 +78,13 @@ const navItems = [
     badgeClass: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25",
   },
   {
+    name: "YouTube AI Study",
+    href: "/lecture",
+    icon: Play,
+    badge: "AI Study",
+    badgeClass: "bg-red-500/15 text-red-300 border-red-500/25",
+  },
+  {
     name: "Upload Center",
     href: "/upload",
     icon: UploadCloud,
@@ -136,7 +143,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-[var(--text-primary)] transition-all duration-300 ease-in-out shadow-2xl",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-black/[0.08] dark:border-white/[0.08] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-theme-primary transition-all duration-300 ease-in-out shadow-2xl",
           "w-64",
           isMobileOpen ? "translate-x-0" : "translate-x-[-100%]",
           "lg:translate-x-0",
@@ -147,7 +154,7 @@ export function Sidebar({
       >
         <div
           className={cn(
-            "flex items-center border-b border-white/[0.08] h-14 shrink-0",
+            "flex items-center border-b border-black/[0.08] dark:border-white/[0.08] h-14 shrink-0",
             isIcon ? "lg:px-2 lg:justify-center" : "px-4 justify-between"
           )}
         >
@@ -164,7 +171,7 @@ export function Sidebar({
             </div>
             <span
               className={cn(
-                "font-bold text-[15px] tracking-tight text-[var(--text-primary)]",
+                "font-bold text-[15px] tracking-tight text-theme-primary",
                 isIcon && "lg:hidden"
               )}
             >
@@ -175,7 +182,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden lg:inline-flex p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] transition-colors",
+              "hidden lg:inline-flex p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors",
               isIcon && "lg:hidden"
             )}
             aria-label="Collapse sidebar"
@@ -186,7 +193,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] transition-colors",
+              "hidden p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors",
               isIcon && "lg:inline-flex"
             )}
             aria-label="Expand sidebar"
@@ -196,7 +203,7 @@ export function Sidebar({
 
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-white/[0.06] lg:hidden"
+            className="p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] lg:hidden"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -209,7 +216,7 @@ export function Sidebar({
         <nav className={cn("flex-1 py-4 overflow-y-auto", isIcon ? "lg:px-2 px-3" : "px-3")}>
           <div
             className={cn(
-              "px-3 pb-2 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.14em]",
+              "px-3 pb-2 text-[10px] font-semibold text-theme-muted uppercase tracking-[0.14em]",
               isIcon && "lg:hidden"
             )}
           >
@@ -231,8 +238,8 @@ export function Sidebar({
                     "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                     isIcon ? "lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5 gap-3" : "justify-between px-3 py-2.5",
                     isActive
-                      ? "bg-violet-600/20 text-white font-bold"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.06]"
+                      ? "bg-violet-600/15 dark:bg-violet-600/20 text-violet-700 dark:text-white font-bold"
+                      : "text-theme-secondary hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                   )}
                 >
                   {isActive && (

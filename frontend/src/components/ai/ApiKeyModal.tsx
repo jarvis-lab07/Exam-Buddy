@@ -62,6 +62,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
     groq: false,
     openai: false,
     ollama: false,
+    anthropic: false,
   });
 
   // Ollama specific state
@@ -95,6 +96,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
       groq: Boolean(keys.groq),
       openai: Boolean(keys.openai),
       ollama: Boolean(keys.ollama),
+      anthropic: Boolean((keys as any).anthropic),
     });
   };
 
