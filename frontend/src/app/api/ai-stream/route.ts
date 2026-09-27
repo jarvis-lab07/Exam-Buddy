@@ -251,19 +251,86 @@ async function streamOpenAI(
   controller.enqueue(sseError(`All OpenAI keys/models failed. ${errors.join(" | ")}`));
 }
 
+async function streamAnthropic(
+  apiKeys: string[],
+  model: string,
+  messages: ChatMessage[],
+  controller: ReadableStreamDefaultController<string>
+) {
+  const errors: string[] = [];
+  const systemMsg = messages.find((m) => m.role === "system");
+  const chatMsgs = messages.filter((m) => m.role !== "system");
+  const targetModel = model.includes("claude") ? model : "claude-3-5-sonnet-20241022";
+
+  for (const key of apiKeys) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key.trim(),
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: targetModel,
+          max_tokens: 2048,
+          messages: chatMsgs.map((m) => ({ role: m.role, content: m.content })),
+          ...(systemMsg ? { system: systemMsg.content } : {}),
+          stream: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = err?.error?.message || `HTTP ${res.status}`;
+        errors.push(`Anthropic: ${msg}`);
+        continue;
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.replace(/^data:\s*/, "");
+          if (!trimmed) continue;
+          try {
+            const json = JSON.parse(trimmed);
+            if (json.type === "content_block_delta" && json.delta?.text) {
+              controller.enqueue(sseChunk(json.delta.text));
+            }
+          } catch {}
+        }
+      }
+      return;
+    } catch (err: unknown) {
+      errors.push(err instanceof Error ? err.message : "Unknown error");
+    }
+  }
+  controller.enqueue(sseError(`Anthropic keys failed. ${errors.join(" | ")}`));
+}
+
 export async function POST(req: NextRequest) {
-  const body: RequestBody = await req.json();
-  const { provider, apiKeys = [], model, messages, ollamaEndpoint, ollamaModel } = body;
+  const body: any = await req.json();
+  const { provider, apiKeys = [], apiKey, model, messages, ollamaEndpoint, ollamaModel } = body;
+  const keysToUse: string[] = Array.isArray(apiKeys) && apiKeys.length > 0 ? apiKeys : apiKey ? [apiKey] : [];
 
   const stream = new ReadableStream<string>({
     async start(controller) {
       try {
         if (provider === "groq") {
-          await streamGroq(apiKeys, model, messages, controller);
+          await streamGroq(keysToUse, model, messages, controller);
         } else if (provider === "gemini") {
-          await streamGemini(apiKeys, model, messages, controller);
+          await streamGemini(keysToUse, model, messages, controller);
         } else if (provider === "openai") {
-          await streamOpenAI(apiKeys, model, messages, controller);
+          await streamOpenAI(keysToUse, model, messages, controller);
+        } else if (provider === "anthropic") {
+          await streamAnthropic(keysToUse, model, messages, controller);
         } else if (provider === "ollama") {
           const endpoint = ollamaEndpoint || "http://localhost:11434";
           const requestedModel = ollamaModel || "llama3:latest";
