@@ -28,17 +28,31 @@ export async function retrieveRagContext(
     console.warn('[Exam-Buddy RAG] Running in mock context mode. Generating topic-matched RAG context.');
     
     const queryLower = prompt.toLowerCase();
+    const isICS = queryLower.includes('ics') || queryLower.includes('cyber') || queryLower.includes('security') || queryLower.includes('crypto');
     const isBIA = queryLower.includes('bia') || queryLower.includes('business intelligence') || subjectId === 'bia';
     const isCN = queryLower.includes('network') || queryLower.includes('tcp') || queryLower.includes('ip') || subjectId === 'cn';
     const isDBMS = queryLower.includes('database') || queryLower.includes('sql') || queryLower.includes('dbms') || subjectId === 'dbms';
 
-    if (isBIA) {
+    if (isICS) {
+      return [
+        {
+          id: 'mock-section-ics-1',
+          documentId: 'doc-ics',
+          content: `[Scope Grounding Context - Information & Cyber Security (ICS Unit I)]:
+1. CIA Triad Security Goals: Confidentiality (data secrecy), Integrity (tamper prevention via SHA-256 hashes), Availability (DDoS mitigation & uptime).
+2. Cryptographic Systems: Symmetric Encryption (AES, DES, 3DES with shared key) vs. Asymmetric Encryption (RSA, Elliptic Curve / ECC with Public/Private key pairs).
+3. Attack Classifications: Passive Attacks (Eavesdropping, Traffic Analysis) vs. Active Attacks (Masquerade, Replay, Message Modification, Denial of Service / DoS).
+4. Security Protocols & Defense: SSL/TLS Handshake, Firewalls, Intrusion Detection Systems (IDS), Digital Signatures & PKI Certificates.`,
+          similarity: 0.96,
+        },
+      ];
+    } else if (isBIA) {
       return [
         {
           id: 'mock-section-bia-1',
           documentId: 'doc-bia',
           content: `[Scope Grounding Context - Business Intelligence & Analytics (BIA Unit I)]:
-1. BI Architecture: Data Sources -> ETL Pipeline (Extract, Transform, Load) -> Staging -> Data Warehouse / Data Marts -> OLAP Server -> Dashboards & Analytics.
+1. BI Architecture: Data Sources -> ETL Pipeline (Extract, Transform, Load) -> Staging Area -> Data Warehouse / Data Marts -> OLAP Server -> Reporting & Dashboards.
 2. Data Warehousing & Dimensional Modeling: Centralized repository for analytical decision making. Star Schema (central fact table surrounded by denormalized dimension tables) vs. Snowflake Schema (normalized dimension hierarchies).
 3. OLAP Operations (Online Analytical Processing): Roll-up (aggregation), Drill-down (granularity detail), Slice (single dimension filter), Dice (sub-cube selection), Pivot (rotation). MOLAP (Multidimensional), ROLAP (Relational), HOLAP (Hybrid).
 4. Data Mining & KPI Dashboards: Extracting actionable business intelligence, predictive metrics, and executive performance indicators.`,
@@ -71,21 +85,22 @@ export async function retrieveRagContext(
       ];
     }
 
+    // Extract file name from prompt if present
+    const fileMatch = prompt.match(/([a-zA-Z0-9_\-]+\.(pdf|pptx|ppt|docx|doc|txt))/i);
+    const docName = fileMatch ? fileMatch[1] : 'Requested Study Notes';
+
     return [
       {
         id: 'mock-section-generic',
         documentId: 'doc-generic',
-        content: `[Scope Grounding Context - Course Unit Notes]:
-Subject: ${subjectId || 'Academic Study Module'}
-Key Concepts & Verified Notes for "${prompt}":
-1. Core Definitions & Architectural Principles.
-2. Key Formulas, Step-by-Step Problem Solving & Algorithmic Complexities.
-3. 5/10-Mark Exam Answer Layout (Definition -> Diagram -> Key Concepts -> Pros/Cons).`,
-        similarity: 0.88,
+        content: `[Scope Grounding Context - Document: ${docName}]:
+1. Overview & Core Definitions covering key concepts of ${docName}.
+2. Core Architecture, Principles, and Foundational Theory.
+3. 5/10-Mark Exam Answer Structure (Definition -> Principles -> Key Concepts -> Applications).`,
+        similarity: 0.90,
       },
     ];
   }
-
 
   try {
     const supabase = createClient();
@@ -155,10 +170,14 @@ export function buildRagSystemPrompt(
     exam: 'University academic exam standard with 5/10-mark structured answers (Definition ➔ Architecture ➔ Pros/Cons ➔ Example).',
   };
 
+  const safeUnitName = unitName && !unitName.toLowerCase().includes('balancing') 
+    ? unitName 
+    : 'Selected Document / Unit Module';
+
   const scopeDescriptions = {
-    scope1_unit: `Scope 1: Deep focus on current unit (${unitName || 'Selected Unit'}).`,
+    scope1_unit: `Scope 1: Deep focus on requested study notes / unit (${safeUnitName}). Ground response strictly in the provided document context below. Do NOT mention unrelated Data Structures or Trees unless the document is explicitly about Trees.`,
     scope2_multi_unit: `Scope 2: Multi-Unit Synthesis combining Units 1 & 2 for midterm revision.`,
-    scope3_subject: `Scope 3: Full Subject Master Tutor for ${subjectName || 'Entire Course'}.`,
+    scope3_subject: `Scope 3: Full Subject Master Tutor for ${subjectName || 'Course'}.`,
     scope4_global: `Scope 4: Cross-subject Academic Strategist & Timetable Tutor.`,
   };
 
@@ -166,16 +185,17 @@ export function buildRagSystemPrompt(
     ? retrievedMatches.map((m, idx) => `[Source Chunk ${idx + 1}]:\n${m.content}`).join('\n\n')
     : 'No external document sections matches found. Rely on verified core academic principles.';
 
-  return `You are Exam-Buddy AI Tutor, an expert academic assistant for engineering and university students.
+  return `You are Exam-Buddy AI Tutor, an expert academic assistant for university students.
 
 Mode & Rules:
 - ${scopeDescriptions[scope]}
 - Target Explanation Depth: ${levelDescriptions[explanationLevel]}
-- Ground your answers in the retrieved course context below whenever relevant.
+- Ground your answer ONLY in the subject/document specified in the query and retrieved context below.
 
 === RETRIEVED COURSE CONTEXT ===
 ${contextBlock}
 ================================
 
-Format your answers with clean Markdown headings, bullet points, formula code blocks, and clear step-by-step reasoning.`;
+Format your answer with clear Markdown headings, bullet points, and step-by-step reasoning tailored specifically to the user's requested document or topic.`;
 }
+
