@@ -15,16 +15,15 @@ import {
   Clock,
   Terminal,
   Activity,
-  AlertTriangle,
-  FileText,
-  RotateCcw,
+  ArrowRightLeft,
+  Trash2,
+  Search,
   Check,
   Eye,
   Wrench,
   Layers,
-  ArrowRightLeft,
-  Trash2,
-  Search,
+  AlertTriangle,
+  Bot,
 } from "lucide-react";
 import {
   AI_PROVIDERS,
@@ -33,9 +32,11 @@ import {
   setActiveProvider,
   getStoredApiKeys,
   getAllStoredKeys,
+  getOllamaEndpoint,
   fetchOllamaModels,
+  getSelectedModel,
 } from "@/lib/ai-service";
-import { getModelRegistry, toggleModelStatus, saveModelRegistry } from "@/lib/ai-gateway/model-registry";
+import { getModelRegistry, toggleModelStatus } from "@/lib/ai-gateway/model-registry";
 import {
   getFeaturePolicies,
   saveFeaturePolicies,
@@ -52,9 +53,9 @@ import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { cn } from "@/lib/utils";
 
 export default function AiManagerPage() {
-  const [activeTab, setActiveTab] = useState<"providers" | "registry" | "routing" | "logs">("providers");
+  // View mode switcher: "engine" (Previous Exam Buddy UI) | "router" (Dyad Feature Policies) | "logs" (Dyad Telemetry)
+  const [activeSubTab, setActiveSubTab] = useState<"engine" | "router" | "logs">("engine");
 
-  // Providers & Keys State
   const [activeProvider, setActiveProviderState] = useState<AIProvider>("gemini");
   const [keys, setKeys] = useState<Record<AIProvider, string>>({
     gemini: "",
@@ -72,28 +73,17 @@ export default function AiManagerPage() {
   });
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [modalProvider, setModalProvider] = useState<AIProvider>("gemini");
-  const [healthStatus, setHealthStatus] = useState<Record<AIProvider, "ok" | "checking" | "error" | "unconfigured">>({
-    gemini: "ok",
-    groq: "ok",
-    openai: "unconfigured",
-    ollama: "unconfigured",
-    anthropic: "unconfigured",
-  });
+  const [ollamaModels, setOllamaModels] = useState<{ name: string; sizeMb?: number }[]>([]);
+  const [isCheckingOllama, setIsCheckingOllama] = useState(false);
 
-  // Model Registry State
+  // Dyad Gateway Essentials
   const [models, setModels] = useState<ModelMetadata[]>([]);
-  const [modelSearch, setModelSearch] = useState("");
-
-  // Feature Routing State
   const [policies, setPolicies] = useState<FeatureRoutingPolicy[]>([]);
   const [routingMode, setRoutingModeState] = useState<RoutingMode>("feature_policy");
-
-  // Logs & Analytics State
   const [logs, setLogs] = useState<AIRequestLog[]>([]);
   const [analytics, setAnalytics] = useState(getAIAnalyticsSummary());
 
   const loadData = async () => {
-    // 1. Providers
     const prov = getActiveProvider();
     setActiveProviderState(prov);
     const stored = getAllStoredKeys();
@@ -113,14 +103,18 @@ export default function AiManagerPage() {
       anthropic: getStoredApiKeys("anthropic" as any).length,
     });
 
-    // 2. Registry
-    setModels(getModelRegistry());
+    // Check Ollama models
+    setIsCheckingOllama(true);
+    const ollamaRes = await fetchOllamaModels();
+    setIsCheckingOllama(false);
+    if (ollamaRes.success) {
+      setOllamaModels(ollamaRes.models);
+    }
 
-    // 3. Routing
+    // Dyad Gateway Essentials Data
+    setModels(getModelRegistry());
     setPolicies(getFeaturePolicies());
     setRoutingModeState(getRoutingMode());
-
-    // 4. Logs
     setLogs(getAIRequestLogs());
     setAnalytics(getAIAnalyticsSummary());
   };
@@ -137,11 +131,6 @@ export default function AiManagerPage() {
   const handleOpenModal = (prov: AIProvider) => {
     setModalProvider(prov);
     setIsKeyModalOpen(true);
-  };
-
-  const handleToggleModel = (modelId: string) => {
-    const updated = toggleModelStatus(modelId);
-    setModels(updated);
   };
 
   const handleUpdatePolicy = (featureKey: string, field: "primaryModelId" | "fallbackModelId" | "autoRoutingEnabled", value: any) => {
@@ -163,13 +152,6 @@ export default function AiManagerPage() {
     setAnalytics(getAIAnalyticsSummary());
   };
 
-  const filteredModels = models.filter(
-    (m) =>
-      m.displayName.toLowerCase().includes(modelSearch.toLowerCase()) ||
-      m.provider.toLowerCase().includes(modelSearch.toLowerCase()) ||
-      m.id.toLowerCase().includes(modelSearch.toLowerCase())
-  );
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Top Banner */}
@@ -180,285 +162,314 @@ export default function AiManagerPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              AI Management & Router Gateway
+              AI Engine & Gateway Management
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                Dyad AI Architecture
+                BYOK + Dyad AI Gateway
               </span>
             </h1>
             <p className="text-sm text-[#9B99B5]">
-              Centralized AI Gateway managing providers, model registry, intelligent routing, stream fallbacks, and request telemetry.
+              Manage API keys, select default providers, and configure automatic fallback model routing across Exam Buddy.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* View Switcher: Engine & Keys (Original Exam Buddy) | Router Policies | Telemetry Logs */}
+        <div className="flex items-center gap-1 p-1 bg-[#13131F] rounded-xl border border-white/[0.08]">
           <button
             type="button"
-            onClick={loadData}
-            className="px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 text-xs font-bold flex items-center gap-1.5 border border-white/[0.08] transition-all"
+            onClick={() => setActiveSubTab("engine")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+              activeSubTab === "engine"
+                ? "bg-violet-600 text-white shadow-sm"
+                : "text-[#9B99B5] hover:text-white"
+            )}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh Config
+            <Key className="w-3.5 h-3.5" />
+            Providers & Keys
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("router")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+              activeSubTab === "router"
+                ? "bg-violet-600 text-white shadow-sm"
+                : "text-[#9B99B5] hover:text-white"
+            )}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            Dyad Router
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("logs")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+              activeSubTab === "logs"
+                ? "bg-violet-600 text-white shadow-sm"
+                : "text-[#9B99B5] hover:text-white"
+            )}
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            Telemetry ({logs.length})
           </button>
         </div>
       </div>
 
-      {/* Analytics Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
-          <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
-            <Activity className="w-3.5 h-3.5 text-indigo-400" /> Total AI Requests
-          </div>
-          <div className="text-2xl font-black text-white mt-1">{analytics.totalRequests}</div>
-          <div className="text-[10px] text-emerald-400 mt-0.5">Success Rate: {analytics.successRatePercent}%</div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
-          <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-amber-400" /> Avg First Token (TTFT)
-          </div>
-          <div className="text-2xl font-black text-white mt-1">
-            {analytics.avgTTFTMs > 0 ? `${analytics.avgTTFTMs}ms` : "—"}
-          </div>
-          <div className="text-[10px] text-slate-400 mt-0.5">Latency: {analytics.avgLatencyMs}ms</div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
-          <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
-            <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400" /> Backup Fallbacks
-          </div>
-          <div className="text-2xl font-black text-cyan-300 mt-1">{analytics.fallbackCount}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">Auto-routed backup triggers</div>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
-          <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400" /> Tokens Consumed
-          </div>
-          <div className="text-2xl font-black text-violet-300 mt-1">
-            {Math.round(analytics.totalTokensUsed / 1000)}k
-          </div>
-          <div className="text-[10px] text-slate-400 mt-0.5">Prompt + Completion tokens</div>
-        </div>
-      </div>
-
-      {/* Main Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-1 overflow-x-auto no-scrollbar">
-        {[
-          { id: "providers", label: "Providers & API Keys", icon: Key },
-          { id: "registry", label: `Model Registry (${models.filter((m) => m.enabled).length}/${models.length})`, icon: Layers },
-          { id: "routing", label: "Feature Model Routing", icon: Sliders },
-          { id: "logs", label: `Developer Logs & Telemetry (${logs.length})`, icon: Terminal },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={cn(
-                "px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0",
-                isActive
-                  ? "bg-violet-600/20 text-violet-200 border border-violet-500/40 shadow-md"
-                  : "text-[#9B99B5] hover:text-white hover:bg-white/[0.04]"
-              )}
-            >
-              <Icon className="w-4 h-4 text-violet-400" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB 1: PROVIDERS & API KEYS */}
-      {activeTab === "providers" && (
+      {/* VIEW 1: PREVIOUS EXAM BUDDY PROVIDER GRID (ENHANCED WITH BYOK KEYS) */}
+      {activeSubTab === "engine" && (
         <div className="space-y-6 animate-[fadeIn_0.2s_ease-out]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.values(AI_PROVIDERS).map((prov) => {
-              const isSelected = activeProvider === prov.id;
-              const hasKey = keyCounts[prov.id] > 0 || (prov.id === "ollama" && keys.ollama);
-              const isFree = prov.id === "gemini" || prov.id === "groq" || prov.id === "ollama";
+          {/* Active Provider Banner */}
+          <div className="glass-card p-5 rounded-2xl border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9B99B5]">
+                Current Active AI Engine
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                <h2 className="text-xl font-black text-white">
+                  {AI_PROVIDERS[activeProvider]?.name || activeProvider}
+                </h2>
+                <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Active
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Default Model: <code className="text-violet-300 font-mono">{getSelectedModel(activeProvider)}</code>
+              </p>
+            </div>
 
-              return (
-                <div
-                  key={prov.id}
-                  className={cn(
-                    "glass-card p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4",
-                    isSelected
-                      ? "border-violet-500/50 bg-violet-500/[0.04] ring-1 ring-violet-500/30"
-                      : "border-white/[0.08] hover:border-white/[0.15]"
-                  )}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-2.5 rounded-xl bg-violet-500/15 text-violet-300 border border-violet-500/30">
-                          {prov.id === "gemini" ? <Sparkles className="w-5 h-5 text-amber-400" /> : prov.id === "groq" ? <Zap className="w-5 h-5 text-cyan-400" /> : prov.id === "ollama" ? <HardDrive className="w-5 h-5 text-purple-400" /> : <Cpu className="w-5 h-5 text-indigo-400" />}
+            <button
+              type="button"
+              onClick={() => handleOpenModal(activeProvider)}
+              className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md self-start sm:self-auto"
+            >
+              <Key className="w-4 h-4" />
+              <span>Manage {AI_PROVIDERS[activeProvider]?.name.split(" ")[0]} Keys</span>
+            </button>
+          </div>
+
+          {/* Provider Selection Cards */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-violet-400" />
+              Available AI Providers
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.keys(AI_PROVIDERS).map((provKey) => {
+                const prov = provKey as AIProvider;
+                const meta = AI_PROVIDERS[prov];
+                const isSelected = activeProvider === prov;
+                const count = keyCounts[prov];
+                const hasKey = count > 0 || (prov === "ollama" && keys.ollama);
+                const isOllama = prov === "ollama";
+                const currentModel = getSelectedModel(prov);
+
+                return (
+                  <div
+                    key={prov}
+                    onClick={() => handleSelectActiveProvider(prov)}
+                    className={cn(
+                      "glass-card p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 group",
+                      isSelected
+                        ? "border-violet-500/60 bg-violet-500/[0.05] ring-1 ring-violet-500/30"
+                        : "border-white/[0.08] hover:border-white/[0.15]"
+                    )}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          {prov === "gemini" && (
+                            <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400">
+                              <Sparkles className="w-4 h-4" />
+                            </div>
+                          )}
+                          {prov === "ollama" && (
+                            <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400">
+                              <HardDrive className="w-4 h-4" />
+                            </div>
+                          )}
+                          {prov === "groq" && (
+                            <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400">
+                              <Zap className="w-4 h-4" />
+                            </div>
+                          )}
+                          {prov === "openai" && (
+                            <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+                              <Cpu className="w-4 h-4" />
+                            </div>
+                          )}
+                          {prov === "anthropic" && (
+                            <div className="p-2 rounded-xl bg-purple-500/15 text-purple-400">
+                              <Bot className="w-4 h-4" />
+                            </div>
+                          )}
+                          <span className="font-bold text-white text-sm">{meta.name.split(" ")[0]}</span>
                         </div>
-                        <div>
-                          <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                            {prov.name}
-                            {isFree && (
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                FREE TIER
+
+                        <div className="flex items-center gap-1.5">
+                          {isOllama ? (
+                            ollamaModels.length > 0 ? (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" />
+                                {ollamaModels.length} Models
                               </span>
-                            )}
-                          </h3>
-                          <p className="text-[11px] text-[#9B99B5]">{prov.tagline}</p>
+                            ) : (
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-white/[0.05]">
+                                Local
+                              </span>
+                            )
+                          ) : hasKey ? (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                              {count > 1 ? `${count} Keys` : "Ready"}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                              No Key
+                            </span>
+                          )}
                         </div>
+                      </div>
+
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{meta.tagline}</p>
+
+                      <div className="text-[11px] font-mono text-slate-300 bg-black/30 p-2 rounded-xl border border-white/[0.04] truncate">
+                        <span className="text-slate-500">Model:</span> {currentModel}
                       </div>
                     </div>
 
-                    {/* Feature Capability Badges */}
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 border border-white/[0.06] flex items-center gap-1">
-                        <Zap className="w-2.5 h-2.5 text-amber-400" /> Streaming
-                      </span>
-                      {prov.id === "gemini" || prov.id === "openai" ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 border border-white/[0.06] flex items-center gap-1">
-                          <Eye className="w-2.5 h-2.5 text-cyan-400" /> Vision
-                        </span>
-                      ) : null}
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 border border-white/[0.06] flex items-center gap-1">
-                        <Wrench className="w-2.5 h-2.5 text-violet-400" /> Tools
-                      </span>
-                    </div>
-
-                    {/* Connection Status */}
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-white/[0.04]">
-                      <span className="text-[#9B99B5]">Key Status:</span>
-                      {hasKey ? (
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Configured ({keyCounts[prov.id]} keys)
-                        </span>
-                      ) : (
-                        <span className="text-amber-400 font-semibold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Key Missing
-                        </span>
+                    <div className="pt-3 border-t border-white/[0.06] space-y-2">
+                      {!isOllama && (
+                        <a
+                          href={meta.getApiKeyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full py-1.5 px-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-amber-300 hover:text-amber-200 text-[11px] font-semibold flex items-center justify-center gap-1 border border-white/[0.08] transition-colors"
+                        >
+                          <span>Get {meta.name.split(" ")[0]} API Key</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
                       )}
+
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400 text-[11px]">
+                          {isSelected ? "🟢 Active Engine" : "Click to select"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(prov);
+                          }}
+                          className="text-violet-400 hover:text-violet-300 font-medium hover:underline flex items-center gap-1"
+                        >
+                          <span>{isOllama ? "Setup" : hasKey ? `Manage (${count})` : "+ Add Key"}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenModal(prov.id)}
-                      className="flex-1 px-3 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-white text-xs font-bold flex items-center justify-center gap-1.5 border border-white/[0.08] transition-all"
-                    >
-                      <Key className="w-3.5 h-3.5 text-amber-400" />
-                      Configure Key
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSelectActiveProvider(prov.id)}
-                      className={cn(
-                        "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shrink-0",
-                        isSelected
-                          ? "bg-violet-600 text-white"
-                          : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"
-                      )}
-                    >
-                      {isSelected ? "Default" : "Set Default"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: MODEL REGISTRY */}
-      {activeTab === "registry" && (
-        <div className="space-y-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-[#9B99B5]" />
-              <input
-                type="text"
-                placeholder="Search models by name, provider, or ID..."
-                value={modelSearch}
-                onChange={(e) => setModelSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#13131F] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-violet-500/50"
-              />
-            </div>
-            <div className="text-xs text-[#9B99B5]">
-              Showing {filteredModels.length} of {models.length} models
+                );
+              })}
             </div>
           </div>
 
-          <div className="space-y-2">
-            {filteredModels.map((model) => (
-              <div
-                key={model.id}
-                className={cn(
-                  "glass-card p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3",
-                  model.enabled
-                    ? "border-white/[0.08] bg-white/[0.02]"
-                    : "border-white/[0.04] opacity-50 bg-black/20"
-                )}
-              >
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-white">{model.displayName}</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-violet-500/15 text-violet-300 border border-violet-500/25">
-                      {model.id}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold text-[#9B99B5] px-1.5 py-0.5 rounded bg-white/[0.04]">
-                      {model.provider}
-                    </span>
-                  </div>
-                  {model.notes && <p className="text-[11px] text-[#9B99B5] truncate">{model.notes}</p>}
+          {/* Local Ollama Status & Privacy Guarantee Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Local Ollama Environment Card */}
+            <div className="glass-card p-6 rounded-2xl border border-white/[0.08] space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <HardDrive className="w-4 h-4 text-cyan-400" />
+                  Local Ollama Environment
+                </h2>
+                <button
+                  type="button"
+                  onClick={loadData}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isCheckingOllama ? "animate-spin" : ""}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Endpoint:</span>
+                  <span className="font-mono text-slate-200">{getOllamaEndpoint()}</span>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="flex items-center gap-2 text-[10px] text-[#9B99B5]">
-                    <span>Context: {(model.contextWindow / 1000).toFixed(0)}k</span>
-                    <span>Max Out: {model.maxOutputTokens}</span>
-                    {model.visionSupport && <span className="text-cyan-300 font-bold">👁 Vision</span>}
+                <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span>Installed Local Models:</span>
+                    <span className="text-cyan-300 font-semibold">{ollamaModels.length} detected</span>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleToggleModel(model.id)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
-                      model.enabled
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                        : "bg-white/[0.04] text-slate-400 border border-white/[0.08]"
-                    )}
-                  >
-                    {model.enabled ? (
-                      <>
-                        <Check className="w-3.5 h-3.5" /> Enabled
-                      </>
-                    ) : (
-                      "Disabled"
-                    )}
-                  </button>
+                  {ollamaModels.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {ollamaModels.map((m) => (
+                        <span
+                          key={m.name}
+                          className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 font-mono text-[11px]"
+                        >
+                          {m.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-500">
+                      Ollama not detected or no models pulled yet. Run <code className="text-cyan-300">ollama run llama3.2</code> in your terminal.
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Privacy & BYOK Encryption Guarantee */}
+            <div className="glass-card p-6 rounded-2xl border border-white/[0.08] space-y-4">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                100% Privacy Guarantee
+              </h2>
+              <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-1">
+                  <p className="font-semibold text-white">🔒 Zero External Traffic with Ollama</p>
+                  <p className="text-slate-400 text-[11px]">
+                    When Ollama is selected, your notes, exam questions, and chat history never leave your computer. 100% processed on your local GPU/CPU.
+                  </p>
+                </div>
+                <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-1">
+                  <p className="font-semibold text-white">⚡ BYOK Cloud Encryption</p>
+                  <p className="text-slate-400 text-[11px]">
+                    Cloud keys for Gemini, Groq, OpenAI, and Anthropic are stored in your browser’s local storage. No central database logging.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* TAB 3: FEATURE MODEL ROUTING */}
-      {activeTab === "routing" && (
+      {/* VIEW 2: DYAD FEATURE MODEL ROUTER */}
+      {activeSubTab === "router" && (
         <div className="space-y-6 animate-[fadeIn_0.2s_ease-out]">
-          {/* Routing Mode Bar */}
           <div className="glass-card p-4 rounded-2xl border border-white/[0.08] flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h3 className="text-sm font-bold text-white">Intelligent Router Mode</h3>
-              <p className="text-[11px] text-[#9B99B5]">Select how Exam Buddy resolves models across features.</p>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-violet-400" />
+                Dyad Intelligent Router Mode
+              </h3>
+              <p className="text-[11px] text-[#9B99B5]">
+                Configure Primary vs Backup Fallback AI models for each feature inside Exam Buddy.
+              </p>
             </div>
             <div className="flex items-center gap-1 p-1 bg-[#13131F] rounded-xl border border-white/[0.08]">
               {[
                 { id: "feature_policy", label: "Feature Policy (Recommended)" },
                 { id: "auto", label: "Auto Smart Router" },
-                { id: "manual", label: "Manual User Override" },
+                { id: "manual", label: "Manual Override" },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -477,7 +488,6 @@ export default function AiManagerPage() {
             </div>
           </div>
 
-          {/* Feature Policy Rows */}
           <div className="space-y-3">
             {policies.map((policy) => (
               <div
@@ -492,12 +502,11 @@ export default function AiManagerPage() {
                     </span>
                   </h4>
                   <p className="text-[11px] text-[#9B99B5] mt-0.5">
-                    Configured primary model and backup fallback model for this feature.
+                    Primary model handles requests. Backup model is auto-triggered if primary fails or rate-limits.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
-                  {/* Primary Model Select */}
                   <div>
                     <label className="block text-[10px] font-semibold text-[#9B99B5] uppercase mb-1">
                       Primary Model
@@ -517,7 +526,6 @@ export default function AiManagerPage() {
                     </select>
                   </div>
 
-                  {/* Fallback Model Select */}
                   <div>
                     <label className="block text-[10px] font-semibold text-cyan-300 uppercase mb-1">
                       Backup Fallback
@@ -543,34 +551,69 @@ export default function AiManagerPage() {
         </div>
       )}
 
-      {/* TAB 4: DEVELOPER LOGS & TELEMETRY */}
-      {activeTab === "logs" && (
+      {/* VIEW 3: DYAD TELEMETRY & LOGS */}
+      {activeSubTab === "logs" && (
         <div className="space-y-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-violet-400" />
-                Real-Time AI Request Telemetry
-              </h3>
-              <p className="text-[11px] text-[#9B99B5]">Inspect latency, TTFT, token usage, and fallback logs.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
+              <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
+                <Activity className="w-3.5 h-3.5 text-indigo-400" /> Total AI Requests
+              </div>
+              <div className="text-2xl font-black text-white mt-1">{analytics.totalRequests}</div>
+              <div className="text-[10px] text-emerald-400 mt-0.5">Success: {analytics.successRatePercent}%</div>
             </div>
+
+            <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
+              <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-amber-400" /> Avg First Token (TTFT)
+              </div>
+              <div className="text-2xl font-black text-white mt-1">
+                {analytics.avgTTFTMs > 0 ? `${analytics.avgTTFTMs}ms` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">Latency: {analytics.avgLatencyMs}ms</div>
+            </div>
+
+            <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
+              <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
+                <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-400" /> Fallbacks Triggered
+              </div>
+              <div className="text-2xl font-black text-cyan-300 mt-1">{analytics.fallbackCount}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">Backup auto-switches</div>
+            </div>
+
+            <div className="glass-card p-4 rounded-xl border border-white/[0.08]">
+              <div className="text-[11px] font-semibold text-[#9B99B5] uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-violet-400" /> Tokens Consumed
+              </div>
+              <div className="text-2xl font-black text-violet-300 mt-1">
+                {Math.round(analytics.totalTokensUsed / 1000)}k
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">Total prompt & completion</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 pt-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-violet-400" />
+              Request Telemetry Log Stream
+            </h3>
             {logs.length > 0 && (
               <button
                 type="button"
                 onClick={handleClearLogs}
-                className="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold flex items-center gap-1.5 border border-rose-500/30 transition-all"
+                className="px-3 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold border border-rose-500/30 transition-all flex items-center gap-1"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Clear Logs
+                <Trash2 className="w-3 h-3" /> Clear
               </button>
             )}
           </div>
 
           {logs.length === 0 ? (
-            <div className="glass-card p-12 rounded-2xl border border-white/[0.08] text-center text-[#5A5875]">
-              <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50 text-violet-400" />
+            <div className="glass-card p-10 rounded-2xl border border-white/[0.08] text-center text-[#5A5875]">
+              <Terminal className="w-7 h-7 mx-auto mb-2 opacity-50 text-violet-400" />
               <p className="text-xs font-semibold">No AI Gateway request logs recorded yet.</p>
               <p className="text-[11px] mt-1 opacity-70">
-                Trigger an AI chat, lecture tutor, or note generation to see live telemetry!
+                Interact with AI Tutor Chat or YouTube Study Workspace to see live telemetry!
               </p>
             </div>
           ) : (
@@ -634,8 +677,8 @@ export default function AiManagerPage() {
       {/* API Key Modal */}
       <ApiKeyModal
         isOpen={isKeyModalOpen}
-        onClose={() => setIsKeyModalOpen(false)}
         initialProvider={modalProvider}
+        onClose={() => setIsKeyModalOpen(false)}
         onKeysUpdated={loadData}
       />
     </div>
