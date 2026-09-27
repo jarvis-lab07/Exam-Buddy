@@ -25,16 +25,67 @@ export async function retrieveRagContext(
   unitId?: string
 ): Promise<RagContextMatch[]> {
   if (!isSupabaseConfigured()) {
-    console.warn('[Exam-Buddy RAG] Running in mock context mode. Vector database unavailable.');
+    console.warn('[Exam-Buddy RAG] Running in mock context mode. Generating topic-matched RAG context.');
+    
+    const queryLower = prompt.toLowerCase();
+    const isBIA = queryLower.includes('bia') || queryLower.includes('business intelligence') || subjectId === 'bia';
+    const isCN = queryLower.includes('network') || queryLower.includes('tcp') || queryLower.includes('ip') || subjectId === 'cn';
+    const isDBMS = queryLower.includes('database') || queryLower.includes('sql') || queryLower.includes('dbms') || subjectId === 'dbms';
+
+    if (isBIA) {
+      return [
+        {
+          id: 'mock-section-bia-1',
+          documentId: 'doc-bia',
+          content: `[Scope Grounding Context - Business Intelligence & Analytics (BIA Unit I)]:
+1. BI Architecture: Data Sources -> ETL Pipeline (Extract, Transform, Load) -> Staging -> Data Warehouse / Data Marts -> OLAP Server -> Dashboards & Analytics.
+2. Data Warehousing & Dimensional Modeling: Centralized repository for analytical decision making. Star Schema (central fact table surrounded by denormalized dimension tables) vs. Snowflake Schema (normalized dimension hierarchies).
+3. OLAP Operations (Online Analytical Processing): Roll-up (aggregation), Drill-down (granularity detail), Slice (single dimension filter), Dice (sub-cube selection), Pivot (rotation). MOLAP (Multidimensional), ROLAP (Relational), HOLAP (Hybrid).
+4. Data Mining & KPI Dashboards: Extracting actionable business intelligence, predictive metrics, and executive performance indicators.`,
+          similarity: 0.95,
+        },
+      ];
+    } else if (isCN) {
+      return [
+        {
+          id: 'mock-section-cn-1',
+          documentId: 'doc-cn',
+          content: `[Scope Grounding Context - Computer Networks (CN)]:
+1. OSI Model vs. TCP/IP Stack: 7-Layer OSI model (Physical, Data Link, Network, Transport, Session, Presentation, Application) vs. 4-Layer TCP/IP reference model.
+2. Transport Layer: TCP (Connection-oriented, 3-way handshake, reliable, flow control via Sliding Window, congestion control via AIMD/Tahoe/Reno) vs. UDP (Connectionless, low overhead, unreliable datagrams).
+3. Network Layer & Subnetting: IPv4 addressing, CIDR notation, subnet masks, routing protocols (Dijkstra Link-State vs. Bellman-Ford Distance Vector, OSPF, BGP).`,
+          similarity: 0.92,
+        },
+      ];
+    } else if (isDBMS) {
+      return [
+        {
+          id: 'mock-section-dbms-1',
+          documentId: 'doc-dbms',
+          content: `[Scope Grounding Context - Database Management Systems (DBMS)]:
+1. Relational Algebra & SQL: Selection (sigma), Projection (pi), Joins (Inner, Left, Right, Full), Group By and Aggregations.
+2. Normalization: 1NF (atomic values), 2NF (no partial functional dependency), 3NF (no transitive dependency), BCNF (Boyce-Codd Normal Form).
+3. ACID Properties: Atomicity (all or nothing), Consistency (valid state), Isolation (concurrent transaction locks), Durability (persisted storage). Two-Phase Locking (2PL) & Serializability.`,
+          similarity: 0.94,
+        },
+      ];
+    }
+
     return [
       {
-        id: 'mock-section-1',
-        documentId: 'doc-1',
-        content: `[Scope Grounding Context]: Subject concepts for ${subjectId || 'DSA'} - Key definitions, algorithmic complexities (O(1), O(N log N)), binary search tree invariants, and 5-mark exam answer structures.`,
+        id: 'mock-section-generic',
+        documentId: 'doc-generic',
+        content: `[Scope Grounding Context - Course Unit Notes]:
+Subject: ${subjectId || 'Academic Study Module'}
+Key Concepts & Verified Notes for "${prompt}":
+1. Core Definitions & Architectural Principles.
+2. Key Formulas, Step-by-Step Problem Solving & Algorithmic Complexities.
+3. 5/10-Mark Exam Answer Layout (Definition -> Diagram -> Key Concepts -> Pros/Cons).`,
         similarity: 0.88,
       },
     ];
   }
+
 
   try {
     const supabase = createClient();
