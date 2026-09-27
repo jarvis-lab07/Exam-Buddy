@@ -12,6 +12,7 @@ import {
   Zap,
   Play,
   ChevronRight,
+  Filter,
 } from "lucide-react";
 import { CalendarEvent } from "@/types";
 import { cn } from "@/lib/utils";
@@ -42,25 +43,58 @@ function minToHourLabel(totalMin: number) {
 function getTypeBadge(type: CalendarEvent["type"]) {
   switch (type) {
     case "lecture":
-      return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">Lecture</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 shrink-0">
+          Lecture
+        </span>
+      );
     case "revision":
-      return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25">Revision</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 shrink-0">
+          Revision
+        </span>
+      );
     case "quiz":
-      return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">Speed Quiz</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 shrink-0">
+          Speed Quiz
+        </span>
+      );
     case "flashcards":
-      return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/25">Flashcards</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/25 shrink-0">
+          Flashcards
+        </span>
+      );
     case "exam":
-      return <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 border border-rose-500/25">Mock Exam</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 border border-rose-500/25 shrink-0">
+          Mock Exam
+        </span>
+      );
   }
 }
 
-const STATS_PER_EVENT: Record<string, { pomodoros: number; flashcards: number; accuracy: number }> = {
+const STATS_PER_EVENT: Record<
+  string,
+  { pomodoros: number; flashcards: number; accuracy: number }
+> = {
   "ev-1": { pomodoros: 2, flashcards: 18, accuracy: 86 },
   "ev-2": { pomodoros: 3, flashcards: 0, accuracy: 91 },
   "ev-3": { pomodoros: 4, flashcards: 45, accuracy: 78 },
   "ev-4": { pomodoros: 1, flashcards: 12, accuracy: 82 },
   "ev-5": { pomodoros: 3, flashcards: 28, accuracy: 95 },
 };
+
+interface EventWithPos {
+  ev: CalendarEvent;
+  startPx: number;
+  heightPx: number;
+  startMin: number;
+  endMin: number;
+  colIndex: number;
+  maxCols: number;
+}
 
 export function HourlyTimeline({
   events,
@@ -78,21 +112,104 @@ export function HourlyTimeline({
     return () => clearInterval(iv);
   }, []);
 
+  const currentDayName = useMemo(() => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return days[now.getDay()];
+  }, [now]);
+
+  const [selectedDay, setSelectedDay] = useState<string>("All");
+
+  // Auto select today if events exist for today
+  useEffect(() => {
+    if (events.some((e) => e.dayOfWeek === currentDayName)) {
+      setSelectedDay(currentDayName);
+    }
+  }, [events, currentDayName]);
+
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const nowWithinRange =
     nowMin >= startHour * 60 && nowMin <= endHour * 60 + 60;
 
-  const eventsWithPositions = useMemo(() => {
-    return events
+  const filteredEvents = useMemo(() => {
+    if (selectedDay === "All") return events;
+    return events.filter((ev) => ev.dayOfWeek === selectedDay);
+  }, [events, selectedDay]);
+
+  const eventsWithPositions = useMemo<EventWithPos[]>(() => {
+    const rawItems = filteredEvents
       .map((ev) => {
         const { startMin, endMin } = parseTimeSlot(ev.timeSlot);
         const startPx = ((startMin - startHour * 60) / 60) * ROW_HEIGHT;
         const heightPx = ((endMin - startMin) / 60) * ROW_HEIGHT - 4;
-        return { ev, startPx: Math.max(0, startPx), heightPx, startMin, endMin };
+        return {
+          ev,
+          startPx: Math.max(0, startPx),
+          heightPx: Math.max(56, heightPx),
+          startMin,
+          endMin,
+        };
       })
       .filter(({ startPx }) => startPx >= -ROW_HEIGHT)
-      .sort((a, b) => a.startMin - b.startMin);
-  }, [events, startHour]);
+      .sort((a, b) => a.startMin - b.startMin || (b.endMin - b.startMin) - (a.endMin - a.startMin));
+
+    if (rawItems.length === 0) return [];
+
+    // Group items that overlap in time into clusters
+    const groups: (typeof rawItems)[] = [];
+    let currentGroup: typeof rawItems = [];
+    let currentGroupEnd = -1;
+
+    for (const item of rawItems) {
+      if (currentGroup.length === 0) {
+        currentGroup.push(item);
+        currentGroupEnd = item.endMin;
+      } else if (item.startMin < currentGroupEnd) {
+        currentGroup.push(item);
+        currentGroupEnd = Math.max(currentGroupEnd, item.endMin);
+      } else {
+        groups.push(currentGroup);
+        currentGroup = [item];
+        currentGroupEnd = item.endMin;
+      }
+    }
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+
+    // Assign column index and max columns per group
+    const result: EventWithPos[] = [];
+    for (const group of groups) {
+      const colEnds: number[] = [];
+      const itemCols: { item: (typeof rawItems)[0]; colIndex: number }[] = [];
+
+      for (const item of group) {
+        let assignedCol = -1;
+        for (let c = 0; c < colEnds.length; c++) {
+          if (colEnds[c] <= item.startMin) {
+            assignedCol = c;
+            colEnds[c] = item.endMin;
+            break;
+          }
+        }
+        if (assignedCol === -1) {
+          assignedCol = colEnds.length;
+          colEnds.push(item.endMin);
+        }
+        itemCols.push({ item, colIndex: assignedCol });
+      }
+
+      const maxCols = colEnds.length;
+      for (const { item, colIndex } of itemCols) {
+        result.push({
+          ...item,
+          colIndex,
+          maxCols,
+        });
+      }
+    }
+
+    return result;
+  }, [filteredEvents, startHour]);
 
   const nextEvent = useMemo(() => {
     const upcoming = eventsWithPositions.find(
@@ -110,32 +227,79 @@ export function HourlyTimeline({
   return (
     <div className="relative w-full rounded-2xl glass-card p-5 border border-white/[0.08] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.06] gap-3 flex-wrap">
+      <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/[0.06] gap-3 flex-wrap">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-400">
-            <CalendarClock className="w-4.5 w-[18px] h-[18px]" />
+            <CalendarClock className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Hourly Study Timeline</h3>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              Hourly Study Timeline
+              {selectedDay !== "All" && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                  {selectedDay} Schedule
+                </span>
+              )}
+            </h3>
             <p className="text-[11px] text-[#9B99B5]">
-              {startHour < 10 ? `0${startHour}` : startHour}:00 → {String(endHour % 24).padStart(2, "0")}:00 · {events.length} sessions
+              {startHour < 10 ? `0${startHour}` : startHour}:00 →{" "}
+              {String(endHour % 24).padStart(2, "0")}:00 · {filteredEvents.length} sessions
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {nowWithinRange && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-[10px] font-mono font-bold text-amber-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              {minToHourLabel(nowMin)}
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              NOW {minToHourLabel(nowMin)}
             </div>
           )}
-          <div className="hidden sm:flex items-center gap-1 text-[10px] text-[#9B99B5] px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
-            <span className="w-2 h-2 rounded-full bg-violet-500" /> Lecture
-            <span className="w-2 h-2 rounded-full bg-cyan-500" /> Quiz
-            <span className="w-2 h-2 rounded-full bg-purple-500" /> Cards
+          <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-[#9B99B5] px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
+            <span className="w-2 h-2 rounded-full bg-indigo-400" /> Lecture
+            <span className="w-2 h-2 rounded-full bg-cyan-400" /> Quiz
+            <span className="w-2 h-2 rounded-full bg-purple-400" /> Cards
           </div>
         </div>
+      </div>
+
+      {/* Day Filter Pills */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-3 border-b border-white/[0.04]">
+        <span className="text-[11px] font-bold text-[#9B99B5] shrink-0 mr-1 flex items-center gap-1">
+          <Filter className="w-3 h-3 text-violet-400" /> Day:
+        </span>
+        {["All", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => {
+          const isCurrent = currentDayName === day;
+          const isSelected = selectedDay === day;
+          const count =
+            day === "All"
+              ? events.length
+              : events.filter((e) => e.dayOfWeek === day).length;
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => setSelectedDay(day)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1",
+                isSelected
+                  ? "bg-violet-500/25 text-violet-200 border border-violet-500/40 shadow-sm"
+                  : "bg-white/[0.03] text-[#9B99B5] hover:text-white hover:bg-white/[0.06] border border-white/[0.06]"
+              )}
+            >
+              {day === "All" ? "All Days" : day}
+              {isCurrent && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"
+                  title="Today"
+                />
+              )}
+              <span className="text-[9px] opacity-70 px-1 py-0.2 rounded bg-white/[0.08]">
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Timeline Scroll Container */}
@@ -183,25 +347,32 @@ export function HourlyTimeline({
 
           {/* Now indicator line */}
           {nowWithinRange && (
-            <>
-              <div
-                className="timeline-now-line pointer-events-none absolute left-0 right-0 h-[2px] bg-gradient-to-r from-amber-400 via-amber-300 to-transparent z-20"
-                style={{
-                  top: ((nowMin - startHour * 60) / 60) * ROW_HEIGHT,
-                  left: TIME_GUTTER - 6,
-                }}
-              >
-                <div className="absolute -left-[7px] -top-[5px] w-3 h-3 rounded-full bg-amber-400 ring-2 ring-[#0A0A14]" />
-                <span className="absolute -left-[62px] -top-[9px] text-[10px] font-mono font-bold text-amber-300 whitespace-nowrap">
-                  NOW
-                </span>
-              </div>
-            </>
+            <div
+              className="timeline-now-line pointer-events-none absolute left-0 right-0 h-[2px] bg-gradient-to-r from-amber-400 via-amber-300 to-transparent z-20"
+              style={{
+                top: ((nowMin - startHour * 60) / 60) * ROW_HEIGHT,
+                left: TIME_GUTTER - 6,
+              }}
+            >
+              <div className="absolute -left-[7px] -top-[5px] w-3 h-3 rounded-full bg-amber-400 ring-2 ring-[#0A0A14]" />
+              <span className="absolute -left-[62px] -top-[9px] text-[10px] font-mono font-bold text-amber-300 whitespace-nowrap">
+                NOW
+              </span>
+            </div>
           )}
 
-          {/* Event cards */}
+          {/* Empty state when no events match filter */}
+          {eventsWithPositions.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center text-[#5A5875]">
+              <CalendarClock className="w-8 h-8 mb-2 opacity-50" />
+              <p className="text-xs font-semibold">No study sessions scheduled for {selectedDay}.</p>
+              <p className="text-[11px] mt-1 opacity-70">Switch day tab or click Schedule Session above.</p>
+            </div>
+          )}
+
+          {/* Event cards with side-by-side overlap positioning */}
           {eventsWithPositions.map(
-            ({ ev, startPx, heightPx, startMin, endMin }) => {
+            ({ ev, startPx, heightPx, startMin, endMin, colIndex, maxCols }) => {
               const stats = STATS_PER_EVENT[ev.id] ?? {
                 pomodoros: 0,
                 flashcards: 0,
@@ -211,20 +382,26 @@ export function HourlyTimeline({
               const isPast = endMin < nowMin;
               const isLive = nowMin >= startMin && nowMin <= endMin;
               const isNext = nextEvent?.id === ev.id && !isLive;
-              const heightLimited = Math.max(64, heightPx);
+
+              // Calculate width and left offset dynamically for side-by-side layout
+              const leftCalc = `calc(72px + (100% - 80px) * ${colIndex / maxCols})`;
+              const widthCalc = `calc((100% - 80px) / ${maxCols} - 4px)`;
+
               return (
                 <div
                   key={ev.id}
                   className={cn(
-                    "timeline-event absolute left-[72px] right-2 rounded-xl border p-2.5 z-10 transition-colors cursor-pointer",
+                    "timeline-event absolute rounded-xl border p-2.5 z-10 transition-all cursor-pointer overflow-hidden flex flex-col justify-between",
                     completed && "opacity-75",
                     isLive && "ring-2 ring-amber-400/70 ring-offset-0 animate-pulse-slow"
                   )}
                   style={{
                     top: startPx + 2,
-                    height: heightLimited,
-                    backgroundColor: `${ev.subjectColor}12`,
-                    borderColor: `${ev.subjectColor}40`,
+                    height: heightPx,
+                    left: leftCalc,
+                    width: widthCalc,
+                    backgroundColor: `${ev.subjectColor}15`,
+                    borderColor: `${ev.subjectColor}45`,
                     boxShadow: `0 6px 24px -10px ${ev.subjectColor}40`,
                   }}
                   onMouseEnter={() => setHoveredId(ev.id)}
@@ -236,55 +413,56 @@ export function HourlyTimeline({
                     style={{ backgroundColor: ev.subjectColor }}
                   />
 
-                  <div className="flex items-start justify-between gap-2 pl-1.5">
+                  <div className="flex items-start justify-between gap-1.5 pl-1.5 min-w-0">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                         {isLive && (
-                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 shrink-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                             Live
                           </span>
                         )}
                         {isNext && !isLive && (
-                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/30 flex items-center gap-1">
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/30 flex items-center gap-1 shrink-0">
                             <Zap className="w-2.5 h-2.5" />
                             Up Next
                           </span>
                         )}
                         {getTypeBadge(ev.type)}
-                        <span className="text-[10px] font-mono text-[#9B99B5]">
+                        <span className="text-[10px] font-mono text-[#9B99B5] shrink-0">
                           {minToHourLabel(startMin)}–{minToHourLabel(endMin)}
                         </span>
                       </div>
 
                       <h4
                         className={cn(
-                          "text-sm font-bold leading-tight",
+                          "text-xs sm:text-sm font-bold leading-tight truncate",
                           completed ? "line-through text-[#9B99B5]" : "text-[#F1F1F8]"
                         )}
+                        title={ev.title}
                       >
                         {ev.title}
                       </h4>
 
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-[#9B99B5] flex-wrap">
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#9B99B5] truncate">
                         {ev.unitTitle && (
-                          <span className="flex items-center gap-1">
-                            <BookOpen className="w-2.5 h-2.5" /> {ev.unitTitle}
+                          <span className="flex items-center gap-1 truncate">
+                            <BookOpen className="w-2.5 h-2.5 shrink-0" /> {ev.unitTitle}
                           </span>
                         )}
-                        {ev.roomOrPlatform && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-2.5 h-2.5" /> {ev.roomOrPlatform}
+                        {ev.roomOrPlatform && maxCols === 1 && (
+                          <span className="hidden sm:flex items-center gap-1 truncate">
+                            <MapPin className="w-2.5 h-2.5 shrink-0" /> {ev.roomOrPlatform}
                           </span>
                         )}
                       </div>
 
-                      {/* Inline stats */}
-                      {(isPast || completed || isLive) && heightLimited > 100 && (
-                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      {/* Inline stats if height allows */}
+                      {(isPast || completed || isLive) && heightPx > 90 && (
+                        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                           {stats.pomodoros > 0 && (
                             <span
-                              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold"
+                              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold"
                               style={{
                                 color: ev.subjectColor,
                                 backgroundColor: `${ev.subjectColor}15`,
@@ -296,24 +474,9 @@ export function HourlyTimeline({
                             </span>
                           )}
                           {stats.flashcards > 0 && (
-                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/25 text-[10px] font-semibold">
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/25 text-[9px] font-semibold">
                               <BrainCircuit className="w-2.5 h-2.5" />
                               {stats.flashcards} cards
-                            </span>
-                          )}
-                          {stats.accuracy > 0 && (
-                            <span
-                              className={cn(
-                                "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold",
-                                stats.accuracy >= 90
-                                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/25"
-                                  : stats.accuracy >= 75
-                                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/25"
-                                  : "bg-rose-500/10 text-rose-300 border border-rose-500/25"
-                              )}
-                            >
-                              <Sparkles className="w-2.5 h-2.5" />
-                              {stats.accuracy}% quiz
                             </span>
                           )}
                         </div>
@@ -321,7 +484,7 @@ export function HourlyTimeline({
                     </div>
 
                     {/* Right side actions */}
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <div className="flex flex-col items-end gap-1 shrink-0 z-10">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -346,10 +509,7 @@ export function HourlyTimeline({
                             e.stopPropagation();
                             onStartEvent?.(ev);
                           }}
-                          className={cn(
-                            "flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all",
-                            "text-white shadow-lg animate-[fadeIn_0.2s_ease-out]"
-                          )}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold text-white shadow-lg transition-all"
                           style={{
                             backgroundColor: ev.subjectColor,
                           }}
@@ -397,7 +557,7 @@ export function HourlyTimeline({
           <button
             type="button"
             onClick={() => onStartEvent?.(nextEvent)}
-            className="h-12 px-5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-black flex items-center gap-2 transition-colors shrink-0"
+            className="h-10 sm:h-12 px-4 sm:px-5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-black flex items-center gap-2 transition-colors shrink-0"
           >
             <Play className="w-4 h-4 fill-white" />
             START NEXT SESSION
@@ -407,3 +567,4 @@ export function HourlyTimeline({
     </div>
   );
 }
+
