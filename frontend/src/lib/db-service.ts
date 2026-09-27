@@ -74,7 +74,7 @@ export async function createSubjectInDb(subject: Omit<Subject, 'id'>): Promise<S
 }
 
 /**
- * Flashcard Decks Database Operations
+ * Flashcard Decks & Review Persistence
  */
 export async function fetchFlashcardDecks(): Promise<FlashcardDeck[]> {
   if (!isSupabaseConfigured()) {
@@ -93,6 +93,21 @@ export async function fetchFlashcardDecks(): Promise<FlashcardDeck[]> {
   return data as FlashcardDeck[];
 }
 
+export async function updateFlashcardReview(
+  cardId: string,
+  sm2State: { repetition: number; interval: number; easeFactor: number; nextReviewAt: string }
+) {
+  if (!isSupabaseConfigured()) return;
+
+  const supabase = createClient();
+  await supabase.from('flashcards').update({
+    repetition_level: sm2State.repetition,
+    interval_days: sm2State.interval,
+    ease_factor: sm2State.easeFactor,
+    next_review_at: sm2State.nextReviewAt,
+  }).eq('id', cardId);
+}
+
 /**
  * Study Focus Logger
  */
@@ -109,3 +124,4 @@ export async function recordStudyLog(durationMinutes: number, sessionType: strin
     session_type: sessionType,
   });
 }
+

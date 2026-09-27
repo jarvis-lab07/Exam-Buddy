@@ -13,6 +13,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Flashcard } from "@/types";
+import { calculateSM2 } from "@/lib/sm2-algorithm";
+import { updateFlashcardReview } from "@/lib/db-service";
 
 interface Flashcard3DProps {
   card: Flashcard;
@@ -29,10 +31,26 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
     setShowHint(false);
   }, [card.id]);
 
-  const handleRate = (e: React.MouseEvent, rating: "again" | "hard" | "good" | "easy") => {
+  const handleRate = async (e: React.MouseEvent, rating: "again" | "hard" | "good" | "easy") => {
     e.stopPropagation();
+
+    // Grade map: 0: again, 1: hard, 2: good, 3: easy
+    const gradeMap = { again: 0, hard: 1, good: 2, easy: 3 };
+    const grade = gradeMap[rating];
+
+    const sm2Result = calculateSM2(grade, {
+      repetition: card.reviewIntervalDays ? Math.max(1, Math.floor(card.reviewIntervalDays / 2)) : 0,
+      interval: card.reviewIntervalDays || 1,
+      easeFactor: card.easeFactor || 2.5,
+    });
+
+
+    // Persist to Supabase if configured
+    await updateFlashcardReview(card.id, sm2Result);
+
     onRate(rating);
   };
+
 
   const getDifficultyBadge = (diff: Flashcard["difficulty"]) => {
     switch (diff) {

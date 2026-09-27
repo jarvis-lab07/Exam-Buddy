@@ -6,8 +6,10 @@ import { MOCK_SUBJECTS } from "@/lib/mock-data";
 import { DegreeFilter } from "@/components/subjects/DegreeFilter";
 import { SubjectCard } from "@/components/subjects/SubjectCard";
 import { AddSubjectModal } from "@/components/subjects/AddSubjectModal";
+import { CampusCohortCard } from "@/components/subjects/CampusCohortCard";
 import {
   BookOpen,
+
   Search,
   Plus,
   Sparkles,
@@ -195,8 +197,12 @@ export default function SubjectsPage() {
         </div>
       </section>
 
+      {/* Campus Cohort Knowledge Pool & Department Leaderboard */}
+      <CampusCohortCard />
+
       {/* 2. Search & Toolbar Controls */}
       <section className="space-y-4">
+
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Keyword Search */}
           <div className="relative flex-1 max-w-lg">

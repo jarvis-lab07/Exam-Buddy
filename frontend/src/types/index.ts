@@ -148,8 +148,11 @@ export interface Flashcard {
   deckType: FlashcardDeckType;
   masteryStatus: FlashcardMastery;
   reviewIntervalDays?: number;
+  easeFactor?: number;
   lastReviewed?: string;
 }
+
+
 
 export interface FlashcardDeck {
   id: string;
