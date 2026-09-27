@@ -54,7 +54,7 @@ export function WeeklyCalendarView({ events }: WeeklyCalendarViewProps) {
   };
 
   return (
-    <div className="glass-card p-6 rounded-3xl border border-white/[0.08] space-y-5">
+    <div className="glass-card p-6 rounded-2xl border border-white/[0.08] space-y-5">
       {/* Day Selector Tabs */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] flex-wrap gap-2">
         <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function WeeklyCalendarView({ events }: WeeklyCalendarViewProps) {
                 onClick={() => setSelectedDay(d.key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                   isSelected
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                    ? "bg-violet-600 text-white border border-violet-500/40"
                     : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
                 }`}
               >

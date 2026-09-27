@@ -126,7 +126,7 @@ export function HourlyTimeline({
         <div className="flex items-center gap-2">
           {nowWithinRange && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-[10px] font-mono font-bold text-amber-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
               {minToHourLabel(nowMin)}
             </div>
           )}
@@ -191,7 +191,7 @@ export function HourlyTimeline({
                   left: TIME_GUTTER - 6,
                 }}
               >
-                <div className="absolute -left-[7px] -top-[5px] w-3 h-3 rounded-full bg-amber-400 ring-2 ring-[#0A0A14] shadow-lg shadow-amber-400/60" />
+                <div className="absolute -left-[7px] -top-[5px] w-3 h-3 rounded-full bg-amber-400 ring-2 ring-[#0A0A14]" />
                 <span className="absolute -left-[62px] -top-[9px] text-[10px] font-mono font-bold text-amber-300 whitespace-nowrap">
                   NOW
                 </span>
@@ -216,8 +216,7 @@ export function HourlyTimeline({
                 <div
                   key={ev.id}
                   className={cn(
-                    "timeline-event absolute left-[72px] right-2 rounded-xl border p-2.5 z-10 transition-all cursor-pointer",
-                    "hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-2xl",
+                    "timeline-event absolute left-[72px] right-2 rounded-xl border p-2.5 z-10 transition-colors cursor-pointer",
                     completed && "opacity-75",
                     isLive && "ring-2 ring-amber-400/70 ring-offset-0 animate-pulse-slow"
                   )}
@@ -242,7 +241,7 @@ export function HourlyTimeline({
                       <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                         {isLive && (
                           <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                             Live
                           </span>
                         )}
@@ -398,7 +397,7 @@ export function HourlyTimeline({
           <button
             type="button"
             onClick={() => onStartEvent?.(nextEvent)}
-            className="h-12 px-5 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-violet-600/30 transition-all hover:scale-[1.02] shrink-0"
+            className="h-12 px-5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-black flex items-center gap-2 transition-colors shrink-0"
           >
             <Play className="w-4 h-4 fill-white" />
             START NEXT SESSION

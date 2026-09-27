@@ -147,7 +147,7 @@ export default function FlashcardsPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Top Banner */}
-      <div className="glass-card p-6 rounded-3xl border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+      <div className="glass-card p-6 rounded-2xl border border-white/[0.08] border-t-2 border-emerald-500/40 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
             <Layers className="w-6 h-6" />
@@ -168,7 +168,7 @@ export default function FlashcardsPage() {
         <button
           type="button"
           onClick={() => setIsAiModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-violet-600/30 transition-all"
+          className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
         >
           <Sparkles className="w-4 h-4" />
           <span>Generate with AI</span>
@@ -186,7 +186,7 @@ export default function FlashcardsPage() {
           }}
           className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             selectedDeckId === "all"
-              ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+              ? "bg-violet-600 text-white border border-violet-500/40"
               : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
           }`}
         >
@@ -204,7 +204,7 @@ export default function FlashcardsPage() {
             }}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-all ${
               selectedDeckId === deck.id
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                ? "bg-violet-600 text-white border border-violet-500/40"
                 : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
             }`}
           >
@@ -257,7 +257,7 @@ export default function FlashcardsPage() {
 
       {/* Main Flashcard 3D Area / Session Complete State */}
       {isSessionComplete ? (
-        <div className="glass-card p-10 rounded-3xl border border-emerald-500/30 text-center space-y-5 bg-gradient-to-b from-emerald-500/10 to-transparent">
+        <div className="glass-card p-10 rounded-2xl border border-emerald-500/30 border-t-2 border-emerald-500/40 text-center space-y-5">
           <div className="p-4 rounded-full bg-emerald-500/20 text-emerald-400 w-fit mx-auto border border-emerald-500/30">
             <Trophy className="w-10 h-10 animate-bounce" />
           </div>
@@ -284,7 +284,7 @@ export default function FlashcardsPage() {
             <button
               type="button"
               onClick={handleReset}
-              className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-violet-600/30 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
             >
               <RotateCw className="w-4 h-4" />
               <span>Review Deck Again</span>
@@ -299,7 +299,7 @@ export default function FlashcardsPage() {
           </div>
         </div>
       ) : activeDeckCards.length === 0 ? (
-        <div className="glass-card p-12 rounded-3xl border border-white/[0.08] text-center space-y-4">
+        <div className="glass-card p-12 rounded-2xl border border-white/[0.08] text-center space-y-4">
           <p className="text-white font-bold">No flashcards in this deck</p>
           <button
             type="button"

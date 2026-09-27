@@ -203,7 +203,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               <button
                 type="button"
                 onClick={(e) => handleRate(e, "again")}
-                className="py-2 px-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center transition-all hover:scale-[1.02]"
+                className="py-2 px-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold text-center transition-colors"
               >
                 <span className="block text-[10px] text-rose-400/80">&lt; 10 min</span>
                 <span>Again</span>
@@ -212,7 +212,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               <button
                 type="button"
                 onClick={(e) => handleRate(e, "hard")}
-                className="py-2 px-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold text-center transition-all hover:scale-[1.02]"
+                className="py-2 px-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold text-center transition-colors"
               >
                 <span className="block text-[10px] text-amber-400/80">1 Day</span>
                 <span>Hard</span>
@@ -221,7 +221,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               <button
                 type="button"
                 onClick={(e) => handleRate(e, "good")}
-                className="py-2 px-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 text-xs font-semibold text-center transition-all hover:scale-[1.02]"
+                className="py-2 px-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 text-xs font-semibold text-center transition-colors"
               >
                 <span className="block text-[10px] text-indigo-400/80">3 Days</span>
                 <span>Good</span>
@@ -230,7 +230,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               <button
                 type="button"
                 onClick={(e) => handleRate(e, "easy")}
-                className="py-2 px-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-semibold text-center transition-all hover:scale-[1.02]"
+                className="py-2 px-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-semibold text-center transition-colors"
               >
                 <span className="block text-[10px] text-emerald-400/80">7 Days</span>
                 <span>Easy</span>

@@ -44,6 +44,10 @@ export default function SubjectDetailPage({
   const units = subject.units || [];
   const subjectColor = subject.color || subject.accentColor || "#6366F1";
 
+  const totalUnits = units.length || subject.totalUnits || 0;
+  const totalNotes = units.reduce((acc, u) => acc + (u.notesCount || 0), 0);
+  const totalFlashcards = units.reduce((acc, u) => acc + (u.flashcardsCount || 0), 0);
+
   const totalProgress = units.length > 0
     ? Math.round(units.reduce((acc, u) => acc + u.progressPercentage, 0) / units.length)
     : 65;
@@ -138,7 +142,7 @@ export default function SubjectDetailPage({
       </Link>
 
       {/* Header Card */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl border border-white/[0.08] space-y-4 relative overflow-hidden">
+      <div className="glass-card p-6 sm:p-8 rounded-2xl border border-white/[0.08] border-t-2 border-indigo-500/40 space-y-4 relative overflow-hidden">
         <div
           className="absolute top-0 left-0 right-0 h-1.5"
           style={{ backgroundColor: subjectColor }}
@@ -236,7 +240,7 @@ export default function SubjectDetailPage({
                   {confirmDelete ? (
                     <div className="p-2.5 space-y-2">
                       <div className="text-[11px] text-rose-300 font-semibold leading-snug">
-                        Permanently delete &ldquo;{subject.title || subject.name}&rdquo;? This action cannot be undone.
+                        Delete &ldquo;{subject.title || subject.name}&rdquo;? All {totalUnits} units, {totalNotes} notes &amp; {totalFlashcards} cards will be removed.
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -249,9 +253,9 @@ export default function SubjectDetailPage({
                         <button
                           type="button"
                           onClick={handleDeleteSubject}
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white shadow-lg shadow-rose-600/30 transition-colors"
+                          className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white transition-colors"
                         >
-                          Delete
+                          Confirm Delete
                         </button>
                       </div>
                     </div>
@@ -305,7 +309,7 @@ export default function SubjectDetailPage({
         <div className="pt-2 flex flex-wrap gap-3">
           <Link
             href={`/chat?subject=${subject.id}`}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-2 transition-colors"
           >
             <Sparkles className="w-4 h-4" />
             Launch AI Study Assistant

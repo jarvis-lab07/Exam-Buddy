@@ -94,7 +94,7 @@ export default function AiManagerPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Banner */}
-      <div className="glass-card p-6 rounded-3xl border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+      <div className="glass-card p-6 rounded-2xl border border-white/[0.08] border-t-2 border-violet-500/40 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
             <Cpu className="w-6 h-6" />
@@ -114,7 +114,7 @@ export default function AiManagerPage() {
 
         <button
           onClick={() => handleOpenModal(activeProvider)}
-          className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-violet-600/30 transition-all"
+          className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
         >
           <Key className="w-4 h-4 text-amber-300" />
           <span>Configure API & Keys</span>
@@ -122,7 +122,7 @@ export default function AiManagerPage() {
       </div>
 
       {/* 3-Step Setup Guide Banner */}
-      <div className="glass-card p-5 rounded-3xl border border-violet-500/20 bg-gradient-to-r from-violet-900/20 via-indigo-900/15 to-transparent space-y-3">
+      <div className="glass-card p-5 rounded-2xl border border-violet-500/20 border-t-2 border-violet-500/35 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-300" />
@@ -189,9 +189,9 @@ export default function AiManagerPage() {
               <div
                 key={prov}
                 onClick={() => handleSelectActiveProvider(prov)}
-                className={`glass-card p-5 rounded-3xl border cursor-pointer transition-all flex flex-col justify-between space-y-4 ${
+                className={`glass-card p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-4 ${
                   isSelected
-                    ? "border-violet-500/50 bg-violet-600/[0.08] shadow-xl shadow-violet-600/10 ring-1 ring-violet-500/30"
+                    ? "border-violet-500/50 bg-violet-600/[0.08]"
                     : "border-white/[0.08] hover:border-white/[0.15] bg-white/[0.02]"
                 }`}
               >
@@ -235,7 +235,7 @@ export default function AiManagerPage() {
                         )
                       ) : hasKey ? (
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                           {count > 1 ? `${count} Keys` : "Ready"}
                         </span>
                       ) : (
@@ -292,7 +292,7 @@ export default function AiManagerPage() {
       {/* Local Ollama Status & Quota Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Local Ollama Environment Card */}
-        <div className="glass-card p-6 rounded-3xl border border-white/[0.08] space-y-4">
+        <div className="glass-card p-6 rounded-2xl border border-white/[0.08] space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-cyan-400" />
@@ -340,7 +340,7 @@ export default function AiManagerPage() {
         </div>
 
         {/* Security & Token Guarantee */}
-        <div className="glass-card p-6 rounded-3xl border border-white/[0.08] space-y-4">
+        <div className="glass-card p-6 rounded-2xl border border-white/[0.08] space-y-4">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             100% Privacy Guarantee

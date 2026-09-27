@@ -109,7 +109,7 @@ export function AiFlashcardModal({ isOpen, onClose, onCardsGenerated }: AiFlashc
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-      <div className="glass-card w-full max-w-lg p-6 rounded-3xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5">
+      <div className="glass-card w-full max-w-lg p-6 rounded-2xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5 border-t-2 border-violet-500/40">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -180,8 +180,8 @@ export function AiFlashcardModal({ isOpen, onClose, onCardsGenerated }: AiFlashc
                   onClick={() => setCardCount(count)}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${
                     cardCount === count
-                      ? "bg-violet-600 border-violet-500 text-white shadow-md shadow-violet-600/30"
-                      : "bg-white/[0.03] border-white/[0.06] text-slate-400 hover:text-white"
+                      ? "bg-violet-600 border-violet-500/40 text-white border"
+                      : "bg-white/[0.03] border-white/[0.06] text-slate-400 hover:text-white border"
                   }`}
                 >
                   {count} Cards
@@ -204,7 +204,7 @@ export function AiFlashcardModal({ isOpen, onClose, onCardsGenerated }: AiFlashc
             type="button"
             onClick={handleGenerate}
             disabled={!topic.trim() || isLoading}
-            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-violet-600/30 disabled:opacity-40"
+            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5 disabled:opacity-40"
           >
             {isLoading ? (
               <>

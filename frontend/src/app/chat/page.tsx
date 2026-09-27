@@ -505,7 +505,7 @@ function ChatContent() {
             onClick={() => setChatMode("general")}
             className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
               chatMode === "general"
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                ? "bg-violet-600 text-white border border-violet-500/40"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -515,7 +515,7 @@ function ChatContent() {
             onClick={() => setChatMode("subject")}
             className={`px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
               chatMode === "subject"
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                ? "bg-violet-600 text-white border border-violet-500/40"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -573,7 +573,7 @@ function ChatContent() {
       {/* ── Messages ── */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 glass-card px-4 py-5 rounded-3xl border border-white/[0.08] overflow-y-auto space-y-4 relative"
+        className="flex-1 glass-card px-4 py-5 rounded-2xl border border-white/[0.08] overflow-y-auto space-y-4 relative"
       >
         {messages.map((m) => {
           const isUser = m.role === "user";
@@ -707,7 +707,7 @@ function ChatContent() {
               <button
                 onClick={() => handleSendMessage()}
                 disabled={!input.trim()}
-                className="h-9 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-violet-600/30 transition-all"
+                className="h-9 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 text-white font-semibold text-xs flex items-center gap-1.5 transition-all"
               >
                 <span>Send</span>
                 <Send className="w-3.5 h-3.5" />

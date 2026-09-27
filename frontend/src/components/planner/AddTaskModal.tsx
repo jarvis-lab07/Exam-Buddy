@@ -53,7 +53,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-      <div className="glass-card w-full max-w-lg p-6 rounded-3xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5">
+      <div className="glass-card w-full max-w-lg p-6 rounded-2xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5 border-t-2 border-amber-500/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
@@ -165,7 +165,7 @@ export function AddTaskModal({ isOpen, onClose, onTaskAdded }: AddTaskModalProps
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black flex items-center gap-1.5 shadow-md shadow-amber-500/30"
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Add to Schedule</span>

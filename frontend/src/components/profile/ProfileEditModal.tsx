@@ -38,7 +38,7 @@ export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-      <div className="glass-card w-full max-w-lg p-6 rounded-3xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5">
+      <div className="glass-card w-full max-w-lg p-6 rounded-2xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5 border-t-2 border-indigo-500/40">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -174,7 +174,7 @@ export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditM
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-violet-600/30"
+              className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Save Changes</span>

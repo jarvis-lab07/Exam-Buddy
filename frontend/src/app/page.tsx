@@ -109,35 +109,33 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* 1. Smart Hero Banner */}
-      <section className="relative overflow-hidden card p-6 sm:p-8 bg-gradient-to-br from-violet-900/25 via-indigo-900/15 to-transparent">
-        <div className="absolute -top-16 -right-10 w-72 h-72 rounded-full bg-violet-500/20 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <section className="relative overflow-hidden card p-6 sm:p-8 border-t-2 border-indigo-500/40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-violet-300" />
+            <div className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-r-full border-l-4 border-indigo-500/60 bg-white/[0.03] text-[#d9d8e5] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>Smart Revision Assistant</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#F1F1F8]">
-              Welcome back, {MOCK_USER.name}! 👋
+              Welcome back, {MOCK_USER.name}.
             </h1>
 
             <p className="text-[#9B99B5] text-sm sm:text-base leading-relaxed">
               You have <strong className="text-[#F1F1F8] font-semibold">3 exam topics</strong> scheduled
               for spaced revision today. Keep your{" "}
-              <strong className="text-amber-300 font-semibold">7-Day streak</strong> going!
+              <strong className="text-[#F1F1F8] font-semibold">7-day streak</strong> going.
             </p>
 
             <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#9B99B5]">
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="w-4 h-4 text-violet-400" />
-                Sem 3 Midterms: Oct 18, 2026
+                <CalendarDays className="w-4 h-4 text-slate-400" />
+                Sem 3 Midterms — Oct 18, 2026
               </span>
-              <span className="hidden sm:inline text-[#5A5875]">|</span>
+              <span className="hidden sm:inline text-[#5A5875]">·</span>
               <span className="flex items-center gap-1.5">
-                <BrainCircuit className="w-4 h-4 text-cyan-400" />
-                AI Mastery Prediction: 89% Target
+                <BrainCircuit className="w-4 h-4 text-slate-400" />
+                AI Mastery Prediction: 89%
               </span>
             </div>
           </div>
@@ -145,13 +143,14 @@ export default function DashboardPage() {
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
             <Link
               href="/planner"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#6366F1] hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-violet-500/25 transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md transition-colors"
             >
+              <Play className="w-3.5 h-3.5 fill-white" />
               Start Today&apos;s Session
             </Link>
             <Link
               href="/chat"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-transparent hover:bg-white/[0.06] border border-white/[0.12] text-[#F1F1F8] font-medium text-sm transition-all duration-200"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-[#F1F1F8] font-medium text-sm transition-colors"
             >
               Ask AI Tutor
             </Link>
@@ -301,7 +300,7 @@ export default function DashboardPage() {
             </span>
             <Link
               href="/planner"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold hover:from-violet-500 hover:to-indigo-500 transition-colors shadow-md shadow-violet-600/20"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-bold hover:from-violet-500 hover:to-indigo-500 transition-colors"
             >
               <Play className="w-2.5 h-2.5 fill-white" />
               Start Next
@@ -530,7 +529,7 @@ export default function DashboardPage() {
                     className={cn(
                       "w-full rounded-t-lg origin-bottom transition-[height] duration-700 ease-out",
                       day.isToday
-                        ? "bg-gradient-to-t from-[#7C3AED] to-[#06B6D4] shadow-md shadow-violet-500/30"
+                        ? "bg-gradient-to-t from-[#7C3AED] to-[#06B6D4] shadow-md"
                         : "bg-slate-700 hover:bg-violet-600/50"
                     )}
                     style={{ height: barsReady ? `${heightPercent}%` : "0%" }}

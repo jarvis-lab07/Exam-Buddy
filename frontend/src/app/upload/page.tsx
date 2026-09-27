@@ -60,9 +60,9 @@ export default function UploadPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Banner & Storage Gauge */}
-      <div className="glass-card p-6 sm:p-7 rounded-3xl border border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] border-t-2 border-cyan-500/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 shrink-0">
+          <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 shrink-0">
             <UploadCloud className="w-7 h-7" />
           </div>
           <div className="space-y-1">

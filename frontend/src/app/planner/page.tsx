@@ -93,7 +93,7 @@ export default function PlannerPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Banner */}
-      <div className="glass-card p-6 sm:p-7 rounded-3xl border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] border-t-2 border-amber-500/40 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/20">
             <CalendarDays className="w-6 h-6" />
@@ -114,7 +114,7 @@ export default function PlannerPage() {
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold flex items-center gap-2 transition-all"
         >
           <Plus className="w-4 h-4" />
           <span>Schedule Session</span>
@@ -122,10 +122,10 @@ export default function PlannerPage() {
       </div>
 
       {/* Midterm Exam Countdown Banner */}
-      <div className="glass-card p-5 rounded-3xl border border-rose-500/30 bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="glass-card p-5 rounded-2xl border border-rose-500/30 border-t-2 border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
-            <Flame className="w-5 h-5 animate-pulse" />
+            <Flame className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export default function PlannerPage() {
             onClick={() => setViewMode("hourly")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               viewMode === "hourly"
-                ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/20"
+                ? "bg-violet-500/20 text-violet-100 border border-violet-500/40"
                 : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
             }`}
           >
@@ -246,7 +246,7 @@ export default function PlannerPage() {
             onClick={() => setViewMode("queue")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               viewMode === "queue"
-                ? "bg-gradient-to-br from-amber-500 to-orange-500 text-black shadow-md shadow-amber-500/20"
+                ? "bg-amber-500/20 text-amber-950 border border-amber-500/50"
                 : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
             }`}
           >

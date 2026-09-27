@@ -138,7 +138,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[#0C0C14]/95 backdrop-blur-2xl text-[#F1F1F8] transition-all duration-300 ease-in-out",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[#0C0C14]/95 backdrop-blur-xl text-[#F1F1F8] transition-all duration-300 ease-in-out",
           "w-64",
           isMobileOpen ? "translate-x-0" : "translate-x-[-100%]",
           "lg:translate-x-0",
@@ -161,7 +161,7 @@ export function Sidebar({
               isIcon && "lg:justify-center"
             )}
           >
-            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] shadow-lg shadow-violet-500/25 shrink-0">
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6366F1] shrink-0">
               <GraduationCap className="w-4.5 h-4.5 text-white w-[18px] h-[18px]" />
             </div>
             <span
@@ -378,8 +378,7 @@ export function Sidebar({
             title="Claude 3.7 + GPT-4o"
           >
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-400" />
             </span>
             <span className={cn(isIcon && "lg:hidden")}>Claude 3.7 + GPT-4o</span>
           </div>
@@ -424,7 +423,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
           className={cn(
             "relative p-2 rounded-xl border transition-all",
             nowStudying.active
-              ? "bg-violet-500/20 text-violet-400 border-violet-500/35 shadow-lg shadow-violet-500/20"
+              ? "bg-white/[0.06] border-l-2 border-l-indigo-500/60 text-indigo-300 border-indigo-500/40"
               : "bg-white/[0.03] text-[#9B99B5] border-white/[0.06]"
           )}
           title={
@@ -435,7 +434,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
         >
           <Brain className="w-4 h-4" />
           {nowStudying.active && (
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse ring-2 ring-[#0C0C14]" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-[#0C0C14]" />
           )}
         </div>
       </div>
@@ -461,7 +460,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
         <button
           type="button"
           onClick={() => router.push("/planner")}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold transition-colors shadow-lg shadow-violet-600/30 shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold transition-colors shrink-0"
         >
           <Play className="w-2.5 h-2.5 fill-white" />
           Start
@@ -475,10 +474,8 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
 
   return (
     <div
-      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-600/15 via-indigo-600/10 to-transparent shadow-lg shadow-violet-600/15 relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
+      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/20 border-l-4 border-l-violet-400/50 bg-white/[0.03] relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
     >
-      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-violet-500/15 blur-2xl pointer-events-none" />
-
       <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0 flex items-start gap-2.5">
           <div
@@ -491,13 +488,13 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
           >
             <Brain className="w-4 h-4" />
             <span className="absolute -top-0.5 -right-0.5 flex w-2.5 h-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 ring-2 ring-[#0C0C14]" />
             </span>
           </div>
           <div className="min-w-0">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-300 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               ◉ LIVE · {nowStudying.mode === "focus" ? "Focus" : nowStudying.mode === "shortBreak" ? "Short Break" : "Long Break"}
             </div>
             <div className="text-sm font-bold text-white truncate">

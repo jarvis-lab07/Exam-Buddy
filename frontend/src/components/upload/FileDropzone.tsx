@@ -129,7 +129,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   };
 
   return (
-    <div className="glass-card p-6 sm:p-7 rounded-3xl border border-white/[0.08] space-y-6">
+    <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] space-y-6">
       {/* Subject & Category Target Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-white/[0.06]">
         {/* Subject Selector */}
@@ -167,7 +167,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
                 disabled={stage !== "idle"}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                   selectedCategory === cat
-                    ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                    ? "bg-violet-600 text-white border border-violet-500/40"
                     : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
                 }`}
               >
@@ -187,7 +187,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
           onClick={() => fileInputRef.current?.click()}
           className={`p-10 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center space-y-4 cursor-pointer transition-all ${
             isDragging
-              ? "border-violet-500 bg-violet-600/10 scale-[1.01]"
+              ? "border-violet-500 bg-violet-600/10"
               : "border-white/[0.12] hover:border-violet-500/50 hover:bg-white/[0.02]"
           }`}
         >
@@ -199,7 +199,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             className="hidden"
           />
 
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-600/20 to-indigo-600/20 text-violet-400 border border-violet-500/30 shadow-lg shadow-violet-600/10">
+          <div className="p-4 rounded-2xl bg-violet-500/10 text-violet-400 border border-violet-500/30">
             <UploadCloud className="w-8 h-8 animate-bounce" />
           </div>
 

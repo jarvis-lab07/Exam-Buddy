@@ -32,6 +32,7 @@ interface SubjectCardProps {
   onDuplicateSubject?: (subject: Subject) => void;
   onMarkExamDone?: (id: string) => void;
   onRemoveUnit?: (subjectId: string, unitId: string) => void;
+  onToggleUnitStatus?: (subjectId: string, unitId: string) => void;
 }
 
 export function SubjectCard({
@@ -41,6 +42,7 @@ export function SubjectCard({
   onDuplicateSubject,
   onMarkExamDone,
   onRemoveUnit,
+  onToggleUnitStatus,
 }: SubjectCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -94,7 +96,7 @@ export function SubjectCard({
   };
 
   return (
-    <div className="glass-card rounded-3xl border border-white/[0.08] overflow-hidden transition-all duration-300 hover:border-white/[0.15]">
+    <div className="glass-card rounded-2xl border border-white/[0.08] overflow-hidden transition-all duration-300 hover:border-white/[0.15]">
       {/* Top Accent Stripe */}
       <div
         className="h-1.5 w-full transition-all"
@@ -109,7 +111,7 @@ export function SubjectCard({
             <span
               className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold"
               style={{
-                backgroundColor: `${subjectColor}20`,
+                backgroundColor: `${subjectColor}12`,
                 color: subjectColor,
                 border: `1px solid ${subjectColor}40`,
               }}
@@ -226,7 +228,7 @@ export function SubjectCard({
                           <button
                             type="button"
                             onClick={handleDelete}
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white shadow-lg shadow-rose-600/30 transition-colors"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white transition-colors"
                           >
                             Confirm Delete
                           </button>
@@ -365,6 +367,7 @@ export function SubjectCard({
                 subjectId={subject.id}
                 subjectColor={subjectColor}
                 onRemove={onRemoveUnit}
+                onToggleStatus={onToggleUnitStatus}
               />
             ))}
           </div>

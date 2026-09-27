@@ -165,7 +165,7 @@ export function UnitListItem({
                             <button
                               type="button"
                               onClick={handleRemoveConfirm}
-                              className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white shadow-lg shadow-rose-600/30 transition-colors"
+                              className="flex-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-500 text-[11px] font-bold text-white transition-colors"
                             >
                               Yes, Remove
                             </button>

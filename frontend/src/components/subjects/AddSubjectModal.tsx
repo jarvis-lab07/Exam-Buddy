@@ -111,7 +111,7 @@ export function AddSubjectModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg glass-card rounded-3xl border border-white/[0.15] shadow-2xl p-6 sm:p-8 space-y-6 relative"
+        className="w-full max-w-lg glass-card rounded-2xl border border-white/[0.15] shadow-2xl p-6 sm:p-8 space-y-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -255,7 +255,7 @@ export function AddSubjectModal({
                   key={cp.hex}
                   type="button"
                   onClick={() => setColor(cp.hex)}
-                  className="w-8 h-8 rounded-xl border flex items-center justify-center transition-all hover:scale-110"
+                  className="w-8 h-8 rounded-xl border flex items-center justify-center border-2 border-white transition-all"
                   style={{
                     backgroundColor: cp.hex,
                     borderColor: color === cp.hex ? "#FFFFFF" : "transparent",
@@ -280,7 +280,7 @@ export function AddSubjectModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02]"
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Create Subject</span>

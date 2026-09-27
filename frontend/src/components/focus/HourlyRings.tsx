@@ -142,7 +142,7 @@ export function HourlyRings({
                 {minutes}m
               </span>
               {isNow && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
               )}
             </div>
           );

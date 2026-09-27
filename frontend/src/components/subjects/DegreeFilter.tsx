@@ -72,11 +72,11 @@ export function DegreeFilter({
               className={cn(
                 "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0",
                 isSelected
-                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 border border-indigo-500/40"
+                  ? "bg-indigo-500/20 text-indigo-100 border border-indigo-500/40"
                   : "bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07] border border-white/[0.06]"
               )}
             >
-              <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-white" : "text-slate-400")} />
+              <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-indigo-100" : "text-slate-400")} />
               <span>{deg.label}</span>
               {count !== undefined && count > 0 && (
                 <span

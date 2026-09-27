@@ -462,7 +462,7 @@ export function PomodoroTimer({ size = "full" }: PomodoroTimerProps) {
               className={cn(
                 "flex-1 flex items-center justify-center gap-1 py-1.5 text-[11px] font-semibold rounded-md transition-all",
                 active
-                  ? meta.accentClass + " border shadow-sm"
+                  ? meta.accentClass + " border"
                   : "text-[#9B99B5] hover:text-[#F1F1F8]"
               )}
             >
@@ -637,7 +637,7 @@ export function PomodoroTimer({ size = "full" }: PomodoroTimerProps) {
               >
                 <span
                   className={cn(
-                    "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all",
+                    "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
                     session.settings.autoAdvance ? "left-[18px]" : "left-0.5"
                   )}
                 />

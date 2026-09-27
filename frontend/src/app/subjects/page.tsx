@@ -129,14 +129,29 @@ export default function SubjectsPage() {
     );
   };
 
+  const handleToggleUnitStatus = (subjectId: string, unitId: string) => {
+    setSubjects((prev) =>
+      prev.map((s) => {
+        if (s.id !== subjectId) return s;
+        return {
+          ...s,
+          units: (s.units || []).map((u) => {
+            if (u.id !== unitId) return u;
+            if (u.status === "mastered") {
+              return { ...u, status: "not_started" as const, progressPercentage: 0 };
+            }
+            return { ...u, status: "mastered" as const, progressPercentage: 100 };
+          }),
+        };
+      })
+    );
+  };
+
   return (
     <div className="space-y-8 pb-16">
       {/* 1. Page Header & Stats Banner */}
-      <section className="relative overflow-hidden rounded-3xl glass-card p-6 sm:p-8 border border-white/[0.1] bg-gradient-to-br from-indigo-950/40 via-slate-900/60 to-violet-950/30">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <section className="relative overflow-hidden rounded-2xl glass-card p-6 sm:p-8 border border-white/[0.1] border-t-2 border-indigo-500/40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
               <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
@@ -171,7 +186,7 @@ export default function SubjectsPage() {
           <div className="shrink-0">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm transition-colors duration-200"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Add New Subject</span>
@@ -232,12 +247,13 @@ export default function SubjectsPage() {
               onDuplicateSubject={handleDuplicateSubject}
               onMarkExamDone={handleMarkExamDone}
               onRemoveUnit={handleRemoveUnit}
+              onToggleUnitStatus={handleToggleUnitStatus}
             />
           ))}
         </section>
       ) : (
         /* Empty State */
-        <section className="glass-card p-12 rounded-3xl border border-white/[0.08] text-center space-y-4 max-w-md mx-auto">
+        <section className="glass-card p-12 rounded-2xl border border-white/[0.08] text-center space-y-4 max-w-md mx-auto">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/[0.04] border border-white/[0.08] mx-auto text-slate-400">
             <Search className="w-7 h-7" />
           </div>

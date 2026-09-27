@@ -141,7 +141,7 @@ export function AiSearchModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl rounded-3xl bg-[#0F111E] border border-white/[0.12] shadow-2xl overflow-hidden my-auto sm:my-0 text-[#F1F1F8]"
+        className="relative w-full max-w-3xl rounded-2xl bg-[#0F111E] border border-white/[0.12] shadow-2xl overflow-hidden my-auto sm:my-0 text-[#F1F1F8] border-t-2 border-violet-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Bar: Omnibar Input */}
@@ -173,7 +173,7 @@ export function AiSearchModal({
                 type="button"
                 onClick={() => handleSearch()}
                 disabled={isLoading || !query.trim()}
-                className="h-8 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-violet-600/30 transition-all disabled:opacity-40"
+                className="h-8 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-40"
               >
                 <span>Search</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -238,7 +238,7 @@ export function AiSearchModal({
           {/* Loading Animation */}
           {isLoading && (
             <div className="py-12 space-y-4 text-center">
-              <div className="inline-flex p-3 rounded-2xl bg-violet-600/20 text-violet-400 animate-pulse">
+              <div className="inline-flex p-3 rounded-2xl bg-violet-600/20 text-violet-400">
                 <Sparkles className="w-7 h-7" />
               </div>
               <div className="space-y-1.5">
@@ -391,7 +391,7 @@ export function AiSearchModal({
                   <button
                     type="button"
                     onClick={onOpenKeyModal}
-                    className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold shrink-0 shadow-md shadow-violet-600/30 transition-colors"
+                    className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold shrink-0 transition-colors"
                   >
                     Enter Key
                   </button>
