@@ -16,6 +16,19 @@ const ThemeContext = createContext<ThemeContextType>({
 
 const THEME_STORAGE_KEY = "exam_buddy_theme_mode";
 
+function applyThemeToDocument(mode: ThemeMode) {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-theme", mode);
+  document.documentElement.classList.remove("dark", "light", "nature");
+  if (mode === "dark") {
+    document.documentElement.classList.add("dark");
+  } else if (mode === "light") {
+    document.documentElement.classList.add("light");
+  } else if (mode === "nature") {
+    document.documentElement.classList.add("nature", "dark");
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>("dark");
 
@@ -24,12 +37,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
       if (saved && (saved === "dark" || saved === "light" || saved === "nature")) {
         setThemeState(saved);
-        document.documentElement.setAttribute("data-theme", saved);
+        applyThemeToDocument(saved);
       } else {
-        document.documentElement.setAttribute("data-theme", "dark");
+        applyThemeToDocument("dark");
       }
     } catch {
-      document.documentElement.setAttribute("data-theme", "dark");
+      applyThemeToDocument("dark");
     }
   }, []);
 
@@ -40,7 +53,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error(e);
     }
-    document.documentElement.setAttribute("data-theme", mode);
+    applyThemeToDocument(mode);
   };
 
   return (

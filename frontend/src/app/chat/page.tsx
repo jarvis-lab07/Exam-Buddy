@@ -501,13 +501,13 @@ function ChatContent() {
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
+            <h1 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
               AI Tutor Chat
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/25">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
                 GPT-Level
               </span>
             </h1>
-            <p className="text-[11px] text-[#9B99B5]">Streaming • Full history • Multi-key rotation</p>
+            <p className="text-[11px] text-[var(--text-muted)]">Streaming • Full history • Multi-key rotation</p>
           </div>
         </div>
 
@@ -595,7 +595,7 @@ function ChatContent() {
             <select
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
-              className="h-8 px-2.5 rounded-xl bg-[#141624] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-violet-500/40"
+              className="h-8 px-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/40"
             >
               <option value="all">All Subjects</option>
               {MOCK_SUBJECTS.map((s) => (
@@ -750,7 +750,7 @@ function ChatContent() {
       )}
 
       {/* ── Input Bar ── */}
-      <div className="glass-card px-3 py-2.5 rounded-2xl border border-white/[0.08] bg-[#13131F] shrink-0">
+      <div className="glass-card px-3 py-2.5 rounded-2xl border border-[var(--border-card)] bg-[var(--input-bg)] shrink-0">
         <div className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -759,7 +759,7 @@ function ChatContent() {
             onKeyDown={handleKeyDown}
             placeholder="Ask any concept, algorithm, exam question... (Shift+Enter for new line)"
             rows={1}
-            className="flex-1 bg-transparent px-2 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none resize-none min-h-[36px] max-h-[160px] leading-relaxed"
+            className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none resize-none min-h-[36px] max-h-[160px] leading-relaxed"
           />
           <div className="flex items-center gap-1.5 shrink-0">
             {isLoading ? (

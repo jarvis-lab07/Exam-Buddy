@@ -60,7 +60,7 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div className="relative min-h-screen text-var(--text-primary) selection:bg-violet-500/30 selection:text-violet-100">
+    <div className="relative min-h-screen text-theme-primary selection:bg-violet-500/30 selection:text-violet-100">
       <div className="ambient-glow" />
 
       <Sidebar
@@ -98,16 +98,16 @@ export function AppShell({ children }: AppShellProps) {
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden"
             onClick={toggleFocusDock}
           />
-          <div className="fixed top-16 right-4 z-50 w-80 sm:w-88 animate-in slide-in-from-right-4 duration-200 shadow-2xl rounded-2xl overflow-hidden border border-white/[0.12] bg-var(--bg-card) backdrop-blur-2xl">
+          <div className="fixed top-16 right-4 z-50 w-80 sm:w-88 animate-in slide-in-from-right-4 duration-200 shadow-2xl rounded-2xl overflow-hidden border border-white/[0.12] bg-[var(--bg-elevated)]/95 backdrop-blur-2xl">
             <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.04] border-b border-white/[0.08]">
-              <span className="text-xs font-bold text-var(--text-primary) uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold text-theme-primary uppercase tracking-wider flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
                 Focus Hub Drawer
               </span>
               <button
                 type="button"
                 onClick={toggleFocusDock}
-                className="p-1 rounded-lg text-var(--text-muted) hover:text-white hover:bg-white/[0.08]"
+                className="p-1 rounded-lg text-theme-muted hover:text-white hover:bg-white/[0.08]"
               >
                 <X className="w-4 h-4" />
               </button>

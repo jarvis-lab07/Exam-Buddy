@@ -112,29 +112,29 @@ export default function DashboardPage() {
       <section className="relative overflow-hidden card p-6 sm:p-8 border-t-2 border-indigo-500/40">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-r-full border-l-4 border-indigo-500/60 bg-white/[0.03] text-[#d9d8e5] text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="inline-flex items-center gap-2 pl-2 pr-3 py-1 rounded-r-full border-l-4 border-indigo-500/60 bg-indigo-500/10 dark:bg-white/[0.03] text-indigo-600 dark:text-[#d9d8e5] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
               <span>Smart Revision Assistant</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-theme-primary">
               Welcome back, {MOCK_USER.name}.
             </h1>
 
-            <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
-              You have <strong className="text-[var(--text-primary)] font-bold">3 exam topics</strong> scheduled
+            <p className="text-theme-secondary text-sm sm:text-base leading-relaxed font-medium">
+              You have <strong className="text-theme-primary font-bold">3 exam topics</strong> scheduled
               for spaced revision today. Keep your{" "}
-              <strong className="text-[var(--text-primary)] font-bold">7-day streak</strong> going.
+              <strong className="text-theme-primary font-bold">7-day streak</strong> going.
             </p>
 
-            <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-secondary)]">
+            <div className="pt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-theme-secondary">
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="w-4 h-4 text-violet-400" />
+                <CalendarDays className="w-4 h-4 text-violet-500 dark:text-violet-400" />
                 Sem 3 Midterms — Oct 18, 2026
               </span>
               <span className="hidden sm:inline opacity-40">·</span>
               <span className="flex items-center gap-1.5">
-                <BrainCircuit className="w-4 h-4 text-cyan-400" />
+                <BrainCircuit className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                 AI Mastery Prediction: 89%
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
             </Link>
             <Link
               href="/chat"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-[#F1F1F8] font-medium text-sm transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.03] hover:bg-black/[0.08] dark:hover:bg-white/[0.06] border border-black/[0.1] dark:border-white/[0.08] text-theme-primary font-semibold text-sm transition-colors"
             >
               Ask AI Tutor
             </Link>
@@ -166,54 +166,58 @@ export default function DashboardPage() {
         {/* Card B — Daily Goal Mega-Ring */}
         <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-1 p-5 flex flex-col items-center">
           <div className="flex items-center justify-between w-full mb-3 px-0.5">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
               <Target className="w-3.5 h-3.5 text-violet-400" />
               Today's Goal
             </h3>
-            <span className="text-[10px] font-mono text-violet-300 bg-violet-500/10 px-1.5 py-0.5 rounded-md border border-violet-500/25">
+            <span className="text-[10px] font-mono text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25">
               {(165 / 210 * 100).toFixed(0)}%
             </span>
           </div>
-          <DailyGoalRing size="sm" />
+          <DailyGoalRing size="sm" hideWrapperCard />
         </div>
 
         {/* Card C — Mastered Topics */}
         <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-5 space-y-3">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
               <Trophy className="w-3.5 h-3.5 text-emerald-400" />
               Topics Mastered
             </h3>
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono">
               +2 today
             </span>
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex items-end justify-between gap-4">
             <div>
-              <div className="text-4xl font-black tracking-tight text-white leading-none">
-                {MOCK_STUDY_STATS.topicsMastered}
-                <span className="text-lg font-semibold text-[#9B99B5]">/{MOCK_STUDY_STATS.totalTopics}</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black tracking-tight text-[var(--text-primary)] leading-none font-mono">
+                  {MOCK_STUDY_STATS.topicsMastered}
+                </span>
+                <span className="text-base font-bold text-[var(--text-muted)] font-mono">
+                  /{MOCK_STUDY_STATS.totalTopics}
+                </span>
               </div>
-              <p className="text-[11px] text-[#9B99B5] mt-1">
+              <p className="text-xs text-[var(--text-secondary)] mt-1.5 font-medium">
                 {(MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100).toFixed(0)}% of curriculum
               </p>
             </div>
-            <div className="ml-auto text-right space-y-1">
+            <div className="ml-auto text-right space-y-1.5">
               <div className="flex items-center gap-2 justify-end text-[11px]">
-                <span className="text-cyan-300 font-semibold">Quiz accuracy</span>
-                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold">
+                <span className="text-[var(--text-secondary)] font-medium">Quiz accuracy</span>
+                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold font-mono">
                   {MOCK_STUDY_STATS.quizAccuracyPercent}%
                 </span>
               </div>
               <div className="flex items-center gap-2 justify-end text-[11px]">
-                <span className="text-amber-300 font-semibold">Cohort rank</span>
-                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold">
+                <span className="text-[var(--text-secondary)] font-medium">Cohort rank</span>
+                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold font-mono">
                   Top 5%
                 </span>
               </div>
             </div>
           </div>
-          <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-[var(--input-bg)] overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-700"
               style={{ width: `${MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100}%` }}
@@ -227,13 +231,13 @@ export default function DashboardPage() {
         {/* Card E — Today's Task Queue */}
         <div className="card col-span-12 lg:col-span-7 lg:row-span-1 p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
               Today&apos;s Task Queue
             </h3>
             <Link
               href="/planner"
-              className="text-[10px] font-semibold text-violet-300 hover:text-violet-200 flex items-center gap-1"
+              className="text-[10px] font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
             >
               All tasks
               <ChevronRight className="w-3 h-3" />
@@ -248,8 +252,8 @@ export default function DashboardPage() {
                 className={cn(
                   "w-full text-left px-2.5 py-2 rounded-xl border transition-all flex items-center gap-2.5",
                   task.completed
-                    ? "bg-emerald-950/30 border-emerald-500/20 opacity-60"
-                    : "bg-white/[0.015] hover:bg-white/[0.04] border-white/[0.06]"
+                    ? "bg-emerald-500/10 border-emerald-500/30 opacity-70"
+                    : "bg-[var(--bg-elevated)]/60 hover:bg-[var(--bg-elevated)] border-[var(--border-card)]"
                 )}
               >
                 <span
@@ -257,7 +261,7 @@ export default function DashboardPage() {
                     "flex items-center justify-center w-4 h-4 rounded border shrink-0",
                     task.completed
                       ? "bg-emerald-500 border-emerald-400"
-                      : "border-[#5A5875]"
+                      : "border-[var(--border-card)]"
                   )}
                 >
                   {task.completed && <CheckCircle2 className="w-3 h-3 text-black" />}
@@ -277,7 +281,7 @@ export default function DashboardPage() {
                     >
                       {task.subjectName}
                     </span>
-                    <span className="text-[10px] text-[#5A5875] font-mono">{task.dueText}</span>
+                    <span className="text-[10px] text-[var(--text-muted)] font-mono">{task.dueText}</span>
                     {task.isHighPriority && (
                       <Zap className="w-2.5 h-2.5 text-rose-400 shrink-0" />
                     )}
@@ -285,7 +289,7 @@ export default function DashboardPage() {
                   <p
                     className={cn(
                       "text-xs font-semibold mt-0.5 truncate",
-                      task.completed ? "line-through text-[#9B99B5]" : "text-[#F1F1F8]"
+                      task.completed ? "line-through text-[var(--text-muted)]" : "text-[var(--text-primary)]"
                     )}
                   >
                     {task.topicTitle}
@@ -294,8 +298,8 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-white/[0.05] text-[11px]">
-            <span className="text-[#9B99B5]">
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--border-card)] text-[11px]">
+            <span className="text-[var(--text-muted)]">
               {completedCount}/{tasks.length} done · {(completedCount / tasks.length * 100).toFixed(0)}%
             </span>
             <Link
@@ -313,13 +317,13 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-[#F1F1F8] flex items-center gap-2">
+            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-violet-400" />
               Continue Studying
             </h2>
             <Link
               href="/subjects"
-              className="text-xs font-semibold text-violet-300 hover:text-violet-200"
+              className="text-xs font-semibold text-violet-400 hover:text-violet-300"
             >
               All Subjects →
             </Link>
@@ -349,18 +353,18 @@ export default function DashboardPage() {
                       >
                         {subject.code}
                       </span>
-                      <h3 className="text-sm sm:text-base font-bold text-[#F1F1F8]">
+                      <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                         {subject.name}
                       </h3>
                     </div>
-                    <p className="text-xs text-[#9B99B5]">{subject.category}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{subject.category}</p>
                   </div>
-                  <span className="text-xs text-[#9B99B5] font-mono shrink-0">
+                  <span className="text-xs text-[var(--text-muted)] font-mono shrink-0 font-semibold">
                     Unit {subject.completedUnits}/{subject.totalUnits} done
                   </span>
                 </div>
 
-                <div className="mt-3 w-full h-1.5 rounded-full bg-[#1A1A2E] overflow-hidden">
+                <div className="mt-3 w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
@@ -371,19 +375,19 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] text-[#5A5875]">
+                  <span className="text-[11px] text-[var(--text-muted)] font-medium">
                     Last active: {subject.lastAccessed}
                   </span>
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/chat?subject=${subject.id}`}
-                      className="px-2.5 py-1.5 rounded-lg border border-white/[0.1] text-[#9B99B5] hover:text-white hover:bg-white/[0.05] text-xs font-medium"
+                      className="px-2.5 py-1.5 rounded-lg border border-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] text-xs font-medium"
                     >
                       Ask Doubt
                     </Link>
                     <Link
                       href={`/subjects/${subject.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#7C3AED]/80 to-[#6366F1]/80 text-white text-xs font-semibold"
+                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#10a37f] to-teal-600 text-white text-xs font-semibold shadow-xs"
                     >
                       Resume Unit
                     </Link>
@@ -396,11 +400,11 @@ export default function DashboardPage() {
 
         <section className="card p-5 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-[#F1F1F8] flex items-center gap-2">
+            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
               <Calendar className="w-4 h-4 text-violet-400" />
               Today&apos;s Revision
             </h2>
-            <span className="text-[11px] font-medium text-[#9B99B5]">
+            <span className="text-[11px] font-medium text-[var(--text-muted)]">
               {completedCount}/{tasks.length} Completed
             </span>
           </div>
@@ -414,17 +418,17 @@ export default function DashboardPage() {
                 className={cn(
                   "w-full text-left p-3 rounded-xl border transition-all",
                   task.completed
-                    ? "bg-emerald-950/30 border-emerald-500/20 opacity-50"
-                    : "bg-[#1A1A2E]/60 hover:bg-[#1A1A2E] border-white/[0.06]"
+                    ? "bg-emerald-500/10 border-emerald-500/30 opacity-70"
+                    : "bg-[var(--bg-elevated)]/60 hover:bg-[var(--bg-elevated)] border-[var(--border-card)]"
                 )}
               >
                 <div className="flex items-start gap-3">
                   <span
                     className={cn(
-                      "mt-0.5 flex items-center justify-center w-4.5 h-4.5 w-[18px] h-[18px] rounded border",
+                      "mt-0.5 flex items-center justify-center w-[18px] h-[18px] rounded border shrink-0",
                       task.completed
                         ? "bg-emerald-500 border-emerald-400"
-                        : "border-[#5A5875]"
+                        : "border-[var(--border-card)]"
                     )}
                   >
                     {task.completed && <CheckCircle2 className="w-3 h-3 text-black" />}
@@ -432,7 +436,7 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                        className="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono"
                         style={{
                           backgroundColor: `${task.subjectColor}20`,
                           color: task.subjectColor,
@@ -440,12 +444,12 @@ export default function DashboardPage() {
                       >
                         {task.subjectName}
                       </span>
-                      <span className="text-[11px] text-[#5A5875]">{task.dueText}</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">{task.dueText}</span>
                     </div>
                     <p
                       className={cn(
-                        "text-xs font-medium mt-1 leading-snug",
-                        task.completed ? "line-through text-[#9B99B5]" : "text-[#F1F1F8]"
+                        "text-xs font-semibold mt-1 leading-snug",
+                        task.completed ? "line-through text-[var(--text-muted)]" : "text-[var(--text-primary)]"
                       )}
                     >
                       {task.topicTitle}
@@ -458,7 +462,7 @@ export default function DashboardPage() {
 
           <Link
             href="/planner"
-            className="mt-4 pt-3 border-t border-white/[0.06] text-xs font-semibold text-violet-300 hover:text-violet-200"
+            className="mt-4 pt-3 border-t border-[var(--border-card)] text-xs font-semibold text-violet-400 hover:text-violet-300"
           >
             View Full Planner →
           </Link>
@@ -468,10 +472,10 @@ export default function DashboardPage() {
       {/* 4. Exam Countdown */}
       <section className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="p-2 rounded-xl bg-[#1A1A2E] border border-white/[0.06]">
+          <div className="p-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)]">
             <Target className="w-4 h-4 text-rose-400" />
           </div>
-          <p className="text-sm font-semibold text-[#F1F1F8]">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">
             Semester 3 Midterms • Oct 18, 2026
           </p>
         </div>
@@ -480,7 +484,7 @@ export default function DashboardPage() {
           <span className={urgentCountdown ? "badge-urgent" : "badge-streak"}>
             {countdown} Days Left
           </span>
-          <span className="inline-flex items-center gap-1.5 text-xs text-[#9B99B5]">
+          <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
             <BrainCircuit className="w-4 h-4 text-cyan-400" />
             89% mastery target achievable at current pace
           </span>
@@ -491,8 +495,8 @@ export default function DashboardPage() {
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-base font-bold text-[#F1F1F8]">Weekly Study Activity</h2>
-            <p className="text-xs text-[#9B99B5] mt-0.5">
+            <h2 className="text-base font-bold text-[var(--text-primary)]">Weekly Study Activity</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               {weekHours.toFixed(1)} hrs this week
             </p>
           </div>
@@ -518,7 +522,7 @@ export default function DashboardPage() {
               >
                 <div
                   className={cn(
-                    "text-[10px] font-medium px-2 py-1 rounded-md bg-[#1A1A2E] text-white border border-white/10 mb-2 transition-opacity",
+                    "text-[10px] font-medium px-2 py-1 rounded-md bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-card)] mb-2 transition-opacity shadow-md",
                     showTip ? "opacity-100" : "opacity-0"
                   )}
                 >
@@ -530,7 +534,7 @@ export default function DashboardPage() {
                       "w-full rounded-t-lg origin-bottom transition-[height] duration-700 ease-out",
                       day.isToday
                         ? "bg-gradient-to-t from-[#7C3AED] to-[#06B6D4] shadow-md"
-                        : "bg-slate-700 hover:bg-violet-600/50"
+                        : "bg-slate-500/30 hover:bg-violet-600/50"
                     )}
                     style={{ height: barsReady ? `${heightPercent}%` : "0%" }}
                   />
@@ -538,7 +542,7 @@ export default function DashboardPage() {
                 <span
                   className={cn(
                     "mt-2 text-xs",
-                    day.isToday ? "text-violet-300 font-bold" : "text-[#9B99B5]"
+                    day.isToday ? "text-violet-400 font-bold" : "text-[var(--text-muted)]"
                   )}
                 >
                   {day.day}
@@ -548,7 +552,7 @@ export default function DashboardPage() {
           })}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#9B99B5]">
+        <div className="mt-4 pt-3 border-t border-[var(--border-card)] flex items-center justify-between text-xs text-[var(--text-muted)]">
           <span className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#06B6D4]" />
             Today
@@ -560,10 +564,10 @@ export default function DashboardPage() {
       {/* 6. Recent Course Documents */}
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-[#F1F1F8]">Recent Course Documents</h2>
+          <h2 className="text-base font-bold text-[var(--text-primary)]">Recent Course Documents</h2>
           <Link
             href="/upload"
-            className="text-xs font-semibold text-violet-300 hover:text-violet-200"
+            className="text-xs font-semibold text-violet-400 hover:text-violet-300"
           >
             Upload New File →
           </Link>
@@ -573,12 +577,12 @@ export default function DashboardPage() {
           {MOCK_RECENT_DOCUMENTS.map((doc) => (
             <div key={doc.id} className="card p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-[#1A1A2E] border border-white/[0.06] shrink-0">
+                <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)] shrink-0">
                   {getDocIcon(doc.fileType)}
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-semibold text-[#F1F1F8] truncate">{doc.title}</h4>
-                  <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-[#9B99B5]">
+                  <h4 className="text-xs font-semibold text-[var(--text-primary)] truncate">{doc.title}</h4>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-[var(--text-muted)]">
                     <span style={{ color: doc.subjectColor }}>{doc.subjectCode}</span>
                     <span>•</span>
                     <span>{doc.fileSize}</span>
@@ -590,13 +594,13 @@ export default function DashboardPage() {
 
               <div className="flex items-center gap-2 shrink-0">
                 {doc.aiSummaryReady && (
-                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
                     AI Ready
                   </span>
                 )}
                 <Link
                   href={`/chat?doc=${doc.id}`}
-                  className="p-2 rounded-xl text-[#9B99B5] hover:text-cyan-300 hover:bg-white/[0.06]"
+                  className="p-2 rounded-xl text-[var(--text-muted)] hover:text-cyan-400 hover:bg-[var(--bg-elevated)]"
                   aria-label="Ask AI about this document"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -689,45 +693,57 @@ function BentoDensityChart({ className }: { className?: string }) {
     <div className={cn("card p-5 space-y-4", className)}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
             <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
             Study Density Today
           </h3>
-          <p className="text-xs text-[#9B99B5] mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Hour-by-hour subject-split · 00:00 → 23:59
           </p>
         </div>
         <div className="flex items-end gap-3">
           <div>
-            <div className="text-[10px] font-semibold text-[#5A5875] uppercase tracking-wider">
+            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
               Total logged
             </div>
-            <div className="text-2xl font-black text-white tracking-tight font-mono">
-              {hours}
-              <span className="text-sm font-semibold text-[#9B99B5]">h {String(mins).padStart(2, "0")}m</span>
+            <div className="text-2xl font-black text-[var(--text-primary)] tracking-tight font-mono flex items-baseline gap-1">
+              <span>{hours}h</span>
+              <span className="text-sm font-semibold text-[var(--text-secondary)]">{String(mins).padStart(2, "0")}m</span>
             </div>
           </div>
-          <span className="px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 text-[10px] font-bold flex items-center gap-1">
+          <span className="px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[10px] font-bold flex items-center gap-1">
             <Activity className="w-2.5 h-2.5" /> +14% vs yesterday
           </span>
         </div>
       </div>
 
-      <div className="flex items-end gap-[3px] h-48 px-0.5">
+      <div className="flex items-end gap-[3px] h-48 px-0.5 pt-4">
         {DENSITY_24H.map((h) => {
           const minStacked = h.segments.reduce((s, x) => s + x.minutes, 0);
           const totalPct = Math.min(100, (minStacked / 60) * 100);
           const now = new Date().getHours();
           const isNow = now === h.hour;
+          const showTick = h.hour % 3 === 0;
+
           return (
             <div key={h.hour} className="flex-1 flex flex-col items-center justify-end h-full min-w-0 group relative">
+              {/* Tooltip on hover */}
+              {minStacked > 0 && (
+                <div className="absolute -top-9 z-30 hidden group-hover:flex flex-col items-center pointer-events-none transition-all">
+                  <span className="px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-card)] text-[10px] font-mono font-bold text-[var(--text-primary)] shadow-lg whitespace-nowrap">
+                    {String(h.hour).padStart(2, "0")}:00 · {minStacked}m
+                  </span>
+                  <span className="w-1.5 h-1.5 rotate-45 bg-[var(--bg-elevated)] -mt-1 border-r border-b border-[var(--border-card)]" />
+                </div>
+              )}
+
               <div
                 className={cn(
                   "w-full flex flex-col justify-end rounded-t-lg overflow-hidden transition-all duration-700 ease-out origin-bottom",
-                  totalPct === 0 ? "bg-white/[0.03]" : "",
-                  isNow && "ring-1 ring-amber-400/60 ring-offset-2 ring-offset-transparent z-10"
+                  totalPct === 0 ? "bg-[var(--input-bg)]/40" : "",
+                  isNow && "ring-1 ring-amber-400 ring-offset-2 ring-offset-transparent z-10"
                 )}
-                style={{ height: `${Math.max(totalPct, totalPct > 0 ? 6 : 3)}%` }}
+                style={{ height: `${Math.max(totalPct, totalPct > 0 ? 8 : 4)}%` }}
               >
                 {h.segments.length > 0 ? (
                   h.segments.map((seg, i) => (
@@ -737,21 +753,20 @@ function BentoDensityChart({ className }: { className?: string }) {
                       style={{
                         height: `${(seg.minutes / 60) * 100}%`,
                         backgroundColor: seg.color,
-                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))",
+                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.25))",
                       }}
-                      title={`${h.hour}:00 — ${seg.subject} (${seg.minutes}m)`}
                     />
                   ))
                 ) : (
-                  <div className="w-full h-full bg-white/[0.04]" />
+                  <div className="w-full h-full bg-[var(--input-bg)]/50" />
                 )}
               </div>
-              {/* Hour label */}
+              {/* Hour label tick */}
               <span
                 className={cn(
-                  "mt-1.5 text-[9px] font-mono transition-colors",
-                  isNow ? "text-amber-400 font-bold" : "text-[#5A5875]",
-                  h.hour % 3 !== 0 && "opacity-0 group-hover:opacity-100"
+                  "mt-2 text-[10px] font-mono transition-colors font-semibold text-center leading-none",
+                  isNow ? "text-amber-400 font-bold" : "text-[var(--text-secondary)]",
+                  !showTick && "hidden group-hover:block group-hover:text-violet-400"
                 )}
               >
                 {String(h.hour).padStart(2, "0")}
@@ -762,8 +777,8 @@ function BentoDensityChart({ className }: { className?: string }) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-white/[0.05]">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5A5875]">Subjects</span>
+      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[var(--border-card)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Subjects</span>
         {[
           { color: "#7C3AED", label: "DSA" },
           { color: "#10B981", label: "Chemistry" },
@@ -773,10 +788,10 @@ function BentoDensityChart({ className }: { className?: string }) {
         ].map((l) => (
           <span
             key={l.color}
-            className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#9B99B5]"
+            className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-secondary)]"
           >
             <span
-              className="w-2.5 h-2.5 rounded-sm"
+              className="w-2.5 h-2.5 rounded-sm shrink-0"
               style={{ backgroundColor: l.color }}
             />
             {l.label}

@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
-/* ————— DEFAULT ROOT (Dark Midnight) ————— */
+/* ————— DEFAULT ROOT (ChatGPT Dark Theme) ————— */
 :root,
 [data-theme="dark"] {
-  --bg-base: #0b0d14;
-  --bg-surface: #141724;
-  --bg-elevated: #1e2235;
-  --bg-card: rgba(20, 23, 36, 0.95);
-  --border-card: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(99, 102, 241, 0.35);
-  --brand-violet: #7c3aed;
-  --brand-indigo: #6366f1;
-  --accent-cyan: #06b6d4;
+  --bg-base: #212121;           /* ChatGPT Main Workspace Canvas background */
+  --bg-surface: #171717;        /* ChatGPT Sidebar & Navigation background */
+  --bg-elevated: #2f2f2f;       /* ChatGPT Cards, Input Pills & Surfaces */
+  --bg-card: #2f2f2f;           /* ChatGPT Card Background */
+  --border-card: rgba(255, 255, 255, 0.08); /* Crisp ChatGPT border (#383838) */
+  --border-hover: rgba(255, 255, 255, 0.18);
+  --brand-violet: #10a37f;       /* ChatGPT Signature Emerald Accent */
+  --brand-indigo: #00a67e;
+  --accent-cyan: #38bdf8;
   --accent-amber: #f59e0b;
-  --accent-emerald: #10b981;
-  --accent-rose: #f43f5e;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --input-bg: #1a1e2e;
-  --input-border: rgba(255, 255, 255, 0.12);
+  --accent-emerald: #10a37f;     /* ChatGPT Emerald Green */
+  --accent-rose: #ef4444;
+  --text-primary: #ececec;       /* High-contrast crisp text */
+  --text-secondary: #b4b4b4;     /* Crisp secondary text */
+  --text-muted: #8e8e93;        /* Soft muted text */
+  --input-bg: #2f2f2f;          /* ChatGPT Input Bar background */
+  --input-border: #383838;       /* Subtle input outline */
   --radius-card: 16px;
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
 /* ————— PRO LIGHT THEME ————— */
@@ -32,8 +32,8 @@
   --bg-card: #ffffff;
   --border-card: #e2e8f0;
   --border-hover: #cbd5e1;
-  --brand-violet: #6d28d9;
-  --brand-indigo: #4f46e5;
+  --brand-violet: #10a37f;
+  --brand-indigo: #059669;
   --accent-cyan: #0891b2;
   --accent-amber: #d97706;
   --accent-emerald: #059669;
@@ -50,10 +50,10 @@
 /* ————— NATURE CALM MOTION THEME ————— */
 [data-theme="nature"] {
   --bg-base: #0f1812;
-  --bg-surface: rgba(18, 29, 21, 0.85);
-  --bg-elevated: rgba(26, 42, 31, 0.9);
-  --bg-card: rgba(18, 29, 21, 0.85);
-  --border-card: rgba(167, 243, 208, 0.12);
+  --bg-surface: rgba(18, 29, 21, 0.92);
+  --bg-elevated: rgba(26, 42, 31, 0.95);
+  --bg-card: rgba(18, 29, 21, 0.88);
+  --border-card: rgba(167, 243, 208, 0.15);
   --border-hover: rgba(16, 185, 129, 0.4);
   --brand-violet: #059669;
   --brand-indigo: #10b981;
@@ -64,8 +64,8 @@
   --text-primary: #ecfdf5;
   --text-secondary: #a7f3d0;
   --text-muted: #6ee7b7;
-  --input-bg: rgba(13, 22, 16, 0.8);
-  --input-border: rgba(167, 243, 208, 0.18);
+  --input-bg: rgba(13, 22, 16, 0.85);
+  --input-border: rgba(167, 243, 208, 0.2);
   --radius-card: 16px;
   --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.6);
 }
@@ -74,14 +74,161 @@
   --color-base: var(--bg-base);
   --color-surface: var(--bg-surface);
   --color-elevated: var(--bg-elevated);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-card: var(--bg-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
+
+/* Standardized Font Family & Base Typography for Optimal Reading & Learning */
+html,
+body,
+button,
+input,
+select,
+textarea,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+a,
+div,
+li,
+label,
+option {
+  font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* Standardized Heading & Body Sizing */
+h1 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.4rem; line-height: 1.85rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.2rem; line-height: 1.6rem; font-weight: 700; }
+h4 { font-size: 1.05rem; line-height: 1.45rem; font-weight: 600; }
+p, span, li, label { line-height: 1.6; }
+
+/* Explicit CSS Theme Helper Utilities */
+.text-theme-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-theme-muted {
+  color: var(--text-muted) !important;
+}
+
+.bg-theme-input {
+  background-color: var(--input-bg);
+}
+
+.border-theme-input {
+  border-color: var(--input-border);
+}
+
+/* ==========================================================================
+   UNIVERSAL THEME COLOR OVERRIDES
+   ========================================================================== */
+
+/* 1. DARK THEME RULE */
+[data-theme="dark"],
+[data-theme="dark"] body {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+[data-theme="dark"] select option {
+  background-color: #2f2f2f;
+  color: #ececec;
+}
+
+/* 2. LIGHT THEME RULE */
+[data-theme="light"],
+[data-theme="light"] body {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+[data-theme="light"] select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .glass-card,
+[data-theme="light"] .card-interactive {
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  border-color: var(--border-card);
+}
+
+/* 3. NATURE THEME RULE */
+[data-theme="nature"],
+[data-theme="nature"] body {
+  color: var(--text-primary);
+}
+
+[data-theme="nature"] input,
+[data-theme="nature"] textarea,
+[data-theme="nature"] select {
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+[data-theme="nature"] select option {
+  background-color: #121d15;
+  color: #ecfdf5;
+}
+
+[data-theme="nature"] .card,
+[data-theme="nature"] .glass-card,
+[data-theme="nature"] .card-interactive {
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  border-color: var(--border-card);
+}
+
 
 html,
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans), "Plus Jakarta Sans", sans-serif;
   overflow-x: hidden;
   min-height: 100%;
   transition: background-color 0.3s ease, color 0.3s ease;

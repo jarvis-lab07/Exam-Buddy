@@ -143,7 +143,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-black/[0.08] dark:border-white/[0.08] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-theme-primary transition-all duration-300 ease-in-out shadow-2xl",
+          "fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-[var(--border-card)] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-[var(--text-primary)] transition-all duration-300 ease-in-out shadow-2xl",
           "w-64",
           isMobileOpen ? "translate-x-0" : "translate-x-[-100%]",
           "lg:translate-x-0",
@@ -154,7 +154,7 @@ export function Sidebar({
       >
         <div
           className={cn(
-            "flex items-center border-b border-black/[0.08] dark:border-white/[0.08] h-14 shrink-0",
+            "flex items-center border-b border-[var(--border-card)] h-14 shrink-0",
             isIcon ? "lg:px-2 lg:justify-center" : "px-4 justify-between"
           )}
         >
@@ -166,12 +166,12 @@ export function Sidebar({
               isIcon && "lg:justify-center"
             )}
           >
-            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 shrink-0 shadow-md">
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#10a37f] to-teal-600 shrink-0 shadow-md">
               <GraduationCap className="w-[18px] h-[18px] text-white" />
             </div>
             <span
               className={cn(
-                "font-bold text-[15px] tracking-tight text-theme-primary",
+                "font-bold text-[15px] tracking-tight text-[var(--text-primary)]",
                 isIcon && "lg:hidden"
               )}
             >
@@ -182,7 +182,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden lg:inline-flex p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors",
+              "hidden lg:inline-flex p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors",
               isIcon && "lg:hidden"
             )}
             aria-label="Collapse sidebar"
@@ -193,7 +193,7 @@ export function Sidebar({
           <button
             onClick={onToggle}
             className={cn(
-              "hidden p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors",
+              "hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors",
               isIcon && "lg:inline-flex"
             )}
             aria-label="Expand sidebar"
@@ -203,7 +203,7 @@ export function Sidebar({
 
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-theme-muted hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] lg:hidden"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] lg:hidden"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -238,19 +238,19 @@ export function Sidebar({
                     "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                     isIcon ? "lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5 gap-3" : "justify-between px-3 py-2.5",
                     isActive
-                      ? "bg-violet-600/15 dark:bg-violet-600/20 text-violet-700 dark:text-white font-bold"
-                      : "text-theme-secondary hover:text-theme-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                      ? "bg-[var(--bg-elevated)] text-white font-semibold shadow-xs"
+                      : "text-[var(--text-secondary)] hover:text-white hover:bg-white/[0.05]"
                   )}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-violet-500" />
+                    <span className="absolute left-0 top-2 bottom-2 w-[3.5px] rounded-r-full bg-[#10a37f]" />
                   )}
 
                   <span className={cn("flex items-center min-w-0", isIcon ? "lg:gap-0 gap-3" : "gap-3")}>
                     <Icon
                       className={cn(
-                        "w-4 h-4 shrink-0",
-                        isActive ? "text-violet-400" : "text-[var(--text-muted)] group-hover:text-violet-300"
+                        "w-4 h-4 shrink-0 transition-colors",
+                        isActive ? "text-[#10a37f]" : "text-[var(--text-muted)] group-hover:text-white"
                       )}
                     />
                     <span className={cn("truncate", isIcon && "lg:hidden")}>{item.name}</span>

@@ -22,6 +22,25 @@ const AuthContext = createContext<AuthContextType>({
   refreshSession: async () => {},
 });
 
+const createDemoUser = (profileData: any): User => {
+  const email = profileData?.email || 'student@campus.edu';
+  const name = profileData?.name || profileData?.full_name || 'Student User';
+  return {
+    id: 'demo-user-id',
+    app_metadata: { provider: 'demo' },
+    user_metadata: {
+      full_name: name,
+      ...profileData,
+    },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+    email,
+    phone: '',
+    role: 'authenticated',
+    updated_at: new Date().toISOString(),
+  } as User;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -30,12 +49,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClient();
 
+  const loadDemoUser = () => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('exambuddy_cohort_user');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUser(createDemoUser(parsed));
+          return true;
+        } catch {}
+      }
+    }
+    return false;
+  };
+
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
     const configured = Boolean(url && !url.includes('placeholder'));
     setIsConfigured(configured);
 
     if (!configured) {
+      loadDemoUser();
       setLoading(false);
       return;
     }
@@ -43,7 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        loadDemoUser();
+      }
       setLoading(false);
     });
 
@@ -51,7 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          loadDemoUser();
+        }
         setLoading(false);
       }
     );
@@ -65,6 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isConfigured) {
       await supabase.auth.signOut();
     }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('exambuddy_cohort_user');
+    }
     setUser(null);
     setSession(null);
   };
@@ -73,8 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isConfigured) {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+        return;
+      }
     }
+    loadDemoUser();
   };
 
   return (
@@ -94,3 +143,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+

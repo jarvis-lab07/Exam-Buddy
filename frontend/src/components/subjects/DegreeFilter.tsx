@@ -70,21 +70,21 @@ export function DegreeFilter({
               key={deg.id}
               onClick={() => onSelectDegree(deg.id)}
               className={cn(
-                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0",
+                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 shrink-0",
                 isSelected
-                  ? "bg-indigo-500/20 text-indigo-100 border border-indigo-500/40"
-                  : "bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07] border border-white/[0.06]"
+                  ? "bg-[#10a37f] text-white shadow-sm border border-[#10a37f]"
+                  : "bg-[var(--input-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)]"
               )}
             >
-              <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-indigo-100" : "text-slate-400")} />
+              <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-white" : "text-[var(--text-muted)]")} />
               <span>{deg.label}</span>
               {count !== undefined && count > 0 && (
                 <span
                   className={cn(
-                    "px-1.5 py-0.2 rounded-full text-[10px] font-mono",
+                    "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
                     isSelected
-                      ? "bg-white/20 text-white"
-                      : "bg-white/[0.06] text-slate-400"
+                      ? "bg-black/20 text-white"
+                      : "bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
                   )}
                 >
                   {count}
@@ -97,16 +97,16 @@ export function DegreeFilter({
 
       {/* Term / Semester Selector Dropdown */}
       <div className="flex items-center gap-2 shrink-0">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-slate-300">
-          <Filter className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          <span className="text-slate-400 font-medium">Term:</span>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] text-xs text-[var(--text-primary)]">
+          <Filter className="w-3.5 h-3.5 text-[#10a37f] shrink-0" />
+          <span className="text-[var(--text-muted)] font-semibold">Term:</span>
           <select
             value={selectedTerm}
             onChange={(e) => onSelectTerm(e.target.value)}
-            className="bg-transparent text-white font-semibold text-xs focus:outline-none cursor-pointer pr-1"
+            className="bg-transparent text-[var(--text-primary)] font-bold text-xs focus:outline-none cursor-pointer pr-1"
           >
             {terms.map((t) => (
-              <option key={t} value={t} className="bg-[#0D111D] text-white">
+              <option key={t} value={t} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
                 {t}
               </option>
             ))}

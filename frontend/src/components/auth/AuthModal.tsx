@@ -199,6 +199,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setMessage(
         `[Demo Mode Registered] Welcome ${fullName || 'Student'}! Cohort assigned to ${activeCollege} • ${department} ${division} (${currentYear}, ${semester}).`
       );
+      await refreshSession();
       setLoading(false);
       setTimeout(() => onClose(), 1500);
       return;

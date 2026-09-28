@@ -63,11 +63,11 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
 
   return (
     <>
-      <header className="sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 h-14 px-3 sm:px-5 bg-color-surface/90 backdrop-blur-xl border-b border-white/[0.08]">
+      <header className="sticky top-0 z-30 grid grid-cols-[auto_1fr_auto] items-center gap-3 h-14 px-3 sm:px-5 bg-[var(--bg-surface)]/90 backdrop-blur-xl border-b border-[var(--border-card)]">
         <div className="flex items-center gap-2">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-xl text-var(--text-muted) hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
             aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />
@@ -81,7 +81,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
                 "flex items-center gap-1.5 h-8 px-2.5 rounded-xl text-xs font-semibold transition-all border",
                 focusDockExpanded
                   ? "bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-500/20"
-                  : "bg-white/[0.04] text-var(--text-secondary) hover:bg-white/[0.08] border-white/[0.08]"
+                  : "bg-[var(--input-bg)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border-[var(--border-card)]"
               )}
               title="Toggle Focus Hub (Pomodoro & Ambient Lo-Fi)"
             >
@@ -96,11 +96,11 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="relative flex items-center w-full max-w-xl h-9 pl-9 pr-16 rounded-xl bg-var(--input-bg) hover:bg-var(--bg-elevated) border border-white/[0.08] hover:border-violet-500/40 text-sm text-var(--text-muted) hover:text-var(--text-secondary) transition-all text-left group"
+            className="relative flex items-center w-full max-w-xl h-9 pl-9 pr-16 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--input-border)] hover:border-violet-500/40 text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all text-left group"
           >
-            <Search className="absolute left-3 w-4 h-4 text-var(--text-muted) group-hover:text-violet-400 transition-colors" />
+            <Search className="absolute left-3 w-4 h-4 text-[var(--text-muted)] group-hover:text-violet-400 transition-colors" />
             <span className="truncate">Ask AI Tutor or search syllabus...</span>
-            <span className="hidden sm:inline-flex absolute right-2 items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] text-[10px] font-medium text-var(--text-muted)">
+            <span className="hidden sm:inline-flex absolute right-2 items-center gap-1 px-1.5 py-0.5 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-card)] text-[10px] font-medium text-[var(--text-muted)]">
               <Sparkles className="w-2.5 h-2.5 text-violet-400" />
               Ctrl+K
             </span>
@@ -109,14 +109,16 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
 
         <div className="flex items-center gap-2 sm:gap-3">
           {/* 3-Way Theme Switcher Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-white/[0.04] border border-white/[0.08] gap-1">
+          <div className="flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
             <button
               onClick={() => setTheme("dark")}
               className={cn(
                 "p-1.5 rounded-lg text-xs transition-colors",
-                theme === "dark" ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                theme === "dark"
+                  ? "bg-[#10a37f] text-white shadow-sm font-medium"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
               )}
-              title="Night Study (Midnight Dark)"
+              title="ChatGPT Dark Theme"
             >
               <Moon className="w-3.5 h-3.5" />
             </button>
@@ -125,7 +127,9 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               onClick={() => setTheme("light")}
               className={cn(
                 "p-1.5 rounded-lg text-xs transition-colors",
-                theme === "light" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                theme === "light"
+                  ? "bg-emerald-600 text-white shadow-sm font-medium"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
               )}
               title="Pro Daylight (Clean White)"
             >
@@ -136,7 +140,9 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               onClick={() => setTheme("nature")}
               className={cn(
                 "p-1.5 rounded-lg text-xs transition-colors",
-                theme === "nature" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                theme === "nature"
+                  ? "bg-emerald-600 text-white shadow-sm font-medium"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
               )}
               title="Nature Calm (Live Motion Wallpaper)"
             >
@@ -148,7 +154,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <button
             type="button"
             onClick={() => setIsKeyModalOpen(true)}
-            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs transition-colors"
             title="Configure AI API Key (Gemini, Groq, OpenAI)"
           >
             <Key className="w-3 h-3 text-amber-400" />
@@ -170,17 +176,17 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <div className="relative">
             <button
               onClick={() => setShowNotifications((v) => !v)}
-              className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="relative p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-400 ring-2 ring-[#0C0C14]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-400 ring-2 ring-[var(--bg-surface)]" />
             </button>
 
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 p-3 card shadow-2xl z-50">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.08]">
-                  <span className="text-xs font-semibold text-white">Notifications</span>
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border-card)]">
+                  <span className="text-xs font-semibold text-[var(--text-primary)]">Notifications</span>
                   <button
                     className="text-[10px] text-violet-400 hover:underline"
                     onClick={() => setShowNotifications(false)}
@@ -188,7 +194,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
                     Mark all read
                   </button>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   AVL Trees summary is ready. Your 7-day streak is active.
                 </p>
               </div>
@@ -200,19 +206,19 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
             <button
               onClick={() => signOut()}
               title={`Logged in as ${user.email}. Click to sign out.`}
-              className="relative flex items-center gap-2 p-1 pr-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
+              className="relative flex items-center gap-2 p-1 pr-2 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs">
                 {user.email?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span className="hidden md:inline text-xs text-slate-300 max-w-[90px] truncate">
+              <span className="hidden md:inline text-xs text-[var(--text-secondary)] max-w-[90px] truncate">
                 {user.email?.split('@')[0]}
               </span>
             </button>
           ) : (
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-xl bg-violet-600/80 hover:bg-violet-600 text-white text-xs font-semibold transition-all shadow-md shadow-violet-500/20"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-all shadow-md shadow-violet-500/20"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In</span>
