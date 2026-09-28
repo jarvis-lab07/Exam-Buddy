@@ -9,6 +9,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+  fallback: ["system-ui", "sans-serif"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -16,6 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+  fallback: ["monospace"],
 });
 
 export const metadata: Metadata = {
