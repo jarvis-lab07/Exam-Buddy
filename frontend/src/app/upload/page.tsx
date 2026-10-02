@@ -140,15 +140,19 @@ export default function UploadPage() {
           const newDocItems: DocumentUploadItem[] = importedNames.map((name, i) => ({
             id: `gdrive-${Date.now()}-${i}`,
             title: name.replace(/\.[^/.]+$/, ""),
-            fileName: name,
+            subjectId: "cs501",
             subjectCode: "CS501",
-            subjectName: "Google Drive Syllabus Notes",
-            unitName: "Unit 1 - Fundamentals",
+            subjectName: "Advanced Data Structures & Algorithms",
+            subjectColor: "#8B5CF6",
+            fileType: name.endsWith(".docx") ? "doc" : "pdf",
             fileSize: "4.2 MB",
+            category: "Lecture Notes",
             uploadDate: "Just now",
             status: "ready" as const,
             vectorCount: 250,
             pages: 18,
+            summary: "Imported from personal Google Drive storage.",
+            keyTopics: ["Google Drive Sync", "Cloud Notes", "Syllabus Vector"],
           }));
           setDocuments((prev) => [...newDocItems, ...prev]);
         }}
