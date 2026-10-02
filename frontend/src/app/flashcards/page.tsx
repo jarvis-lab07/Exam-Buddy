@@ -17,14 +17,17 @@ import {
 } from "lucide-react";
 import { Flashcard3D } from "@/components/flashcards/Flashcard3D";
 import { AiFlashcardModal } from "@/components/flashcards/AiFlashcardModal";
+import { PeerQuizBattleModal } from "@/components/flashcards/PeerQuizBattleModal";
 import { MOCK_FLASHCARDS, MOCK_FLASHCARD_DECKS } from "@/lib/mock-data";
 import { Flashcard, FlashcardDeck } from "@/types";
+import { Swords } from "lucide-react";
 
 export default function FlashcardsPage() {
   const [allCards, setAllCards] = useState<Flashcard[]>(MOCK_FLASHCARDS);
   const [selectedDeckId, setSelectedDeckId] = useState<string>("all");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isBattleModalOpen, setIsBattleModalOpen] = useState(false);
   const [sessionMasteredCount, setSessionMasteredCount] = useState(0);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
 
@@ -165,14 +168,25 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsAiModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Generate with AI</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsBattleModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-rose-600/30"
+          >
+            <Swords className="w-4 h-4" />
+            <span>1v1 Peer Battle</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Generate with AI</span>
+          </button>
+        </div>
       </div>
 
       {/* Deck Selector Pills */}
@@ -347,6 +361,12 @@ export default function FlashcardsPage() {
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         onCardsGenerated={handleAddGeneratedCards}
+      />
+
+      {/* Peer Quiz Battle Arena Modal */}
+      <PeerQuizBattleModal
+        isOpen={isBattleModalOpen}
+        onClose={() => setIsBattleModalOpen(false)}
       />
     </div>
   );
