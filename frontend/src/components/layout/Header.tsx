@@ -20,6 +20,8 @@ import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { DailySecurityModal } from "@/components/auth/DailySecurityModal";
+import { ClassroomExamSyncModal } from "@/components/cohorts/ClassroomExamSyncModal";
+import { CalendarCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
@@ -36,6 +38,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isExamSyncOpen, setIsExamSyncOpen] = useState(false);
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
@@ -100,6 +103,17 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               <span className="hidden sm:inline">Focus</span>
             </button>
           )}
+
+          {/* Classroom Exam Sync Button */}
+          <button
+            type="button"
+            onClick={() => setIsExamSyncOpen(true)}
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs font-bold transition-all"
+            title="Classroom Exam Sync & Batch Countdowns"
+          >
+            <CalendarCheck className="w-3.5 h-3.5 text-violet-400" />
+            <span className="hidden md:inline">Exam Sync</span>
+          </button>
         </div>
 
         {/* Global Search Bar */}
@@ -303,6 +317,11 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
       <DailySecurityModal
         isOpen={isSecurityModalOpen}
         onClose={() => setIsSecurityModalOpen(false)}
+      />
+
+      <ClassroomExamSyncModal
+        isOpen={isExamSyncOpen}
+        onClose={() => setIsExamSyncOpen(false)}
       />
     </>
   );
