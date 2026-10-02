@@ -9,6 +9,12 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isConfigured: boolean;
+  isDailyUnlocked: boolean;
+  isSecurityModalOpen: boolean;
+  unlockDailySecurity: () => void;
+  relockDailySecurity: () => void;
+  setIsSecurityModalOpen: (open: boolean) => void;
+  loginWithGoogleDemo: (email?: string, name?: string) => void;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -18,18 +24,34 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   isConfigured: false,
+  isDailyUnlocked: false,
+  isSecurityModalOpen: false,
+  unlockDailySecurity: () => {},
+  relockDailySecurity: () => {},
+  setIsSecurityModalOpen: () => {},
+  loginWithGoogleDemo: () => {},
   signOut: async () => {},
   refreshSession: async () => {},
 });
 
+const getTodayKey = (userId?: string) => {
+  const today = new Date().toISOString().split('T')[0];
+  return `exambuddy_daily_unlocked_${userId || 'demo'}_${today}`;
+};
+
 const createDemoUser = (profileData: any): User => {
   const email = profileData?.email || 'student@campus.edu';
   const name = profileData?.name || profileData?.full_name || 'Student User';
+  const provider = profileData?.provider || 'demo';
+  const avatar = profileData?.avatar || null;
+  
   return {
-    id: 'demo-user-id',
-    app_metadata: { provider: 'demo' },
+    id: profileData?.id || 'demo-user-id',
+    app_metadata: { provider },
     user_metadata: {
       full_name: name,
+      avatar_url: avatar,
+      provider_type: provider,
       ...profileData,
     },
     aud: 'authenticated',
@@ -47,7 +69,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
 
+  // Daily Security State
+  const [isDailyUnlocked, setIsDailyUnlocked] = useState<boolean>(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
+
   const supabase = createClient();
+
+  const checkDailyUnlockedState = (currentUser: User | null) => {
+    if (typeof window !== 'undefined') {
+      const key = getTodayKey(currentUser?.id);
+      const isUnlocked = localStorage.getItem(key) === 'true';
+      setIsDailyUnlocked(isUnlocked);
+
+      if (currentUser && !isUnlocked) {
+        setIsSecurityModalOpen(true);
+      }
+    }
+  };
+
+  const unlockDailySecurity = () => {
+    setIsDailyUnlocked(true);
+    setIsSecurityModalOpen(false);
+    if (typeof window !== 'undefined') {
+      const key = getTodayKey(user?.id);
+      localStorage.setItem(key, 'true');
+    }
+  };
+
+  const relockDailySecurity = () => {
+    setIsDailyUnlocked(false);
+    setIsSecurityModalOpen(true);
+    if (typeof window !== 'undefined') {
+      const key = getTodayKey(user?.id);
+      localStorage.removeItem(key);
+    }
+  };
 
   const loadDemoUser = () => {
     if (typeof window !== 'undefined') {
@@ -55,12 +111,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          setUser(createDemoUser(parsed));
+          const demoUser = createDemoUser(parsed);
+          setUser(demoUser);
+          checkDailyUnlockedState(demoUser);
           return true;
         } catch {}
       }
     }
     return false;
+  };
+
+  const loginWithGoogleDemo = (emailInput?: string, nameInput?: string) => {
+    const demoGoogleProfile = {
+      email: emailInput || 'durgesh.patil@gmail.com',
+      full_name: nameInput || 'Durgesh Patil (Google Verified)',
+      name: nameInput || 'Durgesh Patil (Google Verified)',
+      provider: 'google',
+      avatar: 'https://lh3.googleusercontent.com/a/default-user',
+      college: 'R. C. Patel Institute of Technology, Shirpur (RCPIT)',
+      department: 'Computer Engineering',
+      division: 'Div A',
+      currentYear: '3rd Year',
+      semester: 'Semester 5 (3rd Year)',
+    };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('exambuddy_cohort_user', JSON.stringify(demoGoogleProfile));
+    }
+    const demoUser = createDemoUser(demoGoogleProfile);
+    setUser(demoUser);
+    checkDailyUnlockedState(demoUser);
+    setIsSecurityModalOpen(true);
   };
 
   useEffect(() => {
@@ -79,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       if (session?.user) {
         setUser(session.user);
+        checkDailyUnlockedState(session.user);
       } else {
         loadDemoUser();
       }
@@ -91,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         if (session?.user) {
           setUser(session.user);
+          checkDailyUnlockedState(session.user);
         } else {
           loadDemoUser();
         }
@@ -112,6 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(null);
     setSession(null);
+    setIsDailyUnlocked(false);
+    setIsSecurityModalOpen(false);
   };
 
   const refreshSession = async () => {
@@ -120,6 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       if (session?.user) {
         setUser(session.user);
+        checkDailyUnlockedState(session.user);
         return;
       }
     }
@@ -133,6 +218,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         loading,
         isConfigured,
+        isDailyUnlocked,
+        isSecurityModalOpen,
+        unlockDailySecurity,
+        relockDailySecurity,
+        setIsSecurityModalOpen,
+        loginWithGoogleDemo,
         signOut,
         refreshSession,
       }}

@@ -13,10 +13,13 @@ import {
   Moon,
   Sun,
   Trees,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { DailySecurityModal } from "@/components/auth/DailySecurityModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
@@ -36,7 +39,13 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  const { user, signOut } = useAuth();
+  const {
+    user,
+    signOut,
+    isDailyUnlocked,
+    isSecurityModalOpen,
+    setIsSecurityModalOpen,
+  } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const refreshKeyStatus = () => {
@@ -60,6 +69,8 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  const isGoogleUser = user?.user_metadata?.provider_type === "google" || user?.app_metadata?.provider === "google";
 
   return (
     <>
@@ -108,6 +119,37 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Daily Security Mini-Game Badge */}
+          {user && (
+            <button
+              type="button"
+              onClick={() => setIsSecurityModalOpen(true)}
+              className={cn(
+                "flex items-center gap-1.5 h-8 px-2.5 rounded-xl text-xs font-bold transition-all border shadow-sm",
+                isDailyUnlocked
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25 animate-pulse"
+              )}
+              title={
+                isDailyUnlocked
+                  ? "Daily Security Verified! Click to re-play game challenge."
+                  : "Daily Security Challenge Locked! Click to find key or tap 3+ spots."
+              }
+            >
+              {isDailyUnlocked ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="hidden sm:inline text-[11px]">Security Verified</span>
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-[11px]">Unlock Gate</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* 3-Way Theme Switcher Toggle */}
           <div className="flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
             <button
@@ -206,14 +248,24 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
             <button
               onClick={() => signOut()}
               title={`Logged in as ${user.email}. Click to sign out.`}
-              className="relative flex items-center gap-2 p-1 pr-2 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] transition-colors"
+              className="relative flex items-center gap-2 p-1 pr-2.5 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] transition-colors group"
             >
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs">
+              <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40">
                 {user.email?.charAt(0).toUpperCase() || 'U'}
+                {isGoogleUser && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white flex items-center justify-center text-[8px] font-black text-blue-600 border border-slate-900 shadow-xs">
+                    G
+                  </span>
+                )}
               </div>
-              <span className="hidden md:inline text-xs text-[var(--text-secondary)] max-w-[90px] truncate">
-                {user.email?.split('@')[0]}
-              </span>
+              <div className="hidden md:flex flex-col text-left">
+                <span className="text-xs text-[var(--text-primary)] max-w-[90px] truncate leading-none font-semibold">
+                  {user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
+                </span>
+                <span className="text-[9px] text-[var(--text-muted)] leading-none mt-0.5">
+                  {isGoogleUser ? 'Google User' : 'Student'}
+                </span>
+              </div>
             </button>
           ) : (
             <button
@@ -246,6 +298,11 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <DailySecurityModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
       />
     </>
   );

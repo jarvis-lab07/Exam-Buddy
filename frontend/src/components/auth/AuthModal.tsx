@@ -119,7 +119,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const { isConfigured, refreshSession } = useAuth();
+  const { isConfigured, refreshSession, loginWithGoogleDemo, setIsSecurityModalOpen } = useAuth();
   const supabase = createClient();
 
   if (!isOpen) return null;
@@ -146,9 +146,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setMessage(null);
 
     if (!isConfigured) {
-      setError(
-        'Supabase URL keys are using local placeholders. Please configure frontend/.env.local to test Google OAuth.'
-      );
+      // Smooth Demo Google Login with immediate Daily Security Gate unlock challenge
+      loginWithGoogleDemo('durgesh.patil@gmail.com', 'Durgesh Patil (Google Verified)');
+      onClose();
       return;
     }
 
