@@ -12,11 +12,14 @@ import {
 } from "lucide-react";
 import { FileDropzone } from "@/components/upload/FileDropzone";
 import { DocumentLibrary } from "@/components/upload/DocumentLibrary";
+import { GoogleDrivePickerModal } from "@/components/upload/GoogleDrivePickerModal";
 import { MOCK_DOCUMENT_ITEMS, MOCK_USER } from "@/lib/mock-data";
 import { DocumentUploadItem } from "@/types";
+import { Cloud } from "lucide-react";
 
 export default function UploadPage() {
   const [documents, setDocuments] = useState<DocumentUploadItem[]>(MOCK_DOCUMENT_ITEMS);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
 
   // Load from localStorage if available
   useEffect(() => {
@@ -76,6 +79,16 @@ export default function UploadPage() {
               Ingest lecture slides, handwritten notes, and question banks. Exam-Buddy automatically extracts text, builds 768-dimensional embeddings, and routes them to your AI Tutor.
             </p>
           </div>
+          <div className="flex flex-col gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsDriveModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/30"
+            >
+              <Cloud className="w-4 h-4" />
+              <span>Import from Google Drive (BYOS)</span>
+            </button>
+          </div>
         </div>
 
         {/* Live Storage & Vectors Gauge */}
@@ -117,6 +130,28 @@ export default function UploadPage() {
       <DocumentLibrary
         documents={documents}
         onDeleteDocument={handleDeleteDocument}
+      />
+
+      {/* Google Drive BYOS Picker Modal */}
+      <GoogleDrivePickerModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        onImportFiles={(importedNames) => {
+          const newDocItems: DocumentUploadItem[] = importedNames.map((name, i) => ({
+            id: `gdrive-${Date.now()}-${i}`,
+            title: name.replace(/\.[^/.]+$/, ""),
+            fileName: name,
+            subjectCode: "CS501",
+            subjectName: "Google Drive Syllabus Notes",
+            unitName: "Unit 1 - Fundamentals",
+            fileSize: "4.2 MB",
+            uploadDate: "Just now",
+            status: "ready" as const,
+            vectorCount: 250,
+            pages: 18,
+          }));
+          setDocuments((prev) => [...newDocItems, ...prev]);
+        }}
       />
     </div>
   );
