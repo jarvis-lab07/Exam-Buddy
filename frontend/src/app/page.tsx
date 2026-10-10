@@ -38,6 +38,7 @@ import {
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { DailyGoalRing } from "@/components/focus/DailyGoalRing";
+import { useAuth } from "@/contexts/AuthContext";
 import type { CalendarEvent } from "@/types";
 
 const continueSubjects = MOCK_SUBJECTS.filter((s) => s.degree === "Engineering");
@@ -51,9 +52,28 @@ function daysUntil(dateLabel: string) {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState(MOCK_TODAY_TASKS);
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   const [barsReady, setBarsReady] = useState(false);
+
+  const studentName = useMemo(() => {
+    if (user) {
+      return user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Student';
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem("exambuddy_cohort_user") || localStorage.getItem("exam_buddy_user_profile");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.name || parsed?.full_name) {
+            return (parsed.name || parsed.full_name).split(' ')[0];
+          }
+        }
+      } catch (e) {}
+    }
+    return "Student";
+  }, [user]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setBarsReady(true));
@@ -153,7 +173,7 @@ export default function DashboardPage() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-theme-primary">
-              Welcome back, {MOCK_USER.name}.
+              Welcome back, {studentName}.
             </h1>
 
             <p className="text-theme-secondary text-sm sm:text-base leading-relaxed font-medium">

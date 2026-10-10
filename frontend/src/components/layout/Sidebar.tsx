@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { MOCK_USER } from "@/lib/mock-data";
 import { UserProfile } from "@/types";
 import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { PomodoroTimer } from "@/components/focus/PomodoroTimer";
 import { AmbientPlayer } from "@/components/focus/AmbientPlayer";
 import { usePomodoro } from "@/contexts/PomodoroContext";
@@ -110,20 +111,56 @@ export function Sidebar({
   const isIcon = state === "icon";
   const isHidden = state === "hidden";
 
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile>(MOCK_USER);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isFocusOpen, setIsFocusOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("exam_buddy_user_profile");
-      if (stored) {
-        setUserProfile(JSON.parse(stored));
+    if (user) {
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student User';
+      const emailStr = user.email || 'student@campus.edu';
+      const handleStr = `@${emailStr.split('@')[0]}`;
+      const colStr = user.user_metadata?.college || 'R. C. Patel Institute of Technology, Shirpur (RCPIT)';
+      const deptStr = user.user_metadata?.department || 'Computer Engineering';
+      const semStr = user.user_metadata?.semester || 'Semester 5 (3rd Year)';
+
+      setUserProfile({
+        name: fullName,
+        email: emailStr,
+        username: handleStr,
+        college: colStr,
+        branch: deptStr,
+        department: deptStr,
+        year: user.user_metadata?.currentYear || '3rd Year',
+        semester: semStr,
+        activeCohort: `${colStr.split(' ')[0]} • ${deptStr.split(' ')[0]}`,
+        cloudStorageUsedGB: 3.4,
+        cloudStorageTotalGB: 10,
+        aiTokensUsed: 45000,
+        aiTokensTotal: 100000,
+      });
+    } else {
+      try {
+        const stored = localStorage.getItem("exambuddy_cohort_user") || localStorage.getItem("exam_buddy_user_profile");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.email) {
+            setUserProfile({
+              ...MOCK_USER,
+              name: parsed.name || parsed.full_name || 'Student',
+              email: parsed.email,
+              username: `@${parsed.email.split('@')[0]}`,
+              college: parsed.college || MOCK_USER.college,
+              branch: parsed.department || parsed.branch || MOCK_USER.branch,
+            });
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
     }
-  }, []);
+  }, [user]);
 
   const storagePercent = Math.round(
     (((userProfile.cloudStorageUsedGB || 3.4) / (userProfile.cloudStorageTotalGB || 10)) * 100)
