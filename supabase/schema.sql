@@ -23,6 +23,51 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 2b. User Login History & Audit Table
+CREATE TABLE IF NOT EXISTS public.user_logins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  provider TEXT DEFAULT 'google',
+  user_agent TEXT,
+  ip_address TEXT,
+  login_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Automatic Google OAuth User Creation & Sync Trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, avatar_url, updated_at)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+    NEW.raw_user_meta_data->>'avatar_url',
+    NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    full_name = EXCLUDED.full_name,
+    avatar_url = COALESCE(EXCLUDED.avatar_url, public.profiles.avatar_url),
+    updated_at = NOW();
+
+  INSERT INTO public.user_logins (user_id, email, provider, login_at)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_app_meta_data->>'provider', 'google'),
+    NOW()
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Re-create trigger for auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT OR UPDATE ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- 3. Campus Cohorts
 CREATE TABLE IF NOT EXISTS public.campus_cohorts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -84,6 +129,12 @@ CREATE TABLE IF NOT EXISTS public.document_chunks (
   embedding vector(1536),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- High-Scale HNSW Vector Index for sub-10ms similarity search
+CREATE INDEX IF NOT EXISTS document_chunks_embedding_hnsw_idx 
+ON public.document_chunks 
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
 
 -- 8. Flashcard Decks
 CREATE TABLE IF NOT EXISTS public.flashcard_decks (

@@ -7,24 +7,24 @@
   --bg-surface: #171717;        /* ChatGPT Sidebar & Navigation background */
   --bg-elevated: #2f2f2f;       /* ChatGPT Cards, Input Pills & Surfaces */
   --bg-card: #2f2f2f;           /* ChatGPT Card Background */
-  --border-card: rgba(255, 255, 255, 0.08); /* Crisp ChatGPT border (#383838) */
-  --border-hover: rgba(255, 255, 255, 0.18);
+  --border-card: rgba(255, 255, 255, 0.12); /* Crisp ChatGPT border (#383838) */
+  --border-hover: rgba(255, 255, 255, 0.22);
   --brand-violet: #10a37f;       /* ChatGPT Signature Emerald Accent */
   --brand-indigo: #00a67e;
   --accent-cyan: #38bdf8;
   --accent-amber: #f59e0b;
   --accent-emerald: #10a37f;     /* ChatGPT Emerald Green */
   --accent-rose: #ef4444;
-  --text-primary: #ececec;       /* High-contrast crisp text */
-  --text-secondary: #b4b4b4;     /* Crisp secondary text */
-  --text-muted: #8e8e93;        /* Soft muted text */
+  --text-primary: #f4f4f5;       /* Crisp bright white text */
+  --text-secondary: #d4d4d8;     /* High-contrast secondary text */
+  --text-muted: #a1a1aa;        /* Soft readable muted text */
   --input-bg: #2f2f2f;          /* ChatGPT Input Bar background */
-  --input-border: #383838;       /* Subtle input outline */
+  --input-border: #424242;       /* Subtle input outline */
   --radius-card: 16px;
   --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* ————— PRO LIGHT THEME ————— */
+/* ————— PRO LIGHT THEME (Clean White & High Contrast) ————— */
 [data-theme="light"] {
   --bg-base: #f8fafc;
   --bg-surface: #ffffff;
@@ -34,38 +34,38 @@
   --border-hover: #cbd5e1;
   --brand-violet: #10a37f;
   --brand-indigo: #059669;
-  --accent-cyan: #0891b2;
+  --accent-cyan: #0284c7;
   --accent-amber: #d97706;
   --accent-emerald: #059669;
   --accent-rose: #e11d48;
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --input-bg: #f1f5f9;
+  --text-primary: #0f172a;       /* Deep slate high-contrast text */
+  --text-secondary: #334155;     /* Slate-700 secondary text */
+  --text-muted: #475569;        /* Slate-600 readable muted text */
+  --input-bg: #ffffff;
   --input-border: #cbd5e1;
   --radius-card: 16px;
-  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
 }
 
 /* ————— NATURE CALM MOTION THEME ————— */
 [data-theme="nature"] {
-  --bg-base: #0f1812;
-  --bg-surface: rgba(18, 29, 21, 0.92);
-  --bg-elevated: rgba(26, 42, 31, 0.95);
-  --bg-card: rgba(18, 29, 21, 0.88);
-  --border-card: rgba(167, 243, 208, 0.15);
-  --border-hover: rgba(16, 185, 129, 0.4);
+  --bg-base: #0b140e;
+  --bg-surface: rgba(14, 25, 17, 0.94);
+  --bg-elevated: rgba(20, 36, 24, 0.96);
+  --bg-card: rgba(16, 29, 20, 0.92);
+  --border-card: rgba(167, 243, 208, 0.22);
+  --border-hover: rgba(52, 211, 153, 0.5);
   --brand-violet: #059669;
   --brand-indigo: #10b981;
   --accent-cyan: #14b8a6;
-  --accent-amber: #d97706;
+  --accent-amber: #f59e0b;
   --accent-emerald: #10b981;
   --accent-rose: #f43f5e;
-  --text-primary: #ecfdf5;
-  --text-secondary: #a7f3d0;
-  --text-muted: #6ee7b7;
-  --input-bg: rgba(13, 22, 16, 0.85);
-  --input-border: rgba(167, 243, 208, 0.2);
+  --text-primary: #f0fdf4;       /* Crisp mint-white text */
+  --text-secondary: #bbf7d0;     /* Mint-200 secondary text */
+  --text-muted: #86efac;        /* Mint-300 readable muted text */
+  --input-bg: rgba(11, 20, 14, 0.9);
+  --input-border: rgba(167, 243, 208, 0.3);
   --radius-card: 16px;
   --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.6);
 }
@@ -147,7 +147,7 @@ p, span, li, label { line-height: 1.6; }
 }
 
 /* ==========================================================================
-   UNIVERSAL THEME COLOR OVERRIDES
+   UNIVERSAL THEME COLOR OVERRIDES & CONTRAST FIXES
    ========================================================================== */
 
 /* 1. DARK THEME RULE */
@@ -162,6 +162,11 @@ p, span, li, label { line-height: 1.6; }
   color: var(--text-primary);
   background-color: var(--input-bg);
   border-color: var(--input-border);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #8e8e93;
 }
 
 [data-theme="dark"] select option {
@@ -183,6 +188,11 @@ p, span, li, label { line-height: 1.6; }
   border-color: var(--input-border);
 }
 
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #64748b;
+}
+
 [data-theme="light"] select option {
   background-color: #ffffff;
   color: #0f172a;
@@ -190,7 +200,8 @@ p, span, li, label { line-height: 1.6; }
 
 [data-theme="light"] .card,
 [data-theme="light"] .glass-card,
-[data-theme="light"] .card-interactive {
+[data-theme="light"] .card-interactive,
+[data-theme="light"] .glass-card-interactive {
   color: var(--text-primary);
   background-color: var(--bg-card);
   border-color: var(--border-card);
@@ -210,6 +221,11 @@ p, span, li, label { line-height: 1.6; }
   border-color: var(--input-border);
 }
 
+[data-theme="nature"] input::placeholder,
+[data-theme="nature"] textarea::placeholder {
+  color: #6ee7b7;
+}
+
 [data-theme="nature"] select option {
   background-color: #121d15;
   color: #ecfdf5;
@@ -217,7 +233,8 @@ p, span, li, label { line-height: 1.6; }
 
 [data-theme="nature"] .card,
 [data-theme="nature"] .glass-card,
-[data-theme="nature"] .card-interactive {
+[data-theme="nature"] .card-interactive,
+[data-theme="nature"] .glass-card-interactive {
   color: var(--text-primary);
   background-color: var(--bg-card);
   border-color: var(--border-card);

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { syncGoogleUserToDatabase } from '@/lib/db-service';
 
 interface AuthContextType {
   user: User | null;
@@ -69,40 +70,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
 
-  // Daily Security State
-  const [isDailyUnlocked, setIsDailyUnlocked] = useState<boolean>(false);
+  // Daily Security State (Unlocked by default)
+  const [isDailyUnlocked, setIsDailyUnlocked] = useState<boolean>(true);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
 
   const supabase = createClient();
 
-  const checkDailyUnlockedState = (currentUser: User | null) => {
-    if (typeof window !== 'undefined') {
-      const key = getTodayKey(currentUser?.id);
-      const isUnlocked = localStorage.getItem(key) === 'true';
-      setIsDailyUnlocked(isUnlocked);
-
-      if (currentUser && !isUnlocked) {
-        setIsSecurityModalOpen(true);
-      }
-    }
+  const checkDailyUnlockedState = (_currentUser: User | null) => {
+    setIsDailyUnlocked(true);
+    setIsSecurityModalOpen(false);
   };
 
   const unlockDailySecurity = () => {
     setIsDailyUnlocked(true);
     setIsSecurityModalOpen(false);
-    if (typeof window !== 'undefined') {
-      const key = getTodayKey(user?.id);
-      localStorage.setItem(key, 'true');
-    }
   };
 
   const relockDailySecurity = () => {
-    setIsDailyUnlocked(false);
-    setIsSecurityModalOpen(true);
-    if (typeof window !== 'undefined') {
-      const key = getTodayKey(user?.id);
-      localStorage.removeItem(key);
-    }
+    setIsDailyUnlocked(true);
+    setIsSecurityModalOpen(false);
   };
 
   const loadDemoUser = () => {
@@ -160,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setUser(session.user);
         checkDailyUnlockedState(session.user);
+        syncGoogleUserToDatabase(session.user);
       } else {
         loadDemoUser();
       }
@@ -173,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setUser(session.user);
           checkDailyUnlockedState(session.user);
+          syncGoogleUserToDatabase(session.user);
         } else {
           loadDemoUser();
         }

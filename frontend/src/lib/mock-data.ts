@@ -726,11 +726,11 @@ export const MOCK_SUBJECTS: Subject[] = [
 export const MOCK_WEEKLY_STUDY: WeeklyStudyDay[] = [
   { day: "Mon", fullDay: "Monday", minutes: 180, targetMinutes: 150, isToday: false },
   { day: "Tue", fullDay: "Tuesday", minutes: 220, targetMinutes: 150, isToday: false },
-  { day: "Wed", fullDay: "Wednesday", minutes: 195, targetMinutes: 150, isToday: false },
-  { day: "Thu", fullDay: "Thursday", minutes: 240, targetMinutes: 150, isToday: false },
-  { day: "Fri", fullDay: "Friday", minutes: 160, targetMinutes: 150, isToday: false },
+  { day: "Wed", fullDay: "Wednesday (Today)", minutes: 275, targetMinutes: 180, isToday: true },
+  { day: "Thu", fullDay: "Thursday", minutes: 195, targetMinutes: 150, isToday: false },
+  { day: "Fri", fullDay: "Friday", minutes: 240, targetMinutes: 150, isToday: false },
   { day: "Sat", fullDay: "Saturday", minutes: 310, targetMinutes: 180, isToday: false },
-  { day: "Sun", fullDay: "Sunday (Today)", minutes: 275, targetMinutes: 180, isToday: true },
+  { day: "Sun", fullDay: "Sunday", minutes: 160, targetMinutes: 150, isToday: false },
 ];
 
 export const MOCK_RECENT_DOCUMENTS: RecentDocument[] = [

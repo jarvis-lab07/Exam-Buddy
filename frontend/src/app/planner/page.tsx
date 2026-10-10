@@ -37,8 +37,35 @@ export default function PlannerPage() {
   // Load from localStorage if available
   useEffect(() => {
     try {
+      let baseTasks: StudyTask[] = MOCK_TODAY_TASKS;
       const storedTasks = localStorage.getItem("exam_buddy_tasks");
-      if (storedTasks) setTasks(JSON.parse(storedTasks));
+      if (storedTasks) {
+        baseTasks = JSON.parse(storedTasks);
+      }
+
+      // Check for Synced Cohort Exams
+      const storedCohortExams = localStorage.getItem("exambuddy_planner_tasks");
+      if (storedCohortExams) {
+        const cohortExams = JSON.parse(storedCohortExams);
+        const mappedCohortTasks: StudyTask[] = cohortExams.map((item: any) => ({
+          id: item.id || `cohort-${Date.now()}`,
+          subjectId: item.subjectCode || "COHORT",
+          title: item.title || `📖 EXAM: ${item.subjectCode}`,
+          estimatedMinutes: 120,
+          completed: false,
+          priority: "high" as const,
+          type: "exam" as const,
+          scheduledTime: item.date ? new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Morning",
+        }));
+
+        // Avoid duplicates by ID
+        const existingIds = new Set(baseTasks.map((t) => t.id));
+        const newUnique = mappedCohortTasks.filter((t) => !existingIds.has(t.id));
+        baseTasks = [...newUnique, ...baseTasks];
+      }
+
+      setTasks(baseTasks);
+
       const storedMinutes = localStorage.getItem("exam_buddy_daily_minutes");
       if (storedMinutes) setDailyMinutesLogged(Number(storedMinutes));
     } catch (e) {
@@ -90,6 +117,14 @@ export default function PlannerPage() {
     Math.round((dailyMinutesLogged / dailyTargetMinutes) * 100)
   );
 
+  const countdownDays = (() => {
+    const parsed = new Date("Oct 18, 2026 00:00:00");
+    if (Number.isNaN(parsed.getTime())) return 11;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.max(0, Math.round((parsed.getTime() - today.getTime()) / 86_400_000));
+  })();
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Banner */}
@@ -133,7 +168,7 @@ export default function PlannerPage() {
                 Exam Countdown
               </span>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300">
-                Midterms in 18 Days
+                Midterms in {countdownDays} Days
               </span>
             </div>
             <p className="text-sm font-semibold text-white mt-0.5">

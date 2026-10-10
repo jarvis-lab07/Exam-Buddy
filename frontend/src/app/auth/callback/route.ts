@@ -9,8 +9,40 @@ export async function GET(request: Request) {
   if (code) {
     try {
       const supabase = await createClient();
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error && data?.session?.user) {
+        const user = data.session.user;
+        const email = user.email || '';
+        const fullName =
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          email.split('@')[0] ||
+          'Google Student';
+        const avatarUrl =
+          user.user_metadata?.avatar_url ||
+          user.user_metadata?.picture ||
+          null;
+
+        // Upsert Google user profile in DB
+        await supabase.from('profiles').upsert(
+          {
+            id: user.id,
+            full_name: fullName,
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        );
+
+        // Record real login event in database audit table
+        await supabase.from('user_logins').insert({
+          user_id: user.id,
+          email: email,
+          provider: user.app_metadata?.provider || 'google',
+          user_agent: request.headers.get('user-agent') || 'Browser',
+          login_at: new Date().toISOString(),
+        });
+
         return NextResponse.redirect(`${origin}${next}`);
       }
     } catch (err) {

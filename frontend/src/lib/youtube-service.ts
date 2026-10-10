@@ -44,17 +44,29 @@ export function extractYouTubeVideoId(url: string): string | null {
     return trimmed;
   }
 
-  // Standard youtube.com/watch?v=VIDEO_ID
-  const watchMatch = trimmed.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/watch\?.+&v=)([a-zA-Z0-9_-]{11})/);
+  // Live stream URL: youtube.com/live/VIDEO_ID
+  const liveMatch = trimmed.match(/(?:youtube\.com|youtube-nocookie\.com)\/live\/([a-zA-Z0-9_-]{11})/i);
+  if (liveMatch) return liveMatch[1];
+
+  // Standard watch URL: youtube.com/watch?v=VIDEO_ID or watch?param=value&v=VIDEO_ID
+  const watchMatch = trimmed.match(/(?:youtube\.com|youtube-nocookie\.com)\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})/i);
   if (watchMatch) return watchMatch[1];
 
-  // Short link youtu.be/VIDEO_ID
-  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  // Short link: youtu.be/VIDEO_ID
+  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
   if (shortMatch) return shortMatch[1];
 
-  // Embed link youtube.com/embed/VIDEO_ID
-  const embedMatch = trimmed.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+  // Embed link: youtube.com/embed/VIDEO_ID
+  const embedMatch = trimmed.match(/(?:youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/i);
   if (embedMatch) return embedMatch[1];
+
+  // Shorts link: youtube.com/shorts/VIDEO_ID
+  const shortsMatch = trimmed.match(/(?:youtube\.com|youtube-nocookie\.com)\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  if (shortsMatch) return shortsMatch[1];
+
+  // Direct v link: youtube.com/v/VIDEO_ID
+  const vMatch = trimmed.match(/(?:youtube\.com|youtube-nocookie\.com)\/v\/([a-zA-Z0-9_-]{11})/i);
+  if (vMatch) return vMatch[1];
 
   return null;
 }
@@ -76,7 +88,24 @@ export function getStoredWorkspaces(): LectureWorkspaceData[] {
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY_WORKSPACES);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      let list: LectureWorkspaceData[] = JSON.parse(stored);
+      let migrated = false;
+      list = list.map((w) => {
+        if (
+          (w.videoId === "Y6FqkbuJGsY" || w.videoId === "DefiniteIntegration2025") &&
+          (w.title.includes("Definite Integration") || w.subjectName?.includes("Math"))
+        ) {
+          migrated = true;
+          return { ...MOCK_LECTURE_DEMO };
+        }
+        return w;
+      });
+      if (migrated) {
+        localStorage.setItem(STORAGE_KEY_WORKSPACES, JSON.stringify(list));
+      }
+      return list;
+    }
   } catch (e) {
     console.error("Failed to load lecture workspaces:", e);
   }
@@ -102,47 +131,60 @@ export function saveWorkspace(data: LectureWorkspaceData): void {
 
 export function getWorkspaceByVideoId(videoId: string): LectureWorkspaceData | null {
   const workspaces = getStoredWorkspaces();
-  return workspaces.find((w) => w.videoId === videoId) || null;
+  const found = workspaces.find((w) => w.videoId === videoId);
+  if (found) {
+    if (
+      (videoId === "Y6FqkbuJGsY" || videoId === "DefiniteIntegration2025") &&
+      (found.title.includes("Definite Integration") || found.subjectName?.includes("Math"))
+    ) {
+      return MOCK_LECTURE_DEMO;
+    }
+    return found;
+  }
+  if (videoId === "Y6FqkbuJGsY" || videoId === "DefiniteIntegration2025") {
+    return MOCK_LECTURE_DEMO;
+  }
+  return null;
 }
 
 export const MOCK_LECTURE_DEMO: LectureWorkspaceData = {
-  id: "demo-lecture-1",
-  youtubeUrl: "https://www.youtube.com/watch?v=8hly31xKli0",
-  videoId: "8hly31xKli0", // Algorithms / Data Structures tutorial video
-  title: "Data Structures & Algorithms: Complete Course for University Midterms",
-  thumbnailUrl: "https://img.youtube.com/vi/8hly31xKli0/hqdefault.jpg",
-  durationSec: 3600,
-  lastWatchedTimestampSec: 865,
-  completionPercent: 24,
-  subjectName: "Data Structures & Algorithms",
-  topicTitle: "AVL Trees & Single/Double Rotations",
-  unitTitle: "Unit 4: Trees & Balanced Search Structures",
+  id: "demo-lecture-coordination-compounds",
+  youtubeUrl: "https://www.youtube.com/live/Y6FqkbuJGsY?si=X4Nyk2OJTWGsGAFq",
+  videoId: "Y6FqkbuJGsY",
+  title: "Coordination Compounds Class 12 Chemistry | Optical Isomerism & CFT",
+  thumbnailUrl: "https://img.youtube.com/vi/Y6FqkbuJGsY/hqdefault.jpg",
+  durationSec: 4705, // 1 hour 18 mins 25 secs (1.3 hrs)
+  lastWatchedTimestampSec: 865, // 14:25
+  completionPercent: 32,
+  subjectName: "Chemistry & Inorganic Chemistry",
+  topicTitle: "Coordination Compounds, Isomerism & CFT",
+  unitTitle: "Unit 5 · Inorganic & Coordination Chemistry",
   bookmarks: [
     {
       id: "bm-1",
       timestampSec: 240,
       timestampFormatted: "04:00",
-      title: "Binary Search Tree Invariance Lemma",
+      title: "Werner's Coordination Theory & Primary/Secondary Valency",
       type: "Important",
-      description: "Left subtree keys < Root key < Right subtree keys.",
+      description: "Primary valency = ionizable oxidation state; Secondary valency = coordination number.",
       createdAt: "Today",
     },
     {
       id: "bm-2",
       timestampSec: 865,
       timestampFormatted: "14:25",
-      title: "AVL Balance Factor Calculation: Height(Left) - Height(Right)",
-      type: "Formula",
-      description: "Valid balance factors are only {-1, 0, +1}.",
+      title: "Optical Isomers in Octahedral Complexes [Co(en)3]3+",
+      type: "Trick",
+      description: "Homoleptic [Co(en)3]3+ lacks symmetry plane, forming non-superimposable d and l enantiomers.",
       createdAt: "Today",
     },
     {
       id: "bm-3",
-      timestampSec: 1450,
-      timestampFormatted: "24:10",
-      title: "Double Rotation (LR / RL) Edge Case in Midterms",
-      type: "Trick",
-      description: "Perform child rotation first before main root rotation.",
+      timestampSec: 2530,
+      timestampFormatted: "42:10",
+      title: "Crystal Field Theory (CFT) & Spectrochemical Series",
+      type: "PYQ",
+      description: "Strong field ligands (CN-, CO, en) split d-orbitals into t2g and eg with low-spin pairing.",
       createdAt: "Today",
     },
   ],
@@ -150,9 +192,13 @@ export const MOCK_LECTURE_DEMO: LectureWorkspaceData = {
     {
       id: "note-1",
       timestampSec: 865,
-      title: "AVL Tree Balance Factor Proof",
+      title: "SUMMARY Notes",
       content:
-        "An AVL tree guarantees O(log N) search time by maintaining strict height balance. If Balance Factor exceeds +1 or -1, a single or double rotation restores height equilibrium immediately.",
+        "📌 **Coordination Compounds Summary at [14:25]**:\n\n" +
+        "1. **Homoleptic vs Heteroleptic Complexes:** $[Co(en)_3]^{3+}$ is a homoleptic bidentate complex.\n" +
+        "2. **Optical Activity:** $[Co(en)_3]^{3+}$ lacks a plane of symmetry ($\\sigma$), forming non-superimposable $d$- and $l$-enantiomer mirror images.\n" +
+        "3. **Crystal Field Theory (CFT) Splitting:** Octahedral field splits 5 d-orbitals into lower $t_{2g}$ and higher $e_g$ with $\\Delta_o$. Strong field ligands ($en, CN^-, CO$) cause low-spin pairing.\n" +
+        "4. **Effective Atomic Number (EAN):** $EAN = Z - \\text{Oxidation State} + 2 \\times \\text{Coordination Number} = 27 - 3 + 2(6) = 36$ (Stable Krypton configuration!).",
       type: "summary",
       createdAt: "Today",
     },
@@ -161,7 +207,7 @@ export const MOCK_LECTURE_DEMO: LectureWorkspaceData = {
     {
       role: "assistant",
       content:
-        "Hello! I am your AI Lecture Tutor for this Data Structures & Algorithms lecture. Ask me any question, ask for Hindi explanations, or generate quizzes from this video!",
+        "Hello! I am your AI Lecture Tutor for 'Coordination Compounds Class 12 Chemistry'. Ask me any doubt about ligands, optical isomerism in [Co(en)3]3+, CFT splitting, or 5-mark exam questions!",
     },
   ],
   updatedAt: new Date().toISOString(),

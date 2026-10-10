@@ -18,22 +18,48 @@ interface LectureQuizPanelProps {
 
 export function LectureQuizPanel({ lectureTitle }: LectureQuizPanelProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [questions, setQuestions] = useState<QuizQuestion[]>([
-    {
-      id: "q-1",
-      question: "What is the maximum allowed Balance Factor in a valid AVL Tree?",
-      options: ["+1 or -1", "+2 or -2", "0 only", "Any positive integer"],
-      correctIndex: 0,
-      explanation: "AVL trees maintain strict height balance where every node's balance factor (Height_Left - Height_Right) must be -1, 0, or +1.",
-    },
-    {
-      id: "q-2",
-      question: "Which rotation is required when a node is inserted into the right subtree of a left child?",
-      options: ["Single LL Rotation", "Single RR Rotation", "Left-Right (LR) Double Rotation", "Right-Left (RL) Double Rotation"],
-      correctIndex: 2,
-      explanation: "An LR rotation is performed when an imbalance occurs due to insertion into the right child of a left node.",
-    },
-  ]);
+  const isChem = lectureTitle.toLowerCase().includes("chem") || lectureTitle.toLowerCase().includes("coordination");
+
+  const [questions, setQuestions] = useState<QuizQuestion[]>(
+    isChem
+      ? [
+          {
+            id: "q-1",
+            question: "What is the denticity of the chelating ligand EDTA⁴⁻?",
+            options: ["Monodentate (1)", "Bidentate (2)", "Hexadentate (6)", "Tetradentate (4)"],
+            correctIndex: 2,
+            explanation: "EDTA⁴⁻ has 6 donor atoms (2 Nitrogen and 4 Oxygen atoms), making it a hexadentate chelating ligand.",
+          },
+          {
+            id: "q-2",
+            question: "According to Crystal Field Theory (CFT), how do d-orbitals split in an Octahedral coordination complex?",
+            options: [
+              "Splits into lower t₂g (3 orbitals) and higher e_g (2 orbitals)",
+              "Splits into lower e_g and higher t₂g",
+              "All 5 d-orbitals remain degenerate",
+              "Splits into 4 upper and 1 lower orbital",
+            ],
+            correctIndex: 0,
+            explanation: "In an octahedral field, metal d-orbitals split into 3 lower energy t₂g orbitals (dxy, dyz, dxz) and 2 higher energy e_g orbitals (dx²-y², dz²).",
+          },
+        ]
+      : [
+          {
+            id: "q-1",
+            question: "What is the maximum allowed Balance Factor in a valid AVL Tree?",
+            options: ["+1 or -1", "+2 or -2", "0 only", "Any positive integer"],
+            correctIndex: 0,
+            explanation: "AVL trees maintain strict height balance where every node's balance factor (Height_Left - Height_Right) must be -1, 0, or +1.",
+          },
+          {
+            id: "q-2",
+            question: "Which rotation is required when a node is inserted into the right subtree of a left child?",
+            options: ["Single LL Rotation", "Single RR Rotation", "Left-Right (LR) Double Rotation", "Right-Left (RL) Double Rotation"],
+            correctIndex: 2,
+            explanation: "An LR rotation is performed when an imbalance occurs due to insertion into the right child of a left node.",
+          },
+        ]
+  );
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [showResults, setShowResults] = useState(false);
 

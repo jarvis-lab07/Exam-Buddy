@@ -133,37 +133,6 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Daily Security Mini-Game Badge */}
-          {user && (
-            <button
-              type="button"
-              onClick={() => setIsSecurityModalOpen(true)}
-              className={cn(
-                "flex items-center gap-1.5 h-8 px-2.5 rounded-xl text-xs font-bold transition-all border shadow-sm",
-                isDailyUnlocked
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
-                  : "bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25 animate-pulse"
-              )}
-              title={
-                isDailyUnlocked
-                  ? "Daily Security Verified! Click to re-play game challenge."
-                  : "Daily Security Challenge Locked! Click to find key or tap 3+ spots."
-              }
-            >
-              {isDailyUnlocked ? (
-                <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="hidden sm:inline text-[11px]">Security Verified</span>
-                </>
-              ) : (
-                <>
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-[11px]">Unlock Gate</span>
-                </>
-              )}
-            </button>
-          )}
-
           {/* 3-Way Theme Switcher Toggle */}
           <div className="flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
             <button

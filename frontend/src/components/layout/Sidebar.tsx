@@ -238,8 +238,8 @@ export function Sidebar({
                     "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                     isIcon ? "lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5 gap-3" : "justify-between px-3 py-2.5",
                     isActive
-                      ? "bg-[var(--bg-elevated)] text-white font-semibold shadow-xs"
-                      : "text-[var(--text-secondary)] hover:text-white hover:bg-white/[0.05]"
+                      ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] font-semibold shadow-xs"
+                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
                   )}
                 >
                   {isActive && (
@@ -250,7 +250,7 @@ export function Sidebar({
                     <Icon
                       className={cn(
                         "w-4 h-4 shrink-0 transition-colors",
-                        isActive ? "text-[#10a37f]" : "text-[var(--text-muted)] group-hover:text-white"
+                        isActive ? "text-[#10a37f]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
                       )}
                     />
                     <span className={cn("truncate", isIcon && "lg:hidden")}>{item.name}</span>

@@ -17,19 +17,17 @@ Welcome to the **Exam-Buddy** Viva Defense & Live Demo Guide. This document prov
 | **Language & Styling** | TypeScript 5+, Tailwind CSS v4, Vanilla CSS Design System |
 | **Database & Vector Search** | Supabase PostgreSQL with `pgvector` extension & RLS |
 | **AI Gateway & Router** | Multi-Model Router (Gemini 1.5/2.0, Claude 3.5, GPT-4o, Ollama Local) |
-| **Authentication** | Supabase Auth (Email + Google OAuth) & Daily Security Spot Verification |
+| **Authentication** | Supabase Auth (Email + Google OAuth) |
 | **Document Processing** | Multimodal PDF Ingestion & OCR pipeline |
 
 ---
 
 ## 🎬 3-Minute Live Viva Demo Script
 
-### Step 1: Student Onboarding & Daily Security Gate (0:00 – 0:45)
+### Step 1: Student Onboarding & Dashboard (0:00 – 0:45)
 - Open `http://localhost:3000` (or live Vercel URL).
 - Demonstrate the 3-theme dynamic background switcher (**ChatGPT Dark**, **Pro Daylight**, **Nature Calm**).
-- Show the **Daily Security Verification Gate**:
-  - Tap secret image landmarks (e.g. *Window ➔ Tyre ➔ Headlight*) to unlock access.
-  - Explain the student identity badge (`@durgesh_cs`, College, Branch, Semester).
+- Explain the student identity badge (`@durgesh_cs`, College, Branch, Semester).
 
 ### Step 2: Classroom Exam Sync & Universal Syllabus Explorer (0:45 – 1:30)
 - Click **"Exam Sync"** in the top header:

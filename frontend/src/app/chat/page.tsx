@@ -70,10 +70,10 @@ function renderMarkdown(text: string): React.ReactNode[] {
       nodes.push(
         <pre
           key={`code-${i}`}
-          className="my-3 p-4 rounded-xl bg-[#060610] border border-violet-500/10 text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed"
+          className="my-3 p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs font-mono text-cyan-600 dark:text-cyan-300 overflow-x-auto leading-relaxed shadow-sm"
         >
           {lang && (
-            <span className="block text-[10px] text-violet-400 mb-2 uppercase tracking-widest font-semibold">
+            <span className="block text-[10px] text-violet-500 dark:text-violet-400 mb-2 uppercase tracking-widest font-semibold">
               {lang}
             </span>
           )}
@@ -89,7 +89,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       nodes.push(
         <h4
           key={`h3-${i}`}
-          className="text-white font-bold text-sm mt-4 mb-1.5 flex items-center gap-2 border-b border-white/[0.06] pb-1"
+          className="text-[var(--text-primary)] font-bold text-sm mt-4 mb-1.5 flex items-center gap-2 border-b border-[var(--border-card)] pb-1"
         >
           {renderInline(line.slice(4))}
         </h4>
@@ -101,7 +101,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
     // H2 header
     if (line.startsWith("## ")) {
       nodes.push(
-        <h3 key={`h2-${i}`} className="text-white font-extrabold text-base mt-4 mb-1">
+        <h3 key={`h2-${i}`} className="text-[var(--text-primary)] font-extrabold text-base mt-4 mb-1">
           {renderInline(line.slice(3))}
         </h3>
       );
@@ -119,8 +119,8 @@ function renderMarkdown(text: string): React.ReactNode[] {
       nodes.push(
         <ul key={`ul-${i}`} className="my-2 space-y-1 pl-4">
           {listItems.map((item, idx) => (
-            <li key={idx} className="text-slate-300 text-sm flex gap-2">
-              <span className="text-violet-400 mt-1 shrink-0">•</span>
+            <li key={idx} className="text-[var(--text-primary)] text-sm flex gap-2">
+              <span className="text-violet-500 dark:text-violet-400 font-bold mt-1 shrink-0">•</span>
               <span>{renderInline(item)}</span>
             </li>
           ))}
@@ -140,8 +140,8 @@ function renderMarkdown(text: string): React.ReactNode[] {
       nodes.push(
         <ol key={`ol-${i}`} className="my-2 space-y-1 pl-4">
           {listItems.map((item, idx) => (
-            <li key={idx} className="text-slate-300 text-sm flex gap-2">
-              <span className="text-violet-400 font-bold shrink-0">{item.num}.</span>
+            <li key={idx} className="text-[var(--text-primary)] text-sm flex gap-2">
+              <span className="text-violet-500 dark:text-violet-400 font-bold shrink-0">{item.num}.</span>
               <span>{renderInline(item.text)}</span>
             </li>
           ))}
@@ -152,7 +152,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
 
     // Horizontal rule
     if (line.match(/^---+$/)) {
-      nodes.push(<hr key={`hr-${i}`} className="my-3 border-white/[0.07]" />);
+      nodes.push(<hr key={`hr-${i}`} className="my-3 border-[var(--border-card)]" />);
       i++;
       continue;
     }
@@ -166,7 +166,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
 
     // Regular paragraph
     nodes.push(
-      <p key={`p-${i}`} className="text-slate-300 text-sm leading-relaxed">
+      <p key={`p-${i}`} className="text-[var(--text-primary)] text-sm leading-relaxed">
         {renderInline(line)}
       </p>
     );
@@ -181,14 +181,14 @@ function renderInline(text: string): React.ReactNode {
   const parts = text.split(/(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
   return parts.map((part, i) => {
     if (part.startsWith("***") && part.endsWith("***"))
-      return <strong key={i} className="font-bold italic text-white">{part.slice(3, -3)}</strong>;
+      return <strong key={i} className="font-bold italic text-[var(--text-primary)]">{part.slice(3, -3)}</strong>;
     if (part.startsWith("**") && part.endsWith("**"))
-      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+      return <strong key={i} className="font-semibold text-[var(--text-primary)]">{part.slice(2, -2)}</strong>;
     if (part.startsWith("*") && part.endsWith("*"))
-      return <em key={i} className="italic text-violet-200">{part.slice(1, -1)}</em>;
+      return <em key={i} className="italic text-emerald-600 dark:text-emerald-300">{part.slice(1, -1)}</em>;
     if (part.startsWith("`") && part.endsWith("`"))
       return (
-        <code key={i} className="px-1.5 py-0.5 rounded-md bg-violet-500/15 text-cyan-300 font-mono text-[11px]">
+        <code key={i} className="px-1.5 py-0.5 rounded-md bg-violet-500/15 text-violet-700 dark:text-cyan-300 font-mono text-[11px] border border-violet-500/20">
           {part.slice(1, -1)}
         </code>
       );
@@ -244,7 +244,7 @@ function ChatContent() {
       role: "assistant",
       content:
         "Hello! I'm your **Exam-Buddy AI Tutor** 👋\n\nI'm here to help you with any concept, algorithm, exam question, or topic from your syllabus. Powered by **4-Scope RAG vector search**, I retrieve verified context from your uploaded notes and textbooks.\n\n**Getting started:**\n- Select your target **Scope** (Unit, Multi-Unit, Subject, or Global)\n- Choose explanation depth (**Simple**, **Conceptual**, or **5/10-Mark Exam Format**)\n- Ask any question to get document-grounded answers!",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: "Just now",
     },
   ]);
 
@@ -353,9 +353,10 @@ function ChatContent() {
       effectiveUnitTitle
     );
 
-    // Build full conversation history for context
+    // Build concise conversation history for context (last 6 messages for maximum speed)
     const history = messages
-      .filter((m) => !m.isStreaming)
+      .filter((m) => !m.isStreaming && !m.isError && m.id !== "welcome")
+      .slice(-6)
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
     const provider = getActiveProvider();
@@ -414,13 +415,16 @@ function ChatContent() {
             }
             if (json.delta) {
               fullContent += json.delta;
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId
-                    ? { ...m, content: fullContent, isStreaming: true }
-                    : m
-                )
-              );
+              const currentText = fullContent;
+              requestAnimationFrame(() => {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantId
+                      ? { ...m, content: currentText, isStreaming: true }
+                      : m
+                  )
+                );
+              });
             }
           } catch {}
         }
@@ -512,13 +516,13 @@ function ChatContent() {
         </div>
 
         {/* 4-Scope RAG Selector Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-[#121324] p-1 rounded-xl border border-white/[0.08]">
+        <div className="flex flex-wrap items-center gap-1.5 bg-[var(--bg-elevated)] p-1 rounded-xl border border-[var(--border-card)]">
           <button
             onClick={() => setActiveScope("scope1_unit")}
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               activeScope === "scope1_unit"
                 ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Scope 1: Unit Focus
@@ -528,7 +532,7 @@ function ChatContent() {
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               activeScope === "scope2_multi_unit"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Scope 2: Multi-Unit
@@ -538,7 +542,7 @@ function ChatContent() {
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               activeScope === "scope3_subject"
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Scope 3: Full Subject
@@ -548,7 +552,7 @@ function ChatContent() {
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               activeScope === "scope4_global"
                 ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Scope 4: Global Tutor
@@ -556,13 +560,13 @@ function ChatContent() {
         </div>
 
         {/* Explanation Level Toggles */}
-        <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-[var(--bg-elevated)] p-1 rounded-xl border border-[var(--border-card)]">
           <button
             onClick={() => setExplanationLevel("simple")}
             className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
               explanationLevel === "simple"
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                : "text-slate-400 hover:text-white"
+                ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Simple
@@ -571,8 +575,8 @@ function ChatContent() {
             onClick={() => setExplanationLevel("medium")}
             className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
               explanationLevel === "medium"
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-                : "text-slate-400 hover:text-white"
+                ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             Medium
@@ -581,8 +585,8 @@ function ChatContent() {
             onClick={() => setExplanationLevel("exam")}
             className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
               explanationLevel === "exam"
-                ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                : "text-slate-400 hover:text-white"
+                ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             5/10-Mark Exam
@@ -609,28 +613,28 @@ function ChatContent() {
 
           <button
             onClick={() => setIsKeyModalOpen(true)}
-            className="h-8 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-slate-200 flex items-center gap-1.5 transition-colors"
+            className="h-8 px-3 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs text-[var(--text-primary)] flex items-center gap-1.5 transition-colors"
           >
             <Key className="w-3.5 h-3.5 text-amber-400" />
             {hasApiKey ? (
-              <span className="text-emerald-400 font-medium flex items-center gap-1">
+              <span className="text-emerald-500 dark:text-emerald-400 font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                 {AI_PROVIDERS[activeProvider].name.split(" ")[0]}
                 {keyCount > 1 && (
-                  <span className="ml-1 text-[10px] bg-emerald-500/20 text-emerald-300 px-1 rounded">
+                  <span className="ml-1 text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 px-1 rounded">
                     {keyCount} keys
                   </span>
                 )}
               </span>
             ) : (
-              <span className="text-amber-300 font-medium">Add API Key</span>
+              <span className="text-amber-500 dark:text-amber-300 font-medium">Add API Key</span>
             )}
           </button>
 
           <button
             onClick={clearChat}
             title="Clear chat"
-            className="h-8 w-8 rounded-xl bg-white/[0.04] hover:bg-red-500/10 hover:border-red-500/30 border border-white/[0.08] text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+            className="h-8 w-8 rounded-xl bg-[var(--input-bg)] hover:bg-red-500/10 hover:border-red-500/30 border border-[var(--border-card)] text-[var(--text-muted)] hover:text-red-400 flex items-center justify-center transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -640,7 +644,7 @@ function ChatContent() {
       {/* ── Messages ── */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 glass-card px-4 py-5 rounded-2xl border border-white/[0.08] overflow-y-auto space-y-4 relative"
+        className="flex-1 glass-card px-4 py-5 rounded-2xl border border-[var(--border-card)] overflow-y-auto space-y-4 relative"
       >
         {messages.map((m) => {
           const isUser = m.role === "user";
@@ -651,7 +655,7 @@ function ChatContent() {
                 className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                   isUser
                     ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white"
-                    : "bg-violet-600/20 text-violet-400 border border-violet-500/30"
+                    : "bg-violet-600/20 text-violet-500 dark:text-violet-400 border border-violet-500/30"
                 }`}
               >
                 {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
@@ -661,17 +665,17 @@ function ChatContent() {
               <div
                 className={`max-w-[85%] rounded-2xl p-4 text-sm ${
                   isUser
-                    ? "bg-violet-600/20 border border-violet-500/30 text-white"
+                    ? "bg-violet-600 text-white font-medium shadow-md shadow-violet-600/20"
                     : m.isError
-                    ? "bg-red-500/5 border border-red-500/20 text-slate-200"
-                    : "bg-white/[0.03] border border-white/[0.06] text-slate-200"
+                    ? "bg-red-500/10 border border-red-500/30 text-[var(--text-primary)]"
+                    : "bg-[var(--bg-card)] border border-[var(--border-card)] text-[var(--text-primary)] shadow-sm"
                 }`}
               >
                 {/* Assistant header */}
                 {!isUser && (
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.05] text-[11px] text-slate-400">
-                    <span className="font-medium text-violet-300 flex items-center gap-1.5">
-                      <Zap className="w-3 h-3" />
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border-card)] text-[11px] text-[var(--text-muted)]">
+                    <span className="font-semibold text-violet-600 dark:text-violet-300 flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-violet-500" />
                       Exam-Buddy AI
                     </span>
                     <div className="flex items-center gap-2">
@@ -679,7 +683,7 @@ function ChatContent() {
                       {m.latencyMs && <span className="opacity-70">{(m.latencyMs / 1000).toFixed(1)}s</span>}
                       <button
                         onClick={() => copyMessage(m.id, m.content)}
-                        className="opacity-0 group-hover:opacity-100 hover:text-white transition-all"
+                        className="opacity-0 group-hover:opacity-100 hover:text-[var(--text-primary)] transition-all"
                         title="Copy"
                       >
                         {copiedId === m.id ? (
@@ -694,7 +698,7 @@ function ChatContent() {
 
                 {/* Content */}
                 {isUser ? (
-                  <p className="text-white whitespace-pre-wrap">{m.content}</p>
+                  <p className="text-white font-medium whitespace-pre-wrap">{m.content}</p>
                 ) : (
                   <div className="space-y-1">
                     {m.content ? renderMarkdown(m.content) : null}
@@ -702,7 +706,7 @@ function ChatContent() {
                   </div>
                 )}
 
-                <div className="text-[10px] text-slate-500 text-right mt-2">{m.timestamp}</div>
+                <div className="text-[10px] text-[var(--text-muted)] text-right mt-2">{m.timestamp}</div>
               </div>
             </div>
           );
@@ -736,12 +740,12 @@ function ChatContent() {
       {/* ── Suggestions ── */}
       {messages.length <= 2 && (
         <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar shrink-0">
-          <span className="text-[11px] text-slate-500 shrink-0">Try:</span>
+          <span className="text-[11px] text-[var(--text-muted)] shrink-0">Try:</span>
           {INITIAL_SUGGESTIONS.slice(0, 4).map((s, idx) => (
             <button
               key={idx}
               onClick={() => handleSendMessage(s)}
-              className="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-violet-600/10 hover:border-violet-500/30 border border-white/[0.06] text-[11px] text-slate-300 hover:text-white shrink-0 transition-all"
+              className="px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] hover:bg-violet-600/15 border border-[var(--border-card)] text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0 transition-all shadow-xs"
             >
               {s}
             </button>
@@ -774,7 +778,7 @@ function ChatContent() {
               <button
                 onClick={() => handleSendMessage()}
                 disabled={!input.trim()}
-                className="h-9 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 text-white font-semibold text-xs flex items-center gap-1.5 transition-all"
+                className="h-9 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-violet-600/20"
               >
                 <span>Send</span>
                 <Send className="w-3.5 h-3.5" />
@@ -783,9 +787,9 @@ function ChatContent() {
           </div>
         </div>
         <div className="flex items-center justify-between mt-1.5 px-2">
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[10px] text-[var(--text-muted)]">
             {isLoading ? (
-              <span className="text-violet-400 animate-pulse">⚡ Streaming response...</span>
+              <span className="text-violet-500 dark:text-violet-400 animate-pulse font-medium">⚡ Streaming response...</span>
             ) : (
               "Enter to send • Shift+Enter for new line • Full conversation context kept"
             )}

@@ -3,9 +3,9 @@ import { ModelMetadata, AIProvider } from "./types";
 export const DEFAULT_MODELS: ModelMetadata[] = [
   // Google Gemini
   {
-    id: "gemini-2.5-flash",
+    id: "gemini-1.5-flash",
     provider: "gemini",
-    displayName: "Gemini 2.5 Flash",
+    displayName: "Gemini 1.5 Flash",
     contextWindow: 1000000,
     maxOutputTokens: 8192,
     streamingSupport: true,
@@ -13,12 +13,12 @@ export const DEFAULT_MODELS: ModelMetadata[] = [
     toolCallingSupport: true,
     enabled: true,
     priority: 1,
-    notes: "Recommended for fast response, high accuracy & large syllabus context.",
+    notes: "Recommended for ultra-fast response, high accuracy & large syllabus context.",
   },
   {
-    id: "gemini-2.5-pro",
+    id: "gemini-1.5-pro",
     provider: "gemini",
-    displayName: "Gemini 2.5 Pro",
+    displayName: "Gemini 1.5 Pro",
     contextWindow: 2000000,
     maxOutputTokens: 8192,
     streamingSupport: true,

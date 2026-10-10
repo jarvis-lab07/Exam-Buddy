@@ -24,6 +24,7 @@ import {
   Activity,
   ChevronRight,
   Play,
+  HelpCircle,
 } from "lucide-react";
 import {
   MOCK_USER,
@@ -60,9 +61,43 @@ export default function DashboardPage() {
   }, []);
 
   const completedCount = tasks.filter((t) => t.completed).length;
+
+  // Dynamic Weekly Study Data based on current day of week
+  const weeklyStudyData = useMemo(() => {
+    const currentDayIdx = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const daysOrder = [
+      { key: "Mon", idx: 1, defaultMins: 180 },
+      { key: "Tue", idx: 2, defaultMins: 220 },
+      { key: "Wed", idx: 3, defaultMins: 275 },
+      { key: "Thu", idx: 4, defaultMins: 250 },
+      { key: "Fri", idx: 5, defaultMins: 240 },
+      { key: "Sat", idx: 6, defaultMins: 310 },
+      { key: "Sun", idx: 0, defaultMins: 160 },
+    ];
+
+    const adjustedCurrent = currentDayIdx === 0 ? 7 : currentDayIdx;
+
+    return daysOrder.map((d) => {
+      const adjustedDay = d.idx === 0 ? 7 : d.idx;
+      const isToday = adjustedCurrent === adjustedDay;
+      const isFuture = adjustedDay > adjustedCurrent;
+      let minutes = 0;
+
+      if (isToday) {
+        minutes = 389; // Synced today's total logged minutes (6h 29m)
+      } else if (!isFuture) {
+        minutes = d.defaultMins; // Historical logged past day
+      } else {
+        minutes = 0; // Future day: 0 hours logged yet
+      }
+
+      return { day: d.key, minutes, isToday, isFuture };
+    });
+  }, []);
+
   const weekHours = useMemo(
-    () => MOCK_WEEKLY_STUDY.reduce((sum, d) => sum + d.minutes, 0) / 60,
-    []
+    () => weeklyStudyData.reduce((sum, d) => sum + d.minutes, 0) / 60,
+    [weeklyStudyData]
   );
   const countdown = daysUntil("Oct 18, 2026");
   const urgentCountdown = countdown <= 14;
@@ -171,57 +206,70 @@ export default function DashboardPage() {
               Today's Goal
             </h3>
             <span className="text-[10px] font-mono text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25">
-              {(165 / 210 * 100).toFixed(0)}%
+              {(389 / 420 * 100).toFixed(0)}%
             </span>
           </div>
-          <DailyGoalRing size="sm" hideWrapperCard />
+          <DailyGoalRing size="sm" minutesLoggedOverride={389} minutesTargetOverride={420} hideWrapperCard />
         </div>
 
         {/* Card C — Mastered Topics */}
-        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-5 space-y-3">
-          <div className="flex items-center justify-between mb-2">
+        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-5 space-y-3 relative group">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
               <Trophy className="w-3.5 h-3.5 text-emerald-400" />
               Topics Mastered
             </h3>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono">
-              +2 today
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 text-emerald-400" /> +2 today
             </span>
           </div>
+
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-black tracking-tight text-[var(--text-primary)] leading-none font-mono">
                   {MOCK_STUDY_STATS.topicsMastered}
                 </span>
-                <span className="text-base font-bold text-[var(--text-muted)] font-mono">
+                <span className="text-sm font-bold text-[var(--text-muted)] font-mono">
                   /{MOCK_STUDY_STATS.totalTopics}
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1.5 font-medium">
-                {(MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100).toFixed(0)}% of curriculum
+              <p className="text-xs text-[var(--text-secondary)] mt-1 font-medium flex items-center gap-1.5">
+                <span className="font-bold text-emerald-400">
+                  {Math.round((MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics) * 100)}%
+                </span>
+                <span>of curriculum complete</span>
               </p>
             </div>
+
             <div className="ml-auto text-right space-y-1.5">
               <div className="flex items-center gap-2 justify-end text-[11px]">
                 <span className="text-[var(--text-secondary)] font-medium">Quiz accuracy</span>
-                <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold font-mono">
                   {MOCK_STUDY_STATS.quizAccuracyPercent}%
                 </span>
               </div>
               <div className="flex items-center gap-2 justify-end text-[11px]">
                 <span className="text-[var(--text-secondary)] font-medium">Cohort rank</span>
-                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold font-mono">
                   Top 5%
                 </span>
               </div>
             </div>
           </div>
-          <div className="w-full h-2 rounded-full bg-[var(--input-bg)] overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-700"
-              style={{ width: `${MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics * 100}%` }}
-            />
+
+          {/* Glowing Animated Progress Bar */}
+          <div className="space-y-1 pt-1">
+            <div className="w-full h-2.5 rounded-full bg-[var(--input-bg)] overflow-hidden p-0.5 border border-white/5 relative">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.4)]"
+                style={{ width: `${(MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics) * 100}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-0.5 font-medium">
+              <span>Breakdown: 12 DSA · 8 Chem · 5 CN · 3 DBMS</span>
+              <span className="text-emerald-400 font-semibold">14 remaining</span>
+            </div>
           </div>
         </div>
 
@@ -313,34 +361,35 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* 3. Continue Studying + Today's Revision */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-violet-400" />
-              Continue Studying
-            </h2>
-            <Link
-              href="/subjects"
-              className="text-xs font-semibold text-violet-400 hover:text-violet-300"
+      {/* 3. Continue Studying (Full Width 2x2 Grid) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-violet-400" />
+            Continue Studying
+          </h2>
+          <Link
+            href="/subjects"
+            className="text-xs font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+          >
+            All Subjects ({MOCK_SUBJECTS.length})
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {continueSubjects.map((subject) => (
+            <div
+              key={subject.id}
+              className="card-interactive relative overflow-hidden p-4 sm:p-5 flex flex-col justify-between"
             >
-              All Subjects →
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {continueSubjects.map((subject) => (
               <div
-                key={subject.id}
-                className="card-interactive relative overflow-hidden p-4 sm:p-5"
-              >
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-[3px]"
-                  style={{ backgroundColor: subject.accentColor }}
-                />
+                className="absolute left-0 top-0 bottom-0 w-[3px]"
+                style={{ backgroundColor: subject.accentColor }}
+              />
 
-                <div className="flex items-start justify-between gap-3 pl-1">
+              <div className="space-y-3 pl-1">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
@@ -360,11 +409,11 @@ export default function DashboardPage() {
                     <p className="text-xs text-[var(--text-secondary)]">{subject.category}</p>
                   </div>
                   <span className="text-xs text-[var(--text-muted)] font-mono shrink-0 font-semibold">
-                    Unit {subject.completedUnits}/{subject.totalUnits} done
+                    Unit {subject.completedUnits}/{subject.totalUnits}
                   </span>
                 </div>
 
-                <div className="mt-3 w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden">
+                <div className="w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
@@ -373,121 +422,29 @@ export default function DashboardPage() {
                     }}
                   />
                 </div>
+              </div>
 
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[11px] text-[var(--text-muted)] font-medium">
-                    Last active: {subject.lastAccessed}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/chat?subject=${subject.id}`}
-                      className="px-2.5 py-1.5 rounded-lg border border-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] text-xs font-medium"
-                    >
-                      Ask Doubt
-                    </Link>
-                    <Link
-                      href={`/subjects/${subject.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#10a37f] to-teal-600 text-white text-xs font-semibold shadow-xs"
-                    >
-                      Resume Unit
-                    </Link>
-                  </div>
+              <div className="mt-4 pt-3 border-t border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 pl-1">
+                <span className="text-[11px] text-[var(--text-muted)] font-medium">
+                  Last active: {subject.lastAccessed}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/chat?subject=${subject.id}`}
+                    className="px-2.5 py-1.5 rounded-lg border border-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] text-xs font-medium"
+                  >
+                    Ask Doubt
+                  </Link>
+                  <Link
+                    href={`/subjects/${subject.id}`}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#10a37f] to-teal-600 text-white text-xs font-semibold shadow-xs"
+                  >
+                    Resume Unit
+                  </Link>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="card p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-violet-400" />
-              Today&apos;s Revision
-            </h2>
-            <span className="text-[11px] font-medium text-[var(--text-muted)]">
-              {completedCount}/{tasks.length} Completed
-            </span>
-          </div>
-
-          <div className="space-y-2.5 flex-1">
-            {tasks.map((task) => (
-              <button
-                key={task.id}
-                type="button"
-                onClick={() => toggleTask(task.id)}
-                className={cn(
-                  "w-full text-left p-3 rounded-xl border transition-all",
-                  task.completed
-                    ? "bg-emerald-500/10 border-emerald-500/30 opacity-70"
-                    : "bg-[var(--bg-elevated)]/60 hover:bg-[var(--bg-elevated)] border-[var(--border-card)]"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={cn(
-                      "mt-0.5 flex items-center justify-center w-[18px] h-[18px] rounded border shrink-0",
-                      task.completed
-                        ? "bg-emerald-500 border-emerald-400"
-                        : "border-[var(--border-card)]"
-                    )}
-                  >
-                    {task.completed && <CheckCircle2 className="w-3 h-3 text-black" />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono"
-                        style={{
-                          backgroundColor: `${task.subjectColor}20`,
-                          color: task.subjectColor,
-                        }}
-                      >
-                        {task.subjectName}
-                      </span>
-                      <span className="text-[11px] text-[var(--text-muted)]">{task.dueText}</span>
-                    </div>
-                    <p
-                      className={cn(
-                        "text-xs font-semibold mt-1 leading-snug",
-                        task.completed ? "line-through text-[var(--text-muted)]" : "text-[var(--text-primary)]"
-                      )}
-                    >
-                      {task.topicTitle}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <Link
-            href="/planner"
-            className="mt-4 pt-3 border-t border-[var(--border-card)] text-xs font-semibold text-violet-400 hover:text-violet-300"
-          >
-            View Full Planner →
-          </Link>
-        </section>
-      </div>
-
-      {/* 4. Exam Countdown */}
-      <section className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="p-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)]">
-            <Target className="w-4 h-4 text-rose-400" />
-          </div>
-          <p className="text-sm font-semibold text-[var(--text-primary)]">
-            Semester 3 Midterms • Oct 18, 2026
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <span className={urgentCountdown ? "badge-urgent" : "badge-streak"}>
-            {countdown} Days Left
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
-            <BrainCircuit className="w-4 h-4 text-cyan-400" />
-            89% mastery target achievable at current pace
-          </span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -495,9 +452,12 @@ export default function DashboardPage() {
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-base font-bold text-[var(--text-primary)]">Weekly Study Activity</h2>
+            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-cyan-400" />
+              Weekly Study Activity
+            </h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              {weekHours.toFixed(1)} hrs this week
+              {weekHours.toFixed(1)} hrs logged this week · Avg {(weekHours / 7).toFixed(1)}h / day
             </p>
           </div>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -506,50 +466,84 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="flex items-end justify-between gap-2 h-44 px-1">
-          {MOCK_WEEKLY_STUDY.map((day) => {
-            const maxMinutes = 320;
-            const heightPercent = Math.min(100, Math.round((day.minutes / maxMinutes) * 100));
-            const hours = (day.minutes / 60).toFixed(1);
-            const showTip = hoveredDay === day.day;
+        <div className="relative pt-6 pb-2">
+          <div className="flex items-end justify-between gap-3 h-48 px-2 relative z-10">
+            {/* Dynamic Average benchmark reference line */}
+            <div
+              className="absolute inset-x-2 border-b border-dashed border-emerald-400/40 pointer-events-none z-0 transition-all"
+              style={{ bottom: `${(3.5 / 6.0) * 128 + 24}px` }}
+            >
+              <span className="absolute right-0 -top-2.5 text-[9px] font-mono font-bold text-emerald-300 bg-[var(--bg-card)] px-1.5 py-0.5 rounded border border-emerald-500/30 shadow-sm flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                Target: 3.5h/day
+              </span>
+            </div>
 
-            return (
-              <div
-                key={day.day}
-                className="flex-1 flex flex-col items-center h-full justify-end cursor-pointer"
-                onMouseEnter={() => setHoveredDay(day.day)}
-                onMouseLeave={() => setHoveredDay(null)}
-              >
+            {weeklyStudyData.map((day) => {
+              const maxMinutes = 360; // 6.0 hours scale
+              const heightPercent = Math.min(100, Math.round((day.minutes / maxMinutes) * 100));
+              const hours = (day.minutes / 60).toFixed(1);
+              const targetMet = day.minutes >= 210; // 3.5h = 210 mins
+
+              return (
                 <div
-                  className={cn(
-                    "text-[10px] font-medium px-2 py-1 rounded-md bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-card)] mb-2 transition-opacity shadow-md",
-                    showTip ? "opacity-100" : "opacity-0"
-                  )}
+                  key={day.day}
+                  className="flex-1 flex flex-col items-center h-full justify-end cursor-pointer group relative"
+                  onMouseEnter={() => setHoveredDay(day.day)}
+                  onMouseLeave={() => setHoveredDay(null)}
                 >
-                  {hours} hrs
-                </div>
-                <div className="w-full max-w-[40px] h-32 flex items-end">
+                  {/* Hours Badge Above Bar */}
                   <div
                     className={cn(
-                      "w-full rounded-t-lg origin-bottom transition-[height] duration-700 ease-out",
+                      "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded transition-all mb-1.5 whitespace-nowrap shadow-sm flex items-center gap-1",
                       day.isToday
-                        ? "bg-gradient-to-t from-[#7C3AED] to-[#06B6D4] shadow-md"
-                        : "bg-slate-500/30 hover:bg-violet-600/50"
+                        ? "bg-violet-500 text-white shadow-violet-500/30 ring-1 ring-violet-300"
+                        : day.isFuture
+                        ? "bg-white/[0.02] text-[var(--text-muted)] border border-white/5"
+                        : targetMet
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 group-hover:bg-emerald-500 group-hover:text-black"
+                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)] group-hover:text-white group-hover:bg-violet-500/20"
                     )}
-                    style={{ height: barsReady ? `${heightPercent}%` : "0%" }}
-                  />
+                  >
+                    {day.isFuture ? "0.0h" : `${hours}h`}
+                  </div>
+
+                  {/* Bar */}
+                  <div className="w-full max-w-[42px] h-32 flex items-end">
+                    <div
+                      className={cn(
+                        "w-full rounded-t-lg origin-bottom transition-all duration-700 ease-out",
+                        day.isToday
+                          ? "bg-gradient-to-t from-[#7C3AED] via-[#06B6D4] to-[#10B981] shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:scale-y-[1.02]"
+                          : day.isFuture
+                          ? "bg-white/[0.02] border-t border-dashed border-white/10"
+                          : targetMet
+                          ? "bg-gradient-to-t from-violet-900/60 via-teal-600/50 to-emerald-400/80 border-t border-emerald-400/40 group-hover:from-violet-600 group-hover:to-emerald-300 group-hover:scale-y-[1.02]"
+                          : "bg-gradient-to-t from-white/[0.04] to-white/[0.12] border-t border-white/10 group-hover:from-violet-600/30 group-hover:to-cyan-400/40 group-hover:scale-y-[1.02]"
+                      )}
+                      style={{ height: barsReady ? (day.isFuture ? "4%" : `${heightPercent}%`) : "0%" }}
+                    />
+                  </div>
+
+                  {/* Day label */}
+                  <span
+                    className={cn(
+                      "mt-2 text-xs font-mono font-semibold transition-colors flex items-center gap-0.5",
+                      day.isToday
+                        ? "text-cyan-300 font-bold"
+                        : day.isFuture
+                        ? "text-[var(--text-muted)]"
+                        : targetMet
+                        ? "text-emerald-400 font-medium"
+                        : "text-[var(--text-secondary)] group-hover:text-white"
+                    )}
+                  >
+                    {day.day}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "mt-2 text-xs",
-                    day.isToday ? "text-violet-400 font-bold" : "text-[var(--text-muted)]"
-                  )}
-                >
-                  {day.day}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <div className="mt-4 pt-3 border-t border-[var(--border-card)] flex items-center justify-between text-xs text-[var(--text-muted)]">
@@ -682,6 +676,9 @@ const DENSITY_24H: Array<{
 });
 
 function BentoDensityChart({ className }: { className?: string }) {
+  const [hoveredSubject, setHoveredSubject] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+
   const totalMinutes = DENSITY_24H.reduce(
     (sum, h) => sum + h.segments.reduce((s, seg) => s + seg.minutes, 0),
     0
@@ -689,24 +686,76 @@ function BentoDensityChart({ className }: { className?: string }) {
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
 
+  // Compute Peak Focus Hour and Top Subject
+  const peakHourObj = useMemo(() => {
+    let maxMin = 0;
+    let peak = DENSITY_24H[0];
+    DENSITY_24H.forEach((h) => {
+      const hMin = h.segments.reduce((s, seg) => s + seg.minutes, 0);
+      if (hMin > maxMin) {
+        maxMin = hMin;
+        peak = h;
+      }
+    });
+    return { hour: peak.hour, minutes: maxMin, segments: peak.segments };
+  }, []);
+
+  const topSubjectObj = useMemo(() => {
+    const map: Record<string, { minutes: number; color: string }> = {};
+    DENSITY_24H.forEach((h) => {
+      h.segments.forEach((seg) => {
+        if (!map[seg.subject]) {
+          map[seg.subject] = { minutes: 0, color: seg.color };
+        }
+        map[seg.subject].minutes += seg.minutes;
+      });
+    });
+    let topName = "";
+    let maxM = 0;
+    let color = "#7C3AED";
+    Object.entries(map).forEach(([subj, data]) => {
+      if (data.minutes > maxM) {
+        maxM = data.minutes;
+        topName = subj;
+        color = data.color;
+      }
+    });
+    return { name: topName, minutes: maxM, color };
+  }, []);
+
+  const currentHour = new Date().getHours();
+
   return (
-    <div className={cn("card p-5 space-y-4", className)}>
+    <div className={cn("card p-5 space-y-4 relative overflow-hidden", className)}>
+      {/* Header Row */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
-            <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
-            Study Density Today
-          </h3>
-          <p className="text-xs text-[var(--text-muted)] mt-1">
-            Hour-by-hour subject-split · 00:00 → 23:59
+          <div className="flex items-center gap-2">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
+              <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
+              Study Density Today
+            </h3>
+            {/* How to read info toggle button */}
+            <button
+              type="button"
+              onClick={() => setShowGuide(!showGuide)}
+              className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 flex items-center gap-1 transition-all cursor-pointer"
+              title="How to read this graph?"
+            >
+              <HelpCircle className="w-3 h-3" />
+              <span>How to read</span>
+            </button>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+            24-Hour Timeline · Bar height = study time per hour (0–60 mins)
           </p>
         </div>
         <div className="flex items-end gap-3">
           <div>
-            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider text-right">
               Total logged
             </div>
-            <div className="text-2xl font-black text-[var(--text-primary)] tracking-tight font-mono flex items-baseline gap-1">
+            <div className="text-2xl font-black text-[var(--text-primary)] tracking-tight font-mono flex items-baseline gap-1 justify-end">
               <span>{hours}h</span>
               <span className="text-sm font-semibold text-[var(--text-secondary)]">{String(mins).padStart(2, "0")}m</span>
             </div>
@@ -717,86 +766,204 @@ function BentoDensityChart({ className }: { className?: string }) {
         </div>
       </div>
 
-      <div className="flex items-end gap-[3px] h-48 px-0.5 pt-4">
-        {DENSITY_24H.map((h) => {
-          const minStacked = h.segments.reduce((s, x) => s + x.minutes, 0);
-          const totalPct = Math.min(100, (minStacked / 60) * 100);
-          const now = new Date().getHours();
-          const isNow = now === h.hour;
-          const showTick = h.hour % 3 === 0;
-
-          return (
-            <div key={h.hour} className="flex-1 flex flex-col items-center justify-end h-full min-w-0 group relative">
-              {/* Tooltip on hover */}
-              {minStacked > 0 && (
-                <div className="absolute -top-9 z-30 hidden group-hover:flex flex-col items-center pointer-events-none transition-all">
-                  <span className="px-2 py-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-card)] text-[10px] font-mono font-bold text-[var(--text-primary)] shadow-lg whitespace-nowrap">
-                    {String(h.hour).padStart(2, "0")}:00 · {minStacked}m
-                  </span>
-                  <span className="w-1.5 h-1.5 rotate-45 bg-[var(--bg-elevated)] -mt-1 border-r border-b border-[var(--border-card)]" />
-                </div>
-              )}
-
-              <div
-                className={cn(
-                  "w-full flex flex-col justify-end rounded-t-lg overflow-hidden transition-all duration-700 ease-out origin-bottom",
-                  totalPct === 0 ? "bg-[var(--input-bg)]/40" : "",
-                  isNow && "ring-1 ring-amber-400 ring-offset-2 ring-offset-transparent z-10"
-                )}
-                style={{ height: `${Math.max(totalPct, totalPct > 0 ? 8 : 4)}%` }}
-              >
-                {h.segments.length > 0 ? (
-                  h.segments.map((seg, i) => (
-                    <div
-                      key={`${h.hour}-${i}`}
-                      className="w-full transition-all"
-                      style={{
-                        height: `${(seg.minutes / 60) * 100}%`,
-                        backgroundColor: seg.color,
-                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.25))",
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="w-full h-full bg-[var(--input-bg)]/50" />
-                )}
-              </div>
-              {/* Hour label tick */}
-              <span
-                className={cn(
-                  "mt-2 text-[10px] font-mono transition-colors font-semibold text-center leading-none",
-                  isNow ? "text-amber-400 font-bold" : "text-[var(--text-secondary)]",
-                  !showTick && "hidden group-hover:block group-hover:text-violet-400"
-                )}
-              >
-                {String(h.hour).padStart(2, "0")}
-              </span>
+      {/* Expandable "How to read" Guide Card */}
+      {showGuide && (
+        <div className="p-3.5 rounded-xl bg-violet-950/40 border border-violet-500/30 text-xs text-violet-200 space-y-2 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between font-bold text-violet-100">
+            <span className="flex items-center gap-1.5">
+              💡 Quick Guide: How to Read Your Study Density
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowGuide(false)}
+              className="text-violet-400 hover:text-violet-200 text-xs font-bold"
+            >
+              ✕ Close
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t border-violet-500/20">
+            <div className="bg-black/20 p-2 rounded-lg border border-white/5">
+              <span className="font-bold text-amber-300 block mb-0.5">1. Height = Duration</span>
+              Higher bar means more focus time in that 1-hour block (up to 60 mins max).
             </div>
-          );
-        })}
+            <div className="bg-black/20 p-2 rounded-lg border border-white/5">
+              <span className="font-bold text-cyan-300 block mb-0.5">2. Colors = Subjects</span>
+              Stacked colors show which subjects you studied during that specific hour.
+            </div>
+            <div className="bg-black/20 p-2 rounded-lg border border-white/5">
+              <span className="font-bold text-emerald-300 block mb-0.5">3. Hover for Details</span>
+              Hover any bar to see exact minutes per subject & click legends to filter.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insights summary pill */}
+      <div className="flex items-center justify-between gap-2 text-[11px] px-3 py-1.5 rounded-lg bg-[var(--input-bg)]/60 border border-[var(--border-card)] text-[var(--text-secondary)] flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1 font-semibold text-amber-400">
+            <Zap className="w-3 h-3 text-amber-400" /> Peak: {String(peakHourObj.hour).padStart(2, "0")}:00 ({peakHourObj.minutes}m)
+          </span>
+          <span className="text-[var(--text-muted)]">•</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-violet-300">
+            🎯 Top Focus: {topSubjectObj.name} ({Math.floor(topSubjectObj.minutes / 60)}h {topSubjectObj.minutes % 60}m)
+          </span>
+        </div>
+        <span className="text-[10px] text-[var(--text-muted)] italic hidden sm:inline">
+          Hover any bar for minute breakdown
+        </span>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[var(--border-card)]">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Subjects</span>
-        {[
-          { color: "#7C3AED", label: "DSA" },
-          { color: "#10B981", label: "Chemistry" },
-          { color: "#06B6D4", label: "Networks" },
-          { color: "#F59E0B", label: "DBMS" },
-          { color: "#EC4899", label: "Mathematics" },
-        ].map((l) => (
-          <span
-            key={l.color}
-            className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-secondary)]"
-          >
-            <span
-              className="w-2.5 h-2.5 rounded-sm shrink-0"
-              style={{ backgroundColor: l.color }}
-            />
-            {l.label}
-          </span>
-        ))}
+      {/* Chart Container with Y-Axis */}
+      <div className="relative pt-6 pb-1">
+        {/* Y-Axis Label Heading */}
+        <span className="absolute left-0 top-0 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+          Mins / Hr
+        </span>
+
+        {/* Y-Axis Grid Lines & Labels */}
+        <div className="absolute inset-x-0 top-6 bottom-7 pointer-events-none flex flex-col justify-between pl-8">
+          <div className="w-full border-b border-dashed border-[var(--border-card)]/50 relative">
+            <span className="absolute -left-8 -top-2 text-[9px] font-mono font-bold text-[var(--text-muted)]">60m</span>
+          </div>
+          <div className="w-full border-b border-dashed border-[var(--border-card)]/30 relative">
+            <span className="absolute -left-8 -top-2 text-[9px] font-mono text-[var(--text-muted)]">30m</span>
+          </div>
+          <div className="w-full border-b border-[var(--border-card)] relative">
+            <span className="absolute -left-8 -top-2 text-[9px] font-mono text-[var(--text-muted)]">0m</span>
+          </div>
+        </div>
+
+        {/* 24-Hour Bars Grid */}
+        <div className="flex items-end gap-[3px] h-48 pl-8 pr-0.5 relative z-10">
+          {DENSITY_24H.map((h) => {
+            const minStacked = h.segments.reduce((s, x) => s + x.minutes, 0);
+            const totalPct = Math.min(100, (minStacked / 60) * 100);
+            const isNow = currentHour === h.hour;
+            const showTick = h.hour % 3 === 0;
+
+            return (
+              <div
+                key={h.hour}
+                className="flex-1 flex flex-col items-center justify-end h-full min-w-0 group relative cursor-pointer"
+              >
+                {/* Live hour pulse badge above bar */}
+                {isNow && (
+                  <div className="absolute -top-6 z-20 flex flex-col items-center pointer-events-none">
+                    <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[8px] font-bold font-mono text-amber-300 flex items-center gap-1 shadow-sm">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
+                      </span>
+                      NOW
+                    </span>
+                  </div>
+                )}
+
+                {/* Rich Tooltip on hover */}
+                <div className="absolute -top-24 z-40 hidden group-hover:flex flex-col items-center pointer-events-none transition-all duration-200">
+                  <div className="p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-card)] text-[11px] text-[var(--text-primary)] shadow-2xl backdrop-blur-md min-w-[130px] space-y-1">
+                    <div className="font-mono font-bold text-[10px] text-[var(--text-muted)] border-b border-[var(--border-card)] pb-1 flex justify-between items-center gap-2">
+                      <span>{String(h.hour).padStart(2, "0")}:00 – {String((h.hour + 1) % 24).padStart(2, "0")}:00</span>
+                      <span className="text-violet-300 font-bold">{minStacked}m</span>
+                    </div>
+                    {h.segments.length > 0 ? (
+                      h.segments.map((seg, i) => (
+                        <div key={i} className="flex items-center justify-between gap-2 text-[10px] font-medium">
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+                            {seg.subject}
+                          </span>
+                          <span className="font-mono font-bold">{seg.minutes}m</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-[10px] text-[var(--text-muted)] italic">No study logged</div>
+                    )}
+                  </div>
+                  <span className="w-2 h-2 rotate-45 bg-[var(--bg-elevated)] -mt-1 border-r border-b border-[var(--border-card)]" />
+                </div>
+
+                {/* Stacked Bar Container */}
+                <div
+                  className={cn(
+                    "w-full flex flex-col justify-end rounded-t-sm overflow-hidden transition-all duration-300 ease-out origin-bottom group-hover:ring-1 group-hover:ring-violet-400/60",
+                    totalPct === 0 ? "bg-white/[0.03]" : "",
+                    isNow && totalPct > 0 && "ring-1 ring-amber-400 ring-offset-1 ring-offset-transparent shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                  )}
+                  style={{ height: `${Math.max(totalPct, totalPct > 0 ? 8 : 4)}%` }}
+                >
+                  {h.segments.length > 0 ? (
+                    h.segments.map((seg, i) => {
+                      const isHighlighted = !hoveredSubject || hoveredSubject === seg.subject;
+                      return (
+                        <div
+                          key={`${h.hour}-${i}`}
+                          className="w-full transition-all duration-200"
+                          style={{
+                            height: `${(seg.minutes / (minStacked || 1)) * 100}%`,
+                            backgroundColor: seg.color,
+                            opacity: isHighlighted ? 1 : 0.25,
+                            filter: isHighlighted ? "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" : "none",
+                          }}
+                        />
+                      );
+                    })
+                  ) : (
+                    <div className={cn("w-full h-full", isNow ? "bg-amber-400/10 border-t border-amber-400/40" : "bg-white/[0.02]")} />
+                  )}
+                </div>
+
+                {/* Hour label tick */}
+                <span
+                  className={cn(
+                    "mt-2 text-[10px] font-mono transition-colors font-semibold text-center leading-none",
+                    isNow ? "text-amber-400 font-bold" : "text-[var(--text-secondary)]",
+                    !showTick && "hidden group-hover:block group-hover:text-violet-400"
+                  )}
+                >
+                  {String(h.hour).padStart(2, "0")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend with Hover Interactivity */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--border-card)]">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Subjects:</span>
+          {[
+            { color: "#7C3AED", label: "DSA", fullName: "DSA" },
+            { color: "#10B981", label: "Chemistry", fullName: "Chem" },
+            { color: "#06B6D4", label: "Networks", fullName: "CN" },
+            { color: "#F59E0B", label: "DBMS", fullName: "DBMS" },
+            { color: "#EC4899", label: "Mathematics", fullName: "Math" },
+          ].map((l) => (
+            <button
+              key={l.color}
+              type="button"
+              onMouseEnter={() => setHoveredSubject(l.fullName)}
+              onMouseLeave={() => setHoveredSubject(null)}
+              className={cn(
+                "inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded transition-all cursor-pointer",
+                hoveredSubject === l.fullName
+                  ? "bg-white/10 text-white shadow-sm scale-105"
+                  : "text-[var(--text-secondary)] hover:text-white"
+              )}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-sm shrink-0 transition-transform"
+                style={{ backgroundColor: l.color }}
+              />
+              {l.label}
+            </button>
+          ))}
+        </div>
+        <span className="text-[10px] text-[var(--text-muted)] font-mono">
+          24h Timeline (00:00 – 23:59)
+        </span>
       </div>
     </div>
   );

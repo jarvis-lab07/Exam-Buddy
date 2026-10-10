@@ -12,32 +12,63 @@ interface LectureFlashcardsPanelProps {
 
 export function LectureFlashcardsPanel({ lectureTitle }: LectureFlashcardsPanelProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [cards, setCards] = useState<Flashcard[]>([
-    {
-      id: "fc-1",
-      subjectId: "dsa",
-      subjectName: "Data Structures",
-      subjectCode: "CS301",
-      subjectColor: "#6366F1",
-      question: "What triggers an AVL Single Rotation vs Double Rotation?",
-      answer: "Single rotation occurs when imbalance is linear (LL or RR). Double rotation (LR or RL) is required when the inserted node is on an inner grandchild branch.",
-      difficulty: "medium",
-      deckType: "high-yield",
-      masteryStatus: "new",
-    },
-    {
-      id: "fc-2",
-      subjectId: "dsa",
-      subjectName: "Data Structures",
-      subjectCode: "CS301",
-      subjectColor: "#6366F1",
-      question: "Formula for Balance Factor in AVL Trees?",
-      answer: "Balance Factor = Height(Left Subtree) - Height(Right Subtree). Must evaluate to -1, 0, or +1.",
-      difficulty: "easy",
-      deckType: "formulas",
-      masteryStatus: "learning",
-    },
-  ]);
+  const isChem = lectureTitle.toLowerCase().includes("chem") || lectureTitle.toLowerCase().includes("coordination");
+
+  const [cards, setCards] = useState<Flashcard[]>(
+    isChem
+      ? [
+          {
+            id: "fc-1",
+            subjectId: "chemistry",
+            subjectName: "Chemistry",
+            subjectCode: "CHEM102",
+            subjectColor: "#10B981",
+            question: "What is the difference between Primary & Secondary Valency in Werner's Theory?",
+            answer: "Primary Valency is ionizable and represents the oxidation state of the central metal. Secondary Valency is non-ionizable and represents the coordination number.",
+            difficulty: "medium",
+            deckType: "high-yield",
+            masteryStatus: "new",
+          },
+          {
+            id: "fc-2",
+            subjectId: "chemistry",
+            subjectName: "Chemistry",
+            subjectCode: "CHEM102",
+            subjectColor: "#10B981",
+            question: "Spectrochemical Series: Strong Field vs Weak Field Ligands?",
+            answer: "Strong field ligands (e.g., CN⁻, CO, en) cause large crystal field splitting (Δ_o > P) resulting in Low-Spin paired complexes. Weak field ligands (e.g., F⁻, Cl⁻) form High-Spin complexes.",
+            difficulty: "easy",
+            deckType: "formulas",
+            masteryStatus: "learning",
+          },
+        ]
+      : [
+          {
+            id: "fc-1",
+            subjectId: "dsa",
+            subjectName: "Data Structures",
+            subjectCode: "CS301",
+            subjectColor: "#6366F1",
+            question: "What triggers an AVL Single Rotation vs Double Rotation?",
+            answer: "Single rotation occurs when imbalance is linear (LL or RR). Double rotation (LR or RL) is required when the inserted node is on an inner grandchild branch.",
+            difficulty: "medium",
+            deckType: "high-yield",
+            masteryStatus: "new",
+          },
+          {
+            id: "fc-2",
+            subjectId: "dsa",
+            subjectName: "Data Structures",
+            subjectCode: "CS301",
+            subjectColor: "#6366F1",
+            question: "Formula for Balance Factor in AVL Trees?",
+            answer: "Balance Factor = Height(Left Subtree) - Height(Right Subtree). Must evaluate to -1, 0, or +1.",
+            difficulty: "easy",
+            deckType: "formulas",
+            masteryStatus: "learning",
+          },
+        ]
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleGenerateCards = async () => {

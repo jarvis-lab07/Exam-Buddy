@@ -125,3 +125,97 @@ export async function recordStudyLog(durationMinutes: number, sessionType: strin
   });
 }
 
+/**
+ * Saves authenticated Google/Gmail user metadata and login audit into app database tables
+ */
+export async function syncGoogleUserToDatabase(user: any) {
+  if (!user) return;
+
+  const email = user.email || '';
+  const fullName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    email.split('@')[0] ||
+    'Student User';
+  const avatarUrl =
+    user.user_metadata?.avatar_url ||
+    user.user_metadata?.picture ||
+    null;
+  const provider = user.app_metadata?.provider || 'google';
+
+  // Local storage backup for client persistence
+  if (typeof window !== 'undefined') {
+    const existing = localStorage.getItem('exambuddy_cohort_user');
+    let prev = {};
+    if (existing) {
+      try { prev = JSON.parse(existing); } catch {}
+    }
+    localStorage.setItem(
+      'exambuddy_cohort_user',
+      JSON.stringify({
+        ...prev,
+        email,
+        name: fullName,
+        full_name: fullName,
+        avatar: avatarUrl,
+        provider,
+        lastLoginAt: new Date().toISOString(),
+      })
+    );
+  }
+
+  if (!isSupabaseConfigured()) return;
+
+  try {
+    const supabase = createClient();
+    
+    // Upsert into profiles
+    await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        full_name: fullName,
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    );
+
+    // Insert into user_logins audit table
+    await supabase.from('user_logins').insert({
+      user_id: user.id,
+      email,
+      provider,
+      login_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('[Exam-Buddy] Failed to sync Google user to database:', err);
+  }
+}
+
+/**
+ * Fetches recent login audit records for current user
+ */
+export async function fetchUserLoginHistory() {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const supabase = createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return [];
+
+    const { data, error } = await supabase
+      .from('user_logins')
+      .select('*')
+      .eq('user_id', userData.user.id)
+      .order('login_at', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('[Exam-Buddy] Error fetching user login history:', err);
+    return [];
+  }
+}
+
+

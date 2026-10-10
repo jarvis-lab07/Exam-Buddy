@@ -20,6 +20,9 @@ import { DocumentUploadItem, DocumentCategory } from "@/types";
 import { uploadStudyDocumentToStorage } from "@/lib/storage-service";
 import { uploadToStudentGoogleDrive } from "@/lib/google-drive-service";
 
+import { ESE_REGULAR_TIMETABLES, BRANCH_PRESET_TIMETABLES } from "@/components/cohorts/ClassroomExamSyncModal";
+import { CalendarCheck, FolderPlus, ArrowRight, X } from "lucide-react";
+
 interface FileDropzoneProps {
   onFileUploaded: (item: DocumentUploadItem) => void;
 }
@@ -45,6 +48,11 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   const [currentFileName, setCurrentFileName] = useState("");
   const [currentFileSize, setCurrentFileSize] = useState("");
   const [driveUrl, setDriveUrl] = useState<string | null>(null);
+
+  // Timetable Auto-Detection & Branch Selection State
+  const [detectedTimetable, setDetectedTimetable] = useState<{ filename: string; isEse: boolean } | null>(null);
+  const [uploadUserBranch, setUploadUserBranch] = useState<string>("comp");
+  const [isPlannerCreated, setIsPlannerCreated] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,6 +86,28 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
     const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
     setCurrentFileSize(`${sizeMb} MB`);
     setDriveUrl(null);
+    setIsPlannerCreated(false);
+
+    // Auto-detect if file is an Exam Timetable notice
+    const lowerName = file.name.toLowerCase();
+    const isTimetableDoc =
+      lowerName.includes("timetable") ||
+      lowerName.includes("exam") ||
+      lowerName.includes("ese") ||
+      lowerName.includes("notice") ||
+      lowerName.includes("schedule") ||
+      lowerName.includes("sem") ||
+      lowerName.includes("tt") ||
+      selectedCategory === "Syllabus / PPT";
+
+    if (isTimetableDoc) {
+      setDetectedTimetable({
+        filename: file.name,
+        isEse: !lowerName.includes("tt2") && !lowerName.includes("midterm"),
+      });
+    } else {
+      setDetectedTimetable(null);
+    }
 
     // Stage 1: Uploading
     setStage("uploading");
@@ -165,6 +195,46 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         setProgress(0);
       }, 3000);
     }
+  };
+
+  const handleGeneratePlannerFromUpload = () => {
+    if (!detectedTimetable) return;
+
+    const timetableMap = detectedTimetable.isEse ? ESE_REGULAR_TIMETABLES : BRANCH_PRESET_TIMETABLES;
+    const preset = timetableMap[uploadUserBranch] || ESE_REGULAR_TIMETABLES[uploadUserBranch] || BRANCH_PRESET_TIMETABLES["comp"];
+
+    if (typeof window !== "undefined") {
+      try {
+        const storedTasks = localStorage.getItem("exambuddy_planner_tasks") || "[]";
+        const tasks = JSON.parse(storedTasks);
+
+        preset.exams.forEach((exam, idx) => {
+          const taskId = `synced-exam-upload-${uploadUserBranch}-${idx + 1}-${Date.now()}`;
+          if (!tasks.some((t: any) => t.subjectCode === exam.subjectCode && t.date === exam.examDate)) {
+            tasks.push({
+              id: taskId,
+              subjectCode: exam.subjectCode,
+              title: `📖 EXAM: ${exam.subjectCode} - ${exam.title}`,
+              date: exam.examDate,
+              room: exam.room,
+              units: exam.unitsCovered,
+              type: "exam",
+            });
+          }
+        });
+
+        localStorage.setItem("exambuddy_planner_tasks", JSON.stringify(tasks));
+        localStorage.setItem("exambuddy_user_branch", uploadUserBranch);
+        localStorage.setItem(
+          "exambuddy_cohort_exams",
+          JSON.stringify(preset.exams.map((item, idx) => ({ ...item, id: `uploaded-main-${idx + 1}`, syncedCount: 45 })))
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    setIsPlannerCreated(true);
   };
 
   return (
@@ -367,6 +437,105 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             }`}>
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
               <span className="text-[11px] font-medium">4. Indexed</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DETECTED TIMETABLE & BRANCH PLANNER GENERATOR BANNER */}
+      {detectedTimetable && (
+        <div className="p-5 bg-gradient-to-r from-violet-950/90 via-indigo-950/90 to-purple-950/90 border border-violet-500/50 rounded-2xl space-y-4 animate-in zoom-in-95 duration-200 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl text-white shadow-lg shadow-violet-500/30">
+                <CalendarCheck className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  Exam Timetable Notice Detected: &quot;{detectedTimetable.filename}&quot;
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                    {detectedTimetable.isEse ? "Regular ESE Final Exam (Nov-Dec 2026)" : "Term Test II (TT-II)"}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Select your branch to automatically extract your subjects & populate your Study Planner
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setDetectedTimetable(null)}
+              className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Branch Choice Cards */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-200 block flex items-center justify-between">
+              <span>Select YOUR Engineering Branch:</span>
+              <span className="text-[10px] text-violet-400 font-normal">Filters out other branches & creates your custom planner</span>
+            </label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              {[
+                { key: "comp", label: "💻 Computer Engg", desc: "ML, Compiler, BI, CyberSec, Adv Algo" },
+                { key: "csds", label: "📊 CSE (Data Sci)", desc: "Deep Learning, DAA, CCN" },
+                { key: "it", label: "🌐 IT Dept", desc: "Networks, AI, DWDM" },
+                { key: "aiml", label: "🤖 AI & ML", desc: "ML, NLP, CV, RecSys" },
+                { key: "aids", label: "🧠 AI & DS", desc: "ML, NLP, RecSys, UCD" },
+                { key: "entc", label: "📡 E&TC", desc: "DSP, Radio, Comm" },
+                { key: "electrical", label: "⚡ Electrical", desc: "Control, Machines" },
+                { key: "mechanical", label: "⚙️ Mechanical", desc: "TOM, Fluid, Metrology" },
+                { key: "civil", label: "🏗️ Civil Engg", desc: "Hydraulics, Concrete" },
+              ].map((branch) => (
+                <button
+                  key={branch.key}
+                  type="button"
+                  onClick={() => setUploadUserBranch(branch.key)}
+                  className={`p-2 rounded-xl border text-left transition-all ${
+                    uploadUserBranch === branch.key
+                      ? "bg-violet-600/40 border-violet-400 text-white shadow-lg shadow-violet-500/20"
+                      : "bg-[#14172f] border-white/10 text-slate-300 hover:border-violet-500/40 hover:text-white"
+                  }`}
+                >
+                  <span className="block text-[11px] font-extrabold">{branch.label}</span>
+                  <span className="block text-[9px] text-slate-400 truncate">{branch.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
+            <span className="text-xs text-slate-300 font-semibold">
+              Target Schedule: <strong className="text-violet-300">{BRANCH_PRESET_TIMETABLES[uploadUserBranch]?.branchName || "Computer Engineering"}</strong>
+            </span>
+
+            <div className="flex items-center gap-2">
+              {isPlannerCreated ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/40">
+                    <CheckCircle2 className="w-4 h-4" /> Study Planner Created!
+                  </span>
+                  <a
+                    href="/planner"
+                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+                  >
+                    <span>View Study Planner</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGeneratePlannerFromUpload}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+                >
+                  <FolderPlus className="w-4.5 h-4.5" />
+                  <span>Generate My Branch Study Planner</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

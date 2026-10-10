@@ -5,14 +5,14 @@ export const DEFAULT_FEATURE_POLICIES: FeatureRoutingPolicy[] = [
   {
     featureKey: "chat",
     featureName: "AI Tutor Chat",
-    primaryModelId: "gemini-2.5-flash",
+    primaryModelId: "gemini-1.5-flash",
     fallbackModelId: "gpt-4o-mini",
     autoRoutingEnabled: true,
   },
   {
     featureKey: "lecture_tutor",
     featureName: "YouTube Lecture AI Tutor",
-    primaryModelId: "gemini-2.5-flash",
+    primaryModelId: "gemini-1.5-flash",
     fallbackModelId: "groq-llama-3.3-70b",
     autoRoutingEnabled: true,
   },
@@ -20,7 +20,7 @@ export const DEFAULT_FEATURE_POLICIES: FeatureRoutingPolicy[] = [
     featureKey: "notes",
     featureName: "Lecture & Syllabus Notes Generator",
     primaryModelId: "claude-3-5-sonnet",
-    fallbackModelId: "gemini-2.5-pro",
+    fallbackModelId: "gemini-1.5-pro",
     autoRoutingEnabled: true,
   },
   {
@@ -34,27 +34,27 @@ export const DEFAULT_FEATURE_POLICIES: FeatureRoutingPolicy[] = [
     featureKey: "flashcards",
     featureName: "Flashcard Generator",
     primaryModelId: "gpt-4o-mini",
-    fallbackModelId: "gemini-2.5-flash",
+    fallbackModelId: "gemini-1.5-flash",
     autoRoutingEnabled: true,
   },
   {
     featureKey: "translation",
     featureName: "Academic Translator (Hindi/Hinglish)",
     primaryModelId: "groq-mixtral-8x7b",
-    fallbackModelId: "gemini-2.5-flash",
+    fallbackModelId: "gemini-1.5-flash",
     autoRoutingEnabled: true,
   },
   {
     featureKey: "vision",
     featureName: "Diagram & Handwritten Math Vision",
-    primaryModelId: "gemini-2.5-flash",
+    primaryModelId: "gemini-1.5-flash",
     fallbackModelId: "gpt-4o",
     autoRoutingEnabled: true,
   },
   {
     featureKey: "search",
     featureName: "Search Answering & Web RAG",
-    primaryModelId: "gemini-2.5-flash",
+    primaryModelId: "gemini-1.5-flash",
     fallbackModelId: "groq-llama-3.3-70b",
     autoRoutingEnabled: true,
   },
@@ -128,7 +128,7 @@ export function selectModelForFeature(
     if (preferredModel) {
       return {
         primaryModelId: preferredModel.id,
-        fallbackModelId: policy.fallbackModelId || "gemini-2.5-flash",
+        fallbackModelId: policy.fallbackModelId || "gemini-1.5-flash",
       };
     }
   }
@@ -149,7 +149,7 @@ export function selectModelForFeature(
   const fallbackModel = enabledModels.find((m) => m.id === policy.fallbackModelId);
 
   return {
-    primaryModelId: primaryModel ? primaryModel.id : enabledModels[0]?.id || "gemini-2.5-flash",
+    primaryModelId: primaryModel ? primaryModel.id : enabledModels[0]?.id || "gemini-1.5-flash",
     fallbackModelId: fallbackModel ? fallbackModel.id : "gpt-4o-mini",
   };
 }
