@@ -108,7 +108,7 @@ export default function UploadPage() {
             <div
               className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
               style={{
-                width: `${(MOCK_USER.cloudStorageUsedGB / MOCK_USER.cloudStorageTotalGB) * 100}%`,
+                width: `${(((MOCK_USER.cloudStorageUsedGB || 3.4) / (MOCK_USER.cloudStorageTotalGB || 10)) * 100)}%`,
               }}
             />
           </div>

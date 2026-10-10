@@ -21,7 +21,8 @@ import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { DailySecurityModal } from "@/components/auth/DailySecurityModal";
 import { ClassroomExamSyncModal } from "@/components/cohorts/ClassroomExamSyncModal";
-import { CalendarCheck } from "lucide-react";
+import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
+import { CalendarCheck, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getActiveProvider, getStoredApiKey, AI_PROVIDERS, type AIProvider } from "@/lib/ai-service";
@@ -39,6 +40,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isExamSyncOpen, setIsExamSyncOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
@@ -229,9 +231,9 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           {/* User Account / Auth Trigger */}
           {user ? (
             <button
-              onClick={() => signOut()}
-              title={`Logged in as ${user.email}. Click to sign out.`}
-              className="relative flex items-center gap-2 p-1 pr-2.5 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] transition-colors group"
+              onClick={() => setIsProfileModalOpen(true)}
+              title={`Logged in as ${user.email}. Click to view & edit student profile or sign out.`}
+              className="relative flex items-center gap-2 p-1 pr-2.5 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] hover:border-violet-500/40 transition-all group"
             >
               <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40">
                 {user.email?.charAt(0).toUpperCase() || 'U'}
@@ -246,7 +248,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
                   {user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
                 </span>
                 <span className="text-[9px] text-[var(--text-muted)] leading-none mt-0.5">
-                  {isGoogleUser ? 'Google User' : 'Student'}
+                  {isGoogleUser ? 'Google User' : 'Student Specs'}
                 </span>
               </div>
             </button>
@@ -292,6 +294,34 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         isOpen={isExamSyncOpen}
         onClose={() => setIsExamSyncOpen(false)}
       />
+
+      {user && (
+        <ProfileEditModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          user={{
+            id: user.id || 'demo-user-id',
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Durgesh Salunkhe',
+            email: user.email || 'durgeshsalunkheetd@gmail.com',
+            username: `@${user.email?.split('@')[0] || 'durgesh'}`,
+            college: user.user_metadata?.college || 'R. C. Patel Institute of Technology, Shirpur (RCPIT)',
+            branch: user.user_metadata?.department || 'Computer Engineering',
+            department: user.user_metadata?.department || 'Computer Engineering',
+            year: user.user_metadata?.currentYear || '3rd Year',
+            semester: user.user_metadata?.semester || 'Semester 5 (3rd Year)',
+            division: user.user_metadata?.division || 'Div A',
+            prnNumber: user.user_metadata?.prnNumber || '2022032500012345',
+            activeCohort: `${user.user_metadata?.college || 'RCPIT'} • ${user.user_metadata?.department || 'Computer'} ${user.user_metadata?.division || 'Div A'}`,
+            dailyGoal: 60,
+          }}
+          onSave={(updatedProfile) => {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('exambuddy_cohort_user', JSON.stringify(updatedProfile));
+              localStorage.setItem('exam_buddy_user_profile', JSON.stringify(updatedProfile));
+            }
+          }}
+        />
+      )}
     </>
   );
 }

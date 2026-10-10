@@ -8,9 +8,17 @@ import {
   X,
   CheckCircle2,
   Sparkles,
-  Award,
+  Mail,
+  Layers,
+  FileText,
+  Calendar,
+  LogOut,
+  Clock,
+  Flame,
+  BookOpen,
 } from "lucide-react";
 import { UserProfile } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -21,6 +29,7 @@ interface ProfileEditModalProps {
 
 export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditModalProps) {
   const [formData, setFormData] = useState<UserProfile>(user);
+  const { signOut } = useAuth();
 
   if (!isOpen) return null;
 
@@ -29,25 +38,36 @@ export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditM
     onSave(formData);
     try {
       localStorage.setItem("exam_buddy_user_profile", JSON.stringify(formData));
+      localStorage.setItem("exambuddy_cohort_user", JSON.stringify(formData));
     } catch (e) {
       console.error(e);
     }
     onClose();
   };
 
+  const handleSignOut = async () => {
+    onClose();
+    await signOut();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg p-6 rounded-2xl border border-white/[0.12] bg-var(--bg-card) shadow-2xl space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl border border-white/[0.12] bg-[#0E131F] shadow-2xl space-y-5 scrollbar-thin scrollbar-thumb-white/10">
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
-              <User className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-violet-500/25 ring-2 ring-violet-500/40">
+              {formData.name?.charAt(0).toUpperCase() || "S"}
             </div>
             <div>
-              <h3 className="text-base font-bold text-theme-primary">Student Profile & Cohort</h3>
-              <p className="text-xs text-theme-muted">
-                Customize your academic specs for AI hints & cohort leaderboards.
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                {formData.name || "Student Profile"}
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Verified Student
+                </span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                {formData.email || "student@college.edu"}
               </p>
             </div>
           </div>
@@ -55,85 +75,133 @@ export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditM
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-theme-muted hover:text-white transition-colors"
+            className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form */}
+        {/* Quick Stats Banner */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-xs">
+          <div className="flex items-center gap-2">
+            <Flame className="w-4 h-4 text-amber-400" />
+            <div>
+              <div className="text-[10px] text-slate-400 uppercase font-semibold">Study Streak</div>
+              <div className="font-bold text-amber-300">7 Days Active</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-violet-400" />
+            <div>
+              <div className="text-[10px] text-slate-400 uppercase font-semibold">Daily Target</div>
+              <div className="font-bold text-violet-300">{formData.dailyGoal || 60} Mins / Day</div>
+            </div>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <div>
+              <div className="text-[10px] text-slate-400 uppercase font-semibold">Cohort Pool</div>
+              <div className="font-bold text-cyan-300 truncate max-w-[110px]">
+                {formData.division || "Div A"} • {formData.year || "3rd Year"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Editable Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Identity Section */}
-          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
             <div className="text-[11px] font-bold text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
               <User className="w-3.5 h-3.5" />
-              Personal Identity
+              Personal & Student Identity
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-medium text-theme-secondary">Full Name</label>
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Full Name *</label>
                 <input
                   type="text"
                   required
-                  value={formData.name}
+                  value={formData.name || ""}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="font-medium text-theme-secondary">Username / @handle</label>
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Email Address *</label>
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  value={formData.email || ""}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Academic Specs Section */}
-          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          {/* Academic Specifications */}
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
             <div className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
               <GraduationCap className="w-3.5 h-3.5" />
               Academic Specification
             </div>
 
-            <div className="space-y-1.5">
-              <label className="font-medium text-theme-secondary flex items-center gap-1.5">
+            <div className="space-y-1">
+              <label className="font-semibold text-slate-300 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-cyan-400" />
-                College / University
+                College / Institute Name *
               </label>
               <input
                 type="text"
                 required
-                value={formData.college}
+                value={formData.college || ""}
                 onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-medium text-theme-secondary">Branch / Major</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Department / Major *</label>
                 <input
                   type="text"
                   required
-                  value={formData.branch}
-                  onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  value={formData.branch || formData.department || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      branch: e.target.value,
+                      department: e.target.value,
+                    })
+                  }
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="font-medium text-theme-secondary">Year</label>
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Division (Div) *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.division || "Div A"}
+                  onChange={(e) => setFormData({ ...formData, division: e.target.value })}
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Current Year *</label>
                 <select
-                  value={formData.year}
+                  value={formData.year || "2nd Year"}
                   onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                 >
                   <option value="1st Year">1st Year</option>
                   <option value="2nd Year">2nd Year</option>
@@ -142,56 +210,87 @@ export function ProfileEditModal({ isOpen, onClose, user, onSave }: ProfileEditM
                 </select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="font-medium text-theme-secondary">Semester</label>
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">Semester *</label>
                 <select
-                  value={formData.semester}
+                  value={formData.semester || "Semester 3 (2nd Year)"}
                   onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                 >
-                  <option value="Semester 1">Semester 1</option>
-                  <option value="Semester 2">Semester 2</option>
-                  <option value="Semester 3">Semester 3</option>
-                  <option value="Semester 4">Semester 4</option>
-                  <option value="Semester 5">Semester 5</option>
-                  <option value="Semester 6">Semester 6</option>
-                  <option value="Semester 7">Semester 7</option>
-                  <option value="Semester 8">Semester 8</option>
+                  <option value="Semester 1 (1st Year)">Semester 1</option>
+                  <option value="Semester 2 (1st Year)">Semester 2</option>
+                  <option value="Semester 3 (2nd Year)">Semester 3</option>
+                  <option value="Semester 4 (2nd Year)">Semester 4</option>
+                  <option value="Semester 5 (3rd Year)">Semester 5</option>
+                  <option value="Semester 6 (3rd Year)">Semester 6</option>
+                  <option value="Semester 7 (4th Year)">Semester 7</option>
+                  <option value="Semester 8 (4th Year)">Semester 8</option>
                 </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-300">College PRN / Roll No</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 2022032500012345"
+                  value={formData.prnNumber || ""}
+                  onChange={(e) => setFormData({ ...formData, prnNumber: e.target.value })}
+                  className="w-full h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-violet-500"
+                />
               </div>
             </div>
           </div>
 
-          {/* Cohort Section */}
-          <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
-            <label className="font-medium text-theme-secondary flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Active Campus Cohort Pool
-            </label>
-            <input
-              type="text"
-              value={formData.activeCohort}
-              onChange={(e) => setFormData({ ...formData, activeCohort: e.target.value })}
-              className="w-full h-10 px-3 rounded-xl bg-var(--input-bg) border border-var(--input-border) text-xs text-var(--text-primary) focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
-            />
+          {/* Daily Goal & Preferences */}
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+            <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Daily Study Goal Target
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={15}
+                max={300}
+                step={15}
+                value={formData.dailyGoal || 60}
+                onChange={(e) =>
+                  setFormData({ ...formData, dailyGoal: parseInt(e.target.value, 10) || 60 })
+                }
+                className="w-28 h-9 px-3 rounded-xl bg-[#121424] border border-white/10 text-xs text-white font-bold text-center focus:outline-none focus:border-violet-500"
+              />
+              <span className="text-xs text-slate-300">Minutes per day exam practice</span>
+            </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/[0.08]">
+          {/* Actions */}
+          <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-semibold text-theme-secondary transition-colors"
+              onClick={handleSignOut}
+              className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold flex items-center gap-2 transition-colors"
             >
-              Cancel
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out Account</span>
             </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg shadow-violet-500/25 transition-all"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Save Changes</span>
-            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-semibold text-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg shadow-violet-500/25 transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Save Student Specs</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

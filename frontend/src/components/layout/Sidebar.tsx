@@ -126,10 +126,10 @@ export function Sidebar({
   }, []);
 
   const storagePercent = Math.round(
-    (userProfile.cloudStorageUsedGB / userProfile.cloudStorageTotalGB) * 100
+    (((userProfile.cloudStorageUsedGB || 3.4) / (userProfile.cloudStorageTotalGB || 10)) * 100)
   );
   const tokenPercent = Math.round(
-    (userProfile.aiTokensUsed / userProfile.aiTokensTotal) * 100
+    (((userProfile.aiTokensUsed || 45000) / (userProfile.aiTokensTotal || 100000)) * 100)
   );
 
   return (
@@ -308,7 +308,7 @@ export function Sidebar({
             <div className="flex items-center justify-between text-xs mb-1.5">
               <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
                 <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{userProfile.cloudStorageUsedGB} / {userProfile.cloudStorageTotalGB} GB</span>
+                <span>{userProfile.cloudStorageUsedGB || 3.4} / {userProfile.cloudStorageTotalGB || 10} GB</span>
               </div>
             </div>
             <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">
@@ -323,7 +323,7 @@ export function Sidebar({
             <div className="flex items-center justify-between text-xs mb-1.5">
               <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
                 <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                <span>{Math.round(userProfile.aiTokensUsed / 1000)}k / {Math.round(userProfile.aiTokensTotal / 1000)}k</span>
+                <span>{Math.round((userProfile.aiTokensUsed || 45000) / 1000)}k / {Math.round((userProfile.aiTokensTotal || 100000) / 1000)}k</span>
               </div>
             </div>
             <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">

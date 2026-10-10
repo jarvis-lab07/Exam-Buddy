@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { GoogleAccountPickerModal } from './GoogleAccountPickerModal';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -140,13 +141,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsAddingNewCollege(false);
   };
 
-  // Google / Gmail OAuth Login
-  const handleGoogleSignIn = async () => {
+  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
+
+  // Google / Gmail OAuth Login - Opens Google Account Picker Modal
+  const handleGoogleSignIn = () => {
     setError(null);
     setMessage(null);
+    setIsGooglePickerOpen(true);
+  };
 
-    // Instant seamless login with verified Google user session
-    loginWithGoogleDemo('durgeshsalunkheetd@gmail.com', 'Durgesh Salunkhe (Google Verified)');
+  const handleSelectGoogleAccount = (selectedEmail: string, selectedName: string) => {
+    setIsGooglePickerOpen(false);
+    loginWithGoogleDemo(selectedEmail, selectedName);
     onClose();
   };
 
@@ -608,6 +614,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           )}
         </div>
       </div>
+
+      <GoogleAccountPickerModal
+        isOpen={isGooglePickerOpen}
+        onClose={() => setIsGooglePickerOpen(false)}
+        onSelectAccount={handleSelectGoogleAccount}
+      />
     </div>
   );
 }

@@ -56,20 +56,26 @@ export interface Subject {
 }
 
 export interface UserProfile {
+  id?: string;
   name: string;
+  email?: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   college: string;
   branch: string;
+  department?: string;
   year: string;
   semester: string;
+  division?: string;
+  prnNumber?: string;
+  dailyGoal?: number;
   activeCohort: string;
-  streakDays: number;
-  longestStreakDays: number;
-  cloudStorageUsedGB: number;
-  cloudStorageTotalGB: number;
-  aiTokensUsed: number;
-  aiTokensTotal: number;
+  streakDays?: number;
+  longestStreakDays?: number;
+  cloudStorageUsedGB?: number;
+  cloudStorageTotalGB?: number;
+  aiTokensUsed?: number;
+  aiTokensTotal?: number;
 }
 
 export interface StudyStats {
