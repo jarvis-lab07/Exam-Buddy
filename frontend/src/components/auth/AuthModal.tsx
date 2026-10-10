@@ -120,6 +120,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
+
   const { isConfigured, refreshSession, loginWithGoogleDemo, setIsSecurityModalOpen } = useAuth();
   const supabase = createClient();
 
@@ -140,8 +142,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setNewCollegeInput('');
     setIsAddingNewCollege(false);
   };
-
-  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
 
   // Google / Gmail OAuth Login - Opens Google Account Picker Modal
   const handleGoogleSignIn = () => {
