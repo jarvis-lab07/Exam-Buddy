@@ -37,7 +37,7 @@ export async function fetchDepartmentLeaderboard(
 ): Promise<CohortStudentLeaderboard[]> {
   if (!isSupabaseConfigured()) {
     return [
-      { rank: 1, handle: '@durgesh_cs', name: 'Durgesh', streakDays: 14, quizAccuracy: 94, weeklyFocusMinutes: 420 },
+      { rank: 1, handle: '@student_top', name: 'Student Leader', streakDays: 14, quizAccuracy: 94, weeklyFocusMinutes: 420 },
       { rank: 2, handle: '@priya_m', name: 'Priya Mehta', streakDays: 12, quizAccuracy: 91, weeklyFocusMinutes: 380 },
       { rank: 3, handle: '@rohit_k', name: 'Rohit Kulkarni', streakDays: 9, quizAccuracy: 88, weeklyFocusMinutes: 310 },
       { rank: 4, handle: '@ananya_s', name: 'Ananya Sharma', streakDays: 7, quizAccuracy: 85, weeklyFocusMinutes: 290 },
@@ -57,7 +57,7 @@ export async function fetchDepartmentLeaderboard(
 
     if (error || !data || data.length === 0) {
       return [
-        { rank: 1, handle: '@durgesh_cs', name: 'Durgesh', streakDays: 14, quizAccuracy: 94, weeklyFocusMinutes: 420 },
+        { rank: 1, handle: '@student_top', name: 'Student Leader', streakDays: 14, quizAccuracy: 94, weeklyFocusMinutes: 420 },
         { rank: 2, handle: '@priya_m', name: 'Priya Mehta', streakDays: 12, quizAccuracy: 91, weeklyFocusMinutes: 380 },
       ];
     }

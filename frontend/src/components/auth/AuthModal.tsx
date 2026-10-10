@@ -339,7 +339,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Durgesh Patil"
+                    placeholder="e.g. Alex Smith"
                     className="w-full bg-[#121424] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500/60"
                   />
                 </div>

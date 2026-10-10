@@ -14,19 +14,19 @@ import {
 
 
 export const MOCK_USER: UserProfile = {
-  name: "Durgesh",
-  username: "@durgesh_cs",
+  name: "Student User",
+  username: "@student_user",
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-  college: "VJTI Mumbai",
-  branch: "Computer Engineering",
-  year: "2nd Year",
-  semester: "Semester 3",
-  activeCohort: "VJTI Mumbai • CS 2026",
+  college: "Campus Institute of Technology",
+  branch: "Computer Science & Engineering",
+  year: "3rd Year",
+  semester: "Semester 5",
+  activeCohort: "Campus Inst • CS 2026",
   streakDays: 7,
   longestStreakDays: 14,
-  cloudStorageUsedGB: 4.2,
+  cloudStorageUsedGB: 3.4,
   cloudStorageTotalGB: 10,
-  aiTokensUsed: 78000,
+  aiTokensUsed: 45000,
   aiTokensTotal: 100000,
 };
 

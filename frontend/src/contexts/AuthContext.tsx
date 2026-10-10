@@ -108,14 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogleDemo = (emailInput?: string, nameInput?: string) => {
+    const userEmail = emailInput || 'student@gmail.com';
+    const userName = nameInput || userEmail.split('@')[0];
     const demoGoogleProfile = {
-      email: emailInput || 'durgeshsalunkheetd@gmail.com',
-      full_name: nameInput || 'Durgesh Salunkhe (Google Verified)',
-      name: nameInput || 'Durgesh Salunkhe (Google Verified)',
+      email: userEmail,
+      full_name: `${userName} (Google Verified)`,
+      name: `${userName} (Google Verified)`,
       provider: 'google',
       avatar: 'https://lh3.googleusercontent.com/a/default-user',
-      college: 'R. C. Patel Institute of Technology, Shirpur (RCPIT)',
-      department: 'Computer Engineering',
+      college: 'Campus Institute of Technology',
+      department: 'Computer Science & Engineering',
       division: 'Div A',
       currentYear: '3rd Year',
       semester: 'Semester 5 (3rd Year)',

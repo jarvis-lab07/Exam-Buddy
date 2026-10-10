@@ -301,17 +301,17 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           onClose={() => setIsProfileModalOpen(false)}
           user={{
             id: user.id || 'demo-user-id',
-            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Durgesh Salunkhe',
-            email: user.email || 'durgeshsalunkheetd@gmail.com',
-            username: `@${user.email?.split('@')[0] || 'durgesh'}`,
-            college: user.user_metadata?.college || 'R. C. Patel Institute of Technology, Shirpur (RCPIT)',
-            branch: user.user_metadata?.department || 'Computer Engineering',
+            name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Student User',
+            email: user.email || 'student@campus.edu',
+            username: `@${user.email?.split('@')[0] || 'student'}`,
+            college: user.user_metadata?.college || user.user_metadata?.college_name || 'Campus Institute of Technology',
+            branch: user.user_metadata?.department || user.user_metadata?.branch || 'Computer Engineering',
             department: user.user_metadata?.department || 'Computer Engineering',
-            year: user.user_metadata?.currentYear || '3rd Year',
+            year: user.user_metadata?.currentYear || user.user_metadata?.current_year || '3rd Year',
             semester: user.user_metadata?.semester || 'Semester 5 (3rd Year)',
             division: user.user_metadata?.division || 'Div A',
-            prnNumber: user.user_metadata?.prnNumber || '2022032500012345',
-            activeCohort: `${user.user_metadata?.college || 'RCPIT'} • ${user.user_metadata?.department || 'Computer'} ${user.user_metadata?.division || 'Div A'}`,
+            prnNumber: user.user_metadata?.prnNumber || user.user_metadata?.prn_number || 'N/A',
+            activeCohort: user.user_metadata?.activeCohort || `${user.user_metadata?.college?.split(' ')[0] || 'Campus'} • ${user.user_metadata?.department?.split(' ')[0] || 'Computer'} ${user.user_metadata?.division || 'Div A'}`,
             dailyGoal: 60,
           }}
           onSave={(updatedProfile) => {
