@@ -109,9 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogleDemo = (emailInput?: string, nameInput?: string) => {
     const demoGoogleProfile = {
-      email: emailInput || 'durgesh.patil@gmail.com',
-      full_name: nameInput || 'Durgesh Patil (Google Verified)',
-      name: nameInput || 'Durgesh Patil (Google Verified)',
+      email: emailInput || 'durgeshsalunkheetd@gmail.com',
+      full_name: nameInput || 'Durgesh Salunkhe (Google Verified)',
+      name: nameInput || 'Durgesh Salunkhe (Google Verified)',
       provider: 'google',
       avatar: 'https://lh3.googleusercontent.com/a/default-user',
       college: 'R. C. Patel Institute of Technology, Shirpur (RCPIT)',

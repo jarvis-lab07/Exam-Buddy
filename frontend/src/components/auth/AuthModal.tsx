@@ -146,7 +146,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setMessage(null);
 
     // Instant seamless login with verified Google user session
-    loginWithGoogleDemo('durgesh.patil@gmail.com', 'Durgesh Patil (Google Verified)');
+    loginWithGoogleDemo('durgeshsalunkheetd@gmail.com', 'Durgesh Salunkhe (Google Verified)');
     onClose();
   };
 
