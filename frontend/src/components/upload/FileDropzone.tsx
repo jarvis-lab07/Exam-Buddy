@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   UploadCloud,
   FileText,
@@ -14,20 +14,30 @@ import {
   BookOpen,
   HardDrive,
   Cloud,
+  FileCheck2,
+  SlidersHorizontal,
 } from "lucide-react";
-import { MOCK_SUBJECTS } from "@/lib/mock-data";
-import { DocumentUploadItem, DocumentCategory } from "@/types";
+import { getUserSubjects, isCustomSyllabusOnly } from "@/lib/subject-service";
+import { DocumentUploadItem, DocumentCategory, Subject } from "@/types";
 import { uploadStudyDocumentToStorage } from "@/lib/storage-service";
 import { uploadToStudentGoogleDrive } from "@/lib/google-drive-service";
+import { MockInterviewSetupModal } from "@/components/subjects/MockInterviewSetupModal";
+import {
+  parseQuestionsFromRawText,
+  generateVivaCardsForQuestions,
+  saveMockInterviewFlashcards,
+} from "@/lib/mock-interview-service";
 
 import { ESE_REGULAR_TIMETABLES, BRANCH_PRESET_TIMETABLES } from "@/components/cohorts/ClassroomExamSyncModal";
 import { CalendarCheck, FolderPlus, ArrowRight, X } from "lucide-react";
+import Link from "next/link";
 
 interface FileDropzoneProps {
   onFileUploaded: (item: DocumentUploadItem) => void;
 }
 
 const CATEGORIES: DocumentCategory[] = [
+  "Mock Interview / Shortlist",
   "Lecture Notes",
   "Syllabus / PPT",
   "Question Bank / PYQ",
@@ -40,8 +50,9 @@ type StorageMode = "gdrive_byos" | "supabase_cloud";
 
 export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("dsa");
-  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("Lecture Notes");
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<DocumentCategory>("Mock Interview / Shortlist");
   const [storageMode, setStorageMode] = useState<StorageMode>("gdrive_byos");
   const [stage, setStage] = useState<IngestionStage>("idle");
   const [progress, setProgress] = useState(0);
@@ -54,9 +65,42 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   const [uploadUserBranch, setUploadUserBranch] = useState<string>("comp");
   const [isPlannerCreated, setIsPlannerCreated] = useState(false);
 
+  // Mock Interview Custom Subjects & Direct Paste State
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [uploadTab, setUploadTab] = useState<"file" | "paste">("file");
+  const [pastedQuestionsText, setPastedQuestionsText] = useState("");
+  const [vivaSuccessNotice, setVivaSuccessNotice] = useState<{ count: number; subjectName: string } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedSubject = MOCK_SUBJECTS.find((s) => s.id === selectedSubjectId) || MOCK_SUBJECTS[0];
+  // Load dynamic subjects
+  useEffect(() => {
+    const loadSubjects = () => {
+      const list = getUserSubjects();
+      setSubjects(list);
+      if (list.length > 0) {
+        setSelectedSubjectId((prev) => (list.some((s) => s.id === prev) ? prev : list[0].id));
+      }
+    };
+    loadSubjects();
+
+    window.addEventListener("exam_buddy_subjects_updated", loadSubjects);
+    return () => window.removeEventListener("exam_buddy_subjects_updated", loadSubjects);
+  }, []);
+
+  const selectedSubject: Subject =
+    subjects.find((s) => s.id === selectedSubjectId) ||
+    subjects[0] || {
+      id: "subj-default",
+      name: "Subject 1",
+      code: "SUB101",
+      color: "#6366F1",
+      accentColor: "#6366F1",
+      degree: "Engineering",
+      semesterOrYear: "Current",
+      examDate: "Saturday",
+      units: [],
+    };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -130,8 +174,32 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       setStage("extracting");
 
       const textContent = await file.text().catch(() => 
-        `Lecture notes and exam syllabus for ${file.name}. Subject: ${selectedSubject.name}. Code: ${selectedSubject.code}. Key concepts, definitions, and formulas for midterm review.`
+        `Mock Interview questions and exam syllabus for ${file.name}. Subject: ${selectedSubject.name}. Code: ${selectedSubject.code}. Key viva questions, definitions, and boundary condition criteria.`
       );
+
+      // Auto-extract Viva Questions for Mock Interview if applicable
+      const isMockInterviewCategory = selectedCategory === "Mock Interview / Shortlist";
+      const parsedQuestions = parseQuestionsFromRawText(textContent);
+
+      if (isMockInterviewCategory || parsedQuestions.length >= 2) {
+        try {
+          const generatedCards = await generateVivaCardsForQuestions(
+            selectedSubject,
+            parsedQuestions.length > 0 ? parsedQuestions : [
+              `What is the primary architecture and invariant criteria of ${selectedSubject.name}?`,
+              `Explain the main algorithmic complexity and runtime bounds in ${selectedSubject.name}.`,
+              `What are the critical failure modes and boundary edge cases in ${selectedSubject.name}?`
+            ]
+          );
+          saveMockInterviewFlashcards(generatedCards, true);
+          setVivaSuccessNotice({
+            count: generatedCards.length,
+            subjectName: selectedSubject.name,
+          });
+        } catch (cardErr) {
+          console.error("Failed to generate viva cards:", cardErr);
+        }
+      }
 
       // Stage 3: Vector Embeddings Generation
       setProgress(80);
@@ -194,6 +262,53 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         setStage("idle");
         setProgress(0);
       }, 3000);
+    }
+  };
+
+  const handleProcessPastedQuestions = async () => {
+    if (!pastedQuestionsText.trim() || stage !== "idle") return;
+    const questions = parseQuestionsFromRawText(pastedQuestionsText);
+    if (questions.length === 0) return;
+
+    setStage("extracting");
+    setProgress(50);
+
+    try {
+      const cards = await generateVivaCardsForQuestions(selectedSubject, questions);
+      saveMockInterviewFlashcards(cards, true);
+
+      const newItem: DocumentUploadItem = {
+        id: `doc-mi-${Date.now()}`,
+        title: `${selectedSubject.name} - Shortlist Viva Questions (${cards.length} Qs)`,
+        subjectId: selectedSubject.id,
+        subjectName: selectedSubject.name,
+        subjectCode: selectedSubject.code,
+        subjectColor: selectedSubject.color,
+        unitTitle: "Shortlist Questions Module",
+        fileType: "notes",
+        fileSize: "Direct Input",
+        category: "Mock Interview / Shortlist",
+        status: "vectorized",
+        uploadDate: "Just now",
+        pages: 1,
+        vectorCount: cards.length * 8,
+        summary: `Parsed ${cards.length} shortlisted viva questions for ${selectedSubject.name} and generated active recall flashcards.`,
+        keyTopics: [selectedSubject.name, "Mock Interview", "Oral Viva"],
+      };
+
+      onFileUploaded(newItem);
+      setVivaSuccessNotice({ count: cards.length, subjectName: selectedSubject.name });
+      setPastedQuestionsText("");
+      setProgress(100);
+      setStage("completed");
+
+      setTimeout(() => {
+        setStage("idle");
+        setProgress(0);
+      }, 2500);
+    } catch (err) {
+      console.error("Failed to generate pasted questions:", err);
+      setStage("idle");
     }
   };
 
@@ -286,28 +401,67 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         </div>
       </div>
 
+      {/* Viva Flashcards Ready Notification */}
+      {vivaSuccessNotice && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-emerald-300 animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+              <FileCheck2 className="w-5 h-5 shrink-0" />
+            </div>
+            <div>
+              <p className="font-bold text-white text-sm">
+                Generated {vivaSuccessNotice.count} Viva Flashcards for {vivaSuccessNotice.subjectName}!
+              </p>
+              <p className="text-[#9B99B5] text-xs">
+                Connected to your Mock Interview Active Recall Deck. Practice subject-wise or shuffle all 5 subjects randomly.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/flashcards"
+            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/25 shrink-0 self-start sm:self-auto"
+          >
+            <span>Practice in Flashcards</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
+
       {/* Subject & Category Target Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-white/[0.06]">
         {/* Subject Selector */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 text-violet-400" />
-            Target Course / Subject
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+              Target Subject
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsSetupModalOpen(true)}
+              className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+            >
+              <SlidersHorizontal className="w-3 h-3" />
+              <span>Configure My 5 Subjects</span>
+            </button>
+          </div>
           <select
             value={selectedSubjectId}
             onChange={(e) => setSelectedSubjectId(e.target.value)}
             disabled={stage !== "idle"}
-            className="w-full h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-violet-500/50"
+            className="w-full h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-cyan-500/50"
           >
-            {MOCK_SUBJECTS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.code}: {s.name} ({s.degree})
-              </option>
-            ))}
+            {subjects.length > 0 ? (
+              subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.code ? `${s.code}: ` : ""}{s.name}
+                </option>
+              ))
+            ) : (
+              <option value="">No subjects added yet - Click Configure</option>
+            )}
           </select>
         </div>
-
 
         {/* Category Selector */}
         <div className="space-y-1.5">
@@ -324,7 +478,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
                 disabled={stage !== "idle"}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                   selectedCategory === cat
-                    ? "bg-violet-600 text-white border border-violet-500/40"
+                    ? "bg-cyan-600 text-white border border-cyan-500/40 shadow-sm"
                     : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
                 }`}
               >
@@ -335,8 +489,82 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
         </div>
       </div>
 
-      {/* Main Drag & Drop Zone */}
-      {stage === "idle" ? (
+      {/* Input Mode Switcher (Upload File vs Direct Paste) */}
+      <div className="flex items-center gap-2 border-b border-white/[0.06] pb-2">
+        <button
+          type="button"
+          onClick={() => setUploadTab("file")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            uploadTab === "file"
+              ? "bg-white/[0.08] text-white border border-white/[0.12]"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <UploadCloud className="w-3.5 h-3.5" />
+          <span>Upload Document File</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setUploadTab("paste")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            uploadTab === "paste"
+              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Paste 10 Questions Directly</span>
+        </button>
+      </div>
+
+      {/* Main Drag & Drop Zone or Direct Paste Zone */}
+      {uploadTab === "paste" ? (
+        <div className="glass-card p-5 rounded-2xl border border-white/[0.08] bg-black/25 space-y-4">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              Paste Shortlist Questions for {selectedSubject.name}
+            </h4>
+            <p className="text-xs text-[#9B99B5]">
+              Paste the 10 questions given by your teacher (one per line, or numbered Q1, Q2...). We will instantly structure viva answers, keywords, and follow-up traps into flashcards.
+            </p>
+          </div>
+
+          <textarea
+            value={pastedQuestionsText}
+            onChange={(e) => setPastedQuestionsText(e.target.value)}
+            placeholder={`1. What is the fundamental invariant of...\n2. Explain the runtime complexity and boundary cases...\n3. Differentiate between approach A and approach B...`}
+            rows={7}
+            className="w-full p-3.5 rounded-xl bg-black/50 border border-white/[0.1] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/60 font-mono resize-y"
+          />
+
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-slate-400 font-mono">
+              Detected ~{parseQuestionsFromRawText(pastedQuestionsText).length} question(s)
+            </span>
+
+            <button
+              type="button"
+              onClick={handleProcessPastedQuestions}
+              disabled={!pastedQuestionsText.trim() || stage !== "idle"}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 transition-all shadow-lg shadow-cyan-600/25"
+            >
+              {stage === "extracting" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Structuring Viva Cards...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Viva Flashcards</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      ) : stage === "idle" ? (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -540,6 +768,12 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
           </div>
         </div>
       )}
+
+      {/* Mock Interview 5 Subjects Setup Modal */}
+      <MockInterviewSetupModal
+        isOpen={isSetupModalOpen}
+        onClose={() => setIsSetupModalOpen(false)}
+      />
     </div>
   );
 }

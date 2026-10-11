@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DegreeType, Subject } from "@/types";
 import { MOCK_SUBJECTS } from "@/lib/mock-data";
+import { getUserSubjects, saveUserSubjects } from "@/lib/subject-service";
 import { DegreeFilter } from "@/components/subjects/DegreeFilter";
 import { SubjectCard } from "@/components/subjects/SubjectCard";
 import { AddSubjectModal } from "@/components/subjects/AddSubjectModal";
+import { MockInterviewSetupModal } from "@/components/subjects/MockInterviewSetupModal";
 import { CampusCohortCard } from "@/components/subjects/CampusCohortCard";
 import {
   BookOpen,
-
   Search,
   Plus,
   Sparkles,
@@ -20,11 +21,21 @@ import {
 } from "lucide-react";
 
 export default function SubjectsPage() {
-  const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedDegree, setSelectedDegree] = useState<DegreeType>("All");
   const [selectedTerm, setSelectedTerm] = useState<string>("All Terms");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+
+  useEffect(() => {
+    const load = () => {
+      setSubjects(getUserSubjects());
+    };
+    load();
+    window.addEventListener("exam_buddy_subjects_updated", load);
+    return () => window.removeEventListener("exam_buddy_subjects_updated", load);
+  }, []);
 
   // Compute degree counts
   const degreeCounts = useMemo(() => {
@@ -70,11 +81,19 @@ export default function SubjectsPage() {
   }, [subjects, selectedDegree, selectedTerm, searchQuery]);
 
   const handleAddSubject = (newSubject: Subject) => {
-    setSubjects((prev) => [newSubject, ...prev]);
+    setSubjects((prev) => {
+      const updated = [newSubject, ...prev];
+      saveUserSubjects(updated);
+      return updated;
+    });
   };
 
   const handleDeleteSubject = (id: string) => {
-    setSubjects((prev) => prev.filter((s) => s.id !== id));
+    setSubjects((prev) => {
+      const updated = prev.filter((s) => s.id !== id);
+      saveUserSubjects(updated);
+      return updated;
+    });
   };
 
   const handleDuplicateSubject = (src: Subject) => {
@@ -93,7 +112,11 @@ export default function SubjectsPage() {
         progressPercentage: 0,
       })),
     };
-    setSubjects((prev) => [copy, ...prev]);
+    setSubjects((prev) => {
+      const updated = [copy, ...prev];
+      saveUserSubjects(updated);
+      return updated;
+    });
   };
 
   const handleMarkExamDone = (id: string) => {
@@ -184,8 +207,16 @@ export default function SubjectsPage() {
             </div>
           </div>
 
-          {/* "+ Add New Subject" Action Trigger */}
-          <div className="shrink-0">
+          {/* Header Action Triggers */}
+          <div className="shrink-0 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setIsSetupModalOpen(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 font-bold text-sm transition-all shadow-md shadow-cyan-500/10"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
+              <span>Configure 5 Syllabus Subjects</span>
+            </button>
+
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm transition-colors duration-200"
@@ -295,6 +326,12 @@ export default function SubjectsPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAddSubject={handleAddSubject}
+      />
+
+      {/* Configure 5 Syllabus Subjects Modal */}
+      <MockInterviewSetupModal
+        isOpen={isSetupModalOpen}
+        onClose={() => setIsSetupModalOpen(false)}
       />
     </div>
   );

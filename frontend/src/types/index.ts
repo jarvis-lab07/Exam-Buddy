@@ -133,7 +133,7 @@ export interface QuickMetric {
 }
 
 export type FlashcardDifficulty = "easy" | "medium" | "hard";
-export type FlashcardDeckType = "high-yield" | "mistake-notebook" | "formulas" | "standard";
+export type FlashcardDeckType = "high-yield" | "mistake-notebook" | "formulas" | "standard" | "mock-interview";
 export type FlashcardMastery = "new" | "learning" | "mastered";
 
 export interface Flashcard {
@@ -156,6 +156,8 @@ export interface Flashcard {
   reviewIntervalDays?: number;
   easeFactor?: number;
   lastReviewed?: string;
+  isMockInterview?: boolean;
+  keywords?: string[];
 }
 
 
@@ -177,7 +179,8 @@ export type DocumentCategory =
   | "Syllabus / PPT"
   | "Question Bank / PYQ"
   | "Cheat Sheet"
-  | "Lab Manual";
+  | "Lab Manual"
+  | "Mock Interview / Shortlist";
 
 export type DocumentStatus = "vectorized" | "processing" | "indexing" | "ready";
 
@@ -198,6 +201,7 @@ export interface DocumentUploadItem {
   vectorCount: number;
   summary: string;
   keyTopics: string[];
+  extractedQuestions?: { question: string; answer?: string; keywords?: string[] }[];
 }
 
 export interface CalendarEvent {

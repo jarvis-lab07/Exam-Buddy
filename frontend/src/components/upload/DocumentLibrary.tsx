@@ -28,7 +28,14 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [activePreviewDoc, setActivePreviewDoc] = useState<DocumentUploadItem | null>(null);
 
-  const categories = ["All", "Lecture Notes", "Syllabus / PPT", "Question Bank / PYQ", "Cheat Sheet"];
+  const categories = [
+    "All",
+    "Mock Interview / Shortlist",
+    "Lecture Notes",
+    "Syllabus / PPT",
+    "Question Bank / PYQ",
+    "Cheat Sheet",
+  ];
 
   const filteredDocs = documents.filter((doc) => {
     const matchesSearch =
@@ -164,6 +171,14 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                   >
                     <Bot className="w-3.5 h-3.5" />
                     <span>Ask AI</span>
+                  </Link>
+
+                  <Link
+                    href={`/flashcards?filterSubject=${doc.subjectId}`}
+                    className="h-7 px-2.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Viva Cards</span>
                   </Link>
 
                   <button
