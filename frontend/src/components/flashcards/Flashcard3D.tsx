@@ -72,7 +72,10 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
         }`}
       >
         {/* ================= FRONT SIDE ================= */}
-        <div className="absolute inset-0 w-full h-full backface-hidden glass-card p-6 sm:p-8 rounded-3xl border border-white/[0.12] bg-gradient-to-b from-[#151627] to-[#0E0F1A] shadow-2xl flex flex-col justify-between space-y-4">
+        <div 
+          className="absolute inset-0 w-full h-full backface-hidden p-6 sm:p-8 rounded-3xl border border-white/[0.12] bg-gradient-to-b from-[#151627] to-[#0E0F1A] shadow-2xl flex flex-col justify-between space-y-4"
+          style={{ color: "#ffffff" }}
+        >
           {/* Front Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -106,7 +109,10 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               <HelpCircle className="w-3.5 h-3.5" />
               Exam Recall Question
             </span>
-            <h2 className="text-lg sm:text-xl font-bold text-white leading-relaxed">
+            <h2 
+              className="text-lg sm:text-xl font-bold text-white !text-white leading-relaxed"
+              style={{ color: "#ffffff" }}
+            >
               {card.question}
             </h2>
 
@@ -148,7 +154,10 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
         </div>
 
         {/* ================= BACK SIDE ================= */}
-        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 glass-card p-6 sm:p-8 rounded-3xl border border-violet-500/30 bg-gradient-to-b from-[#181932] to-[#101121] shadow-2xl flex flex-col justify-between space-y-4 overflow-y-auto">
+        <div 
+          className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 p-6 sm:p-8 rounded-3xl border border-violet-500/30 bg-gradient-to-b from-[#181932] to-[#101121] shadow-2xl flex flex-col justify-between space-y-4 overflow-y-auto"
+          style={{ color: "#ffffff" }}
+        >
           {/* Back Header */}
           <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
             <div className="flex items-center gap-2">
@@ -172,7 +181,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
                 e.stopPropagation();
                 setIsFlipped(false);
               }}
-              className="p-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 text-xs flex items-center gap-1"
+              className="p-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-xs flex items-center gap-1 transition-colors"
             >
               <RotateCw className="w-3 h-3" /> Flip back
             </button>
@@ -180,7 +189,10 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
 
           {/* Back Body: Answer, Formula, Code, Exam Tip */}
           <div className="flex-1 space-y-3 py-1">
-            <p className="text-sm sm:text-base text-slate-200 leading-relaxed whitespace-pre-line font-medium">
+            <p 
+              className="text-sm sm:text-base text-white !text-white leading-relaxed whitespace-pre-line font-normal"
+              style={{ color: "#ffffff" }}
+            >
               {card.answer}
             </p>
 
