@@ -34,13 +34,35 @@ export async function extractTextFromPdfFile(file: File): Promise<PdfExtractionR
           for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
-            const pageStrings = textContent.items
-              .map((item: any) => item.str || "")
-              .join(" ");
-            fullText += pageStrings + "\n";
+            
+            let pageText = "";
+            let lastY: number | null = null;
+
+            for (const item of (textContent.items as any[])) {
+              const str = item.str || "";
+              if (!str.trim() && !item.hasEOL) continue;
+
+              const currentY = item.transform ? item.transform[5] : null;
+              // If Y-position changes significantly, this is a new line or table row
+              if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 5) {
+                pageText += "\n";
+              } else if (pageText.length > 0 && !pageText.endsWith(" ") && !pageText.endsWith("\n")) {
+                pageText += " ";
+              }
+
+              pageText += str;
+              if (currentY !== null) {
+                lastY = currentY;
+              }
+            }
+
+            fullText += pageText + "\n\n";
           }
 
-          const cleaned = fullText.trim();
+          let cleaned = fullText
+            .replace(/Encr\s+yption/gi, "Encryption")
+            .replace(/Diffie\s*-\s*Hellman/gi, "Diffie-Hellman")
+            .trim();
           if (cleaned.length > 20) {
             return {
               text: cleaned,

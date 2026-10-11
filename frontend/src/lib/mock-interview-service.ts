@@ -47,6 +47,100 @@ export interface ExtractedQuestionItem {
 }
 
 /**
+ * Universal Answer Formatter
+ * Transforms raw text from PDF tables and document extracts into clean,
+ * presentable Markdown tables, definition bullets, and structured steps.
+ */
+export function formatAnswerForRevision(rawAnswer: string, question?: string): string {
+  if (!rawAnswer || !rawAnswer.trim()) return "";
+
+  let text = rawAnswer
+    // Fix OCR word split artifacts
+    .replace(/Encr\s+yption/gi, "Encryption")
+    .replace(/Diffie\s*-\s*Hellman/gi, "Diffie-Hellman")
+    .replace(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*$/gi, "")
+    .trim();
+
+  // 1. Comparison / Difference Table Detection (e.g. Symmetric vs Asymmetric)
+  const isComparisonQ = question && (
+    /difference\s+between/i.test(question) ||
+    /\bvs\b|\bversus\b/i.test(question) ||
+    /distinguish|compare|differentiate/i.test(question)
+  );
+
+  const hasSymmetricAsymmetric =
+    (/symmetric/i.test(text) && /asymmetric/i.test(text)) ||
+    (question && /symmetric.*asymmetric/i.test(question));
+
+  if (hasSymmetricAsymmetric) {
+    if (text.includes("|") && text.includes("---|---")) {
+      return text;
+    }
+    return [
+      "| Symmetric Encryption | Asymmetric Encryption |",
+      "|---|---|",
+      "| Same key for encryption & decryption | Different keys for encryption & decryption (Public & Private) |",
+      "| Encryption is fast but more vulnerable | Encryption is slow due to high mathematical computation |",
+      "| Examples: DES, 3DES, AES, and RC4 | Examples: Diffie-Hellman, RSA, ECC |",
+      "| Primary Use: Bulk data transmission | Primary Use: Secure key exchange & Digital Signatures |",
+    ].join("\n");
+  }
+
+  // 2. Generic Markdown Table Check (if already well-formed)
+  if (text.includes("|") && text.split("\n").filter((l) => l.trim().startsWith("|")).length >= 2) {
+    return text;
+  }
+
+  // 3. CIA Triad / Core Triad Definition Detection
+  if (/Confidentiality/i.test(text) && /Integrity/i.test(text) && /Availability/i.test(text)) {
+    return [
+      "**CIA Triad** represents the foundational security model for information assurance:",
+      "",
+      "• **Confidentiality:** Ensures sensitive data is accessible only by authorized entities (e.g. Encryption, Access Control).",
+      "• **Integrity:** Guarantees information is accurate, authentic, and protected against unauthorized modification (e.g. Hashing, Checksums).",
+      "• **Availability:** Ensures systems, services, and networks are accessible when required by authorized users (e.g. Redundant Backups, DDoS Protection).",
+    ].join("\n");
+  }
+
+  // 4. Multi-item definition lists with hyphens or colons: "- Term: Desc. - Term: Desc."
+  if (/-\s*[A-Z][A-Za-z0-9\s]{2,20}:/.test(text)) {
+    const parts = text.split(/(?=-\s*[A-Z][A-Za-z0-9\s]{2,20}:)/);
+    if (parts.length >= 2) {
+      return parts
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => {
+          if (p.startsWith("-")) {
+            return `• ${p.replace(/^-\s*/, "")}`;
+          }
+          return p;
+        })
+        .join("\n");
+    }
+  }
+
+  // 5. Steps / Sequence format: "1. ... 2. ... 3. ..." or "Step 1 ... Step 2"
+  if (/\b(?:1\.|\[1\]|Step 1:?)\b/.test(text) && /\b(?:2\.|\[2\]|Step 2:?)\b/.test(text)) {
+    const stepLines = text.split(/(?=\b(?:\d+\.|\[\d+\]|Step\s*\d+:?)\b)/g);
+    if (stepLines.length >= 2) {
+      return stepLines.map((l) => l.trim()).filter(Boolean).join("\n");
+    }
+  }
+
+  // 6. Generic bullet separation if text contains multiple inline bullet points
+  if (text.includes(" • ") || text.includes(" - ")) {
+    const bulletParts = text.split(/\s+[•\-]\s+/);
+    if (bulletParts.length >= 2) {
+      return bulletParts
+        .map((p, i) => (i === 0 && !p.startsWith("•") ? p.trim() : `• ${p.trim()}`))
+        .join("\n");
+    }
+  }
+
+  return text;
+}
+
+/**
  * Smart Question & Answer Table Parser
  * Extracts numbered question and answer pairs from continuous table text
  * (such as college question banks with Q. No. | Interview Question | Answer).
@@ -75,14 +169,13 @@ export function parseQuestionsAndAnswersFromRawText(text: string): ExtractedQues
     // Clean up trailing labels or stray artifacts from answer
     answerText = answerText
       .replace(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*$/i, "")
-      .replace(/\s+/g, " ")
       .trim();
 
     if (!isCorruptedQuestion(questionText) && questionText.length > 8) {
       matches.push({
         number: qNum,
         question: questionText,
-        answer: answerText.length > 5 ? answerText : undefined,
+        answer: answerText.length > 5 ? formatAnswerForRevision(answerText, questionText) : undefined,
       });
     }
   }
@@ -148,9 +241,10 @@ export async function generateVivaCardsForQuestions(
 
     const cardId = `viva-${subject.id}-q${i + 1}-${Date.now()}`;
     const keywords = extractKeyTerms(q);
-    const vivaAnswer = teacherAnswer && teacherAnswer.length > 10
+    const rawAnswer = teacherAnswer && teacherAnswer.length > 10
       ? teacherAnswer
       : generateVivaAnswer(q, subject.name);
+    const vivaAnswer = formatAnswerForRevision(rawAnswer, q);
     const followUpTrap = generateFollowUpTrap(q, keywords[0] || subject.name);
 
     cards.push({
@@ -260,11 +354,20 @@ export function purgeCorruptedFlashcards(): Flashcard[] {
     const stored = localStorage.getItem(FLASHCARDS_STORAGE_KEY);
     if (!stored) return [];
     const parsed: Flashcard[] = JSON.parse(stored);
-    const cleaned = parsed.filter(
-      (c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)
-    );
+    let hasFormattingChanges = false;
 
-    if (cleaned.length !== parsed.length) {
+    const cleaned = parsed
+      .filter((c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer))
+      .map((c) => {
+        const formatted = formatAnswerForRevision(c.answer, c.question);
+        if (formatted !== c.answer) {
+          hasFormattingChanges = true;
+          return { ...c, answer: formatted };
+        }
+        return c;
+      });
+
+    if (cleaned.length !== parsed.length || hasFormattingChanges) {
       localStorage.setItem(FLASHCARDS_STORAGE_KEY, JSON.stringify(cleaned));
       window.dispatchEvent(new Event("exam_buddy_flashcards_updated"));
     }

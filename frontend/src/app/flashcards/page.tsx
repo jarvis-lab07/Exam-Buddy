@@ -76,15 +76,18 @@ function FlashcardsContent() {
   // Load flashcards from localStorage with auto-purge of corrupted cards
   const loadCards = useCallback(() => {
     try {
-      // Automatically purge any raw PDF binary or corrupted cards
-      purgeCorruptedFlashcards();
-
-      const stored = localStorage.getItem("exam_buddy_flashcards");
-      if (stored) {
-        const parsed: Flashcard[] = JSON.parse(stored);
-        setAllCards(parsed.filter((c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)));
-      } else if (isCustomSyllabusOnly()) {
-        setAllCards([]);
+      // Automatically purge any raw PDF binary or corrupted cards and format existing answers
+      const cleaned = purgeCorruptedFlashcards();
+      if (cleaned.length > 0) {
+        setAllCards(cleaned);
+      } else {
+        const stored = localStorage.getItem("exam_buddy_flashcards");
+        if (stored) {
+          const parsed: Flashcard[] = JSON.parse(stored);
+          setAllCards(parsed.filter((c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)));
+        } else if (isCustomSyllabusOnly()) {
+          setAllCards([]);
+        }
       }
     } catch (e) {
       console.error(e);

@@ -15,6 +15,7 @@ import {
 import { Flashcard } from "@/types";
 import { calculateSM2 } from "@/lib/sm2-algorithm";
 import { updateFlashcardReview } from "@/lib/db-service";
+import { AnswerRenderer } from "./AnswerRenderer";
 
 interface Flashcard3DProps {
   card: Flashcard;
@@ -189,12 +190,7 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
 
           {/* Back Body: Answer, Formula, Code, Exam Tip */}
           <div className="flex-1 space-y-3 py-1">
-            <p 
-              className="text-sm sm:text-base text-white !text-white leading-relaxed whitespace-pre-line font-normal"
-              style={{ color: "#ffffff" }}
-            >
-              {card.answer}
-            </p>
+            <AnswerRenderer answer={card.answer} />
 
             {/* Formula Block */}
             {card.formula && (
