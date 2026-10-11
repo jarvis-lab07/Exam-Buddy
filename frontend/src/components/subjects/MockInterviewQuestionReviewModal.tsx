@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 import { Subject, Flashcard } from "@/types";
 import {
-  parseQuestionsFromRawText,
+  parseQuestionsAndAnswersFromRawText,
   generateVivaCardsForQuestions,
   saveMockInterviewFlashcards,
+  ExtractedQuestionItem,
 } from "@/lib/mock-interview-service";
 
 interface MockInterviewQuestionReviewModalProps {
@@ -48,15 +49,16 @@ export function MockInterviewQuestionReviewModal({
 
   if (!isOpen) return null;
 
-  const parsedQuestions = parseQuestionsFromRawText(questionsText);
+  const parsedItems = parseQuestionsAndAnswersFromRawText(questionsText);
+  const hasTeacherAnswers = parsedItems.some((i) => i.answer && i.answer.length > 10);
 
   const handleConfirm = async () => {
-    if (parsedQuestions.length === 0 || isGenerating) return;
+    if (parsedItems.length === 0 || isGenerating) return;
 
     setIsGenerating(true);
 
     try {
-      const cards = await generateVivaCardsForQuestions(subject, parsedQuestions);
+      const cards = await generateVivaCardsForQuestions(subject, parsedItems);
       saveMockInterviewFlashcards(cards, true);
       onSuccess(cards);
       onClose();
@@ -112,9 +114,16 @@ export function MockInterviewQuestionReviewModal({
         {/* Text Area */}
         <div className="space-y-1.5 flex-1 min-h-[160px] flex flex-col">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Questions (Numbered or one per line):</span>
+            <div className="flex items-center gap-2">
+              <span>Questions &amp; Answers:</span>
+              {hasTeacherAnswers && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Teacher Model Answers Detected
+                </span>
+              )}
+            </div>
             <span className="font-mono text-cyan-400 font-bold">
-              Detected ~{parsedQuestions.length} Question{parsedQuestions.length === 1 ? "" : "s"}
+              Detected ~{parsedItems.length} Question{parsedItems.length === 1 ? "" : "s"}
             </span>
           </div>
 
@@ -130,7 +139,7 @@ export function MockInterviewQuestionReviewModal({
         {/* Actions */}
         <div className="pt-2 flex items-center justify-between gap-3 border-t border-white/[0.06] shrink-0">
           <span className="text-[11px] text-slate-500">
-            Generates 3-point spoken answers, examiner keywords, and follow-up viva traps.
+            Splits into individual cards with teacher answers and keywords on the back.
           </span>
 
           <div className="flex items-center gap-2.5">
@@ -146,7 +155,7 @@ export function MockInterviewQuestionReviewModal({
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={parsedQuestions.length === 0 || isGenerating}
+              disabled={parsedItems.length === 0 || isGenerating}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-600/25 transition-all"
             >
               {isGenerating ? (
@@ -157,7 +166,7 @@ export function MockInterviewQuestionReviewModal({
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>Generate {parsedQuestions.length} Viva Flashcards</span>
+                  <span>Generate {parsedItems.length} Individual Cards</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

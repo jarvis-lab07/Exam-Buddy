@@ -40,63 +40,87 @@ export function isCorruptedQuestion(str: string): boolean {
   return false;
 }
 
-/**
- * Parses raw text content into individual questions.
- * Handles patterns like "1.", "Q1:", "Question 1:", bullet points, or newlines.
- */
-export function parseQuestionsFromRawText(text: string): string[] {
-  if (!text || !text.trim()) return [];
+export interface ExtractedQuestionItem {
+  number?: number;
+  question: string;
+  answer?: string;
+}
 
-  const rawLines = text
+/**
+ * Smart Question & Answer Table Parser
+ * Extracts numbered question and answer pairs from continuous table text
+ * (such as college question banks with Q. No. | Interview Question | Answer).
+ */
+export function parseQuestionsAndAnswersFromRawText(text: string): ExtractedQuestionItem[] {
+  if (!text || !text.trim() || isCorruptedQuestion(text)) return [];
+
+  // 1. Strip college headers if present
+  let cleanText = text;
+  const headerCutoff = cleanText.search(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*(?:1\b|Q1\b)/i);
+  if (headerCutoff !== -1) {
+    cleanText = cleanText.slice(headerCutoff);
+  }
+
+  // 2. Strategy A: Regex for continuous table format
+  // Matches "1 What is X? Answer text... 2 What is Y? Answer text..."
+  const tableRegex = /\b(\d{1,2})\s+([A-Z][^?]+?\?)\s*([\s\S]*?)(?=\b(?:\d{1,2})\s+[A-Z][^?]+?\?|$)/g;
+  const matches: ExtractedQuestionItem[] = [];
+  let m;
+
+  while ((m = tableRegex.exec(cleanText)) !== null) {
+    const qNum = parseInt(m[1], 10);
+    const questionText = cleanQuestionString(m[2]);
+    let answerText = m[3]?.trim() || "";
+
+    // Clean up trailing labels or stray artifacts from answer
+    answerText = answerText
+      .replace(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*$/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!isCorruptedQuestion(questionText) && questionText.length > 8) {
+      matches.push({
+        number: qNum,
+        question: questionText,
+        answer: answerText.length > 5 ? answerText : undefined,
+      });
+    }
+  }
+
+  if (matches.length >= 2) {
+    return matches.slice(0, 20);
+  }
+
+  // 3. Strategy B: Question sentences ending in '?'
+  const questionMarks = cleanText.match(/[A-Z][^.!?\n]+?\?/g);
+  if (questionMarks && questionMarks.length >= 2) {
+    return questionMarks.slice(0, 15).map((q, idx) => ({
+      number: idx + 1,
+      question: cleanQuestionString(q),
+    }));
+  }
+
+  // 4. Strategy C: Line-by-line fallback
+  const rawLines = cleanText
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter((l) => l.length > 0 && !isCorruptedQuestion(l));
+    .filter((l) => l.length > 10 && !isCorruptedQuestion(l));
 
-  const questions: string[] = [];
-  let currentQ = "";
+  return rawLines.slice(0, 15).map((l, idx) => ({
+    number: idx + 1,
+    question: cleanQuestionString(l),
+  }));
+}
 
-  for (const line of rawLines) {
-    if (isCorruptedQuestion(line)) continue;
-
-    // Check if line looks like a question heading / start of a numbered item
-    const isNewQuestion =
-      /^(?:Q(?:uestion)?\s*\d+[:.-]?|\d+[.)]\s*|•\s*|-\s*|\[\d+\])/i.test(line) ||
-      (line.endsWith("?") && line.length > 15);
-
-    if (isNewQuestion) {
-      if (currentQ.trim()) {
-        const cleaned = cleanQuestionString(currentQ);
-        if (!isCorruptedQuestion(cleaned) && cleaned.length > 8) {
-          questions.push(cleaned);
-        }
-      }
-      currentQ = line;
-    } else {
-      if (currentQ) {
-        currentQ += " " + line;
-      } else if (line.length > 10) {
-        currentQ = line;
-      }
-    }
+/**
+ * Parses raw text content into individual questions.
+ */
+export function parseQuestionsFromRawText(text: string): string[] {
+  const items = parseQuestionsAndAnswersFromRawText(text);
+  if (items.length > 0) {
+    return items.map((i) => i.question);
   }
-
-  if (currentQ.trim()) {
-    const cleaned = cleanQuestionString(currentQ);
-    if (!isCorruptedQuestion(cleaned) && cleaned.length > 8) {
-      questions.push(cleaned);
-    }
-  }
-
-  // If regex grouping found fewer than expected or nothing, split by lines ending with ? or non-empty lines
-  if (questions.length === 0) {
-    return rawLines
-      .filter((l) => l.length > 10 && !isCorruptedQuestion(l))
-      .slice(0, 15)
-      .map(cleanQuestionString)
-      .filter((q) => !isCorruptedQuestion(q));
-  }
-
-  return questions.slice(0, 20); // Cap at sensible max
+  return [];
 }
 
 function cleanQuestionString(str: string): string {
@@ -106,22 +130,27 @@ function cleanQuestionString(str: string): string {
 }
 
 /**
- * Generates viva flashcards for a specific subject given a list of questions.
- * Uses AI for answer synthesis when possible, with structured academic fallback.
+ * Generates viva flashcards for a specific subject given a list of questions or Q&A pairs.
+ * Uses verified teacher answers when available in the document.
  */
 export async function generateVivaCardsForQuestions(
   subject: Subject,
-  questions: string[]
+  questions: (string | ExtractedQuestionItem)[]
 ): Promise<Flashcard[]> {
   const cards: Flashcard[] = [];
 
   for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-    const cardId = `viva-${subject.id}-q${i + 1}-${Date.now()}`;
+    const item = questions[i];
+    const q = typeof item === "string" ? item : item.question;
+    const teacherAnswer = typeof item === "string" ? undefined : item.answer;
 
-    // Generate smart keywords & answers
+    if (!q || isCorruptedQuestion(q)) continue;
+
+    const cardId = `viva-${subject.id}-q${i + 1}-${Date.now()}`;
     const keywords = extractKeyTerms(q);
-    const vivaAnswer = generateVivaAnswer(q, subject.name);
+    const vivaAnswer = teacherAnswer && teacherAnswer.length > 10
+      ? teacherAnswer
+      : generateVivaAnswer(q, subject.name);
     const followUpTrap = generateFollowUpTrap(q, keywords[0] || subject.name);
 
     cards.push({
@@ -134,7 +163,9 @@ export async function generateVivaCardsForQuestions(
       unitTitle: "Mock Interview Shortlist",
       question: q,
       answer: vivaAnswer,
-      examTip: `Examiner Keywords: ${keywords.join(", ")} | Follow-up trap: "${followUpTrap}"`,
+      examTip: teacherAnswer
+        ? `Keywords: ${keywords.join(", ")} | Verified Faculty Answer`
+        : `Examiner Keywords: ${keywords.join(", ")} | Follow-up trap: "${followUpTrap}"`,
       difficulty: "medium",
       deckType: "mock-interview",
       masteryStatus: "new",
