@@ -23,6 +23,24 @@ export interface OverallMasterySummary {
 }
 
 /**
+ * Checks if a string contains binary PDF syntax or corrupted tokens.
+ */
+export function isCorruptedQuestion(str: string): boolean {
+  if (!str || !str.trim()) return true;
+  // Detect raw PDF object definitions or stream tags
+  if (str.includes("<<") || str.includes(">>")) return true;
+  if (/(\/Type|\/Catalog|\/Pages|\/Filter|\/Length|\/FlateDecode|stream|endobj|endstream|MediaBox)/i.test(str)) {
+    return true;
+  }
+  // Detect unprintable or replacement unicode characters
+  if (/[\ufffd\x00-\x08\x0E-\x1F]/.test(str)) return true;
+  // Ratio check: human text has letters, digits, and common punctuation
+  const alphaChars = (str.match(/[a-zA-Z]/g) || []).length;
+  if (str.length > 25 && alphaChars / str.length < 0.45) return true;
+  return false;
+}
+
+/**
  * Parses raw text content into individual questions.
  * Handles patterns like "1.", "Q1:", "Question 1:", bullet points, or newlines.
  */
@@ -32,12 +50,14 @@ export function parseQuestionsFromRawText(text: string): string[] {
   const rawLines = text
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+    .filter((l) => l.length > 0 && !isCorruptedQuestion(l));
 
   const questions: string[] = [];
   let currentQ = "";
 
   for (const line of rawLines) {
+    if (isCorruptedQuestion(line)) continue;
+
     // Check if line looks like a question heading / start of a numbered item
     const isNewQuestion =
       /^(?:Q(?:uestion)?\s*\d+[:.-]?|\d+[.)]\s*|•\s*|-\s*|\[\d+\])/i.test(line) ||
@@ -45,7 +65,10 @@ export function parseQuestionsFromRawText(text: string): string[] {
 
     if (isNewQuestion) {
       if (currentQ.trim()) {
-        questions.push(cleanQuestionString(currentQ));
+        const cleaned = cleanQuestionString(currentQ);
+        if (!isCorruptedQuestion(cleaned) && cleaned.length > 8) {
+          questions.push(cleaned);
+        }
       }
       currentQ = line;
     } else {
@@ -58,15 +81,19 @@ export function parseQuestionsFromRawText(text: string): string[] {
   }
 
   if (currentQ.trim()) {
-    questions.push(cleanQuestionString(currentQ));
+    const cleaned = cleanQuestionString(currentQ);
+    if (!isCorruptedQuestion(cleaned) && cleaned.length > 8) {
+      questions.push(cleaned);
+    }
   }
 
   // If regex grouping found fewer than expected or nothing, split by lines ending with ? or non-empty lines
   if (questions.length === 0) {
     return rawLines
-      .filter((l) => l.length > 10)
+      .filter((l) => l.length > 10 && !isCorruptedQuestion(l))
       .slice(0, 15)
-      .map(cleanQuestionString);
+      .map(cleanQuestionString)
+      .filter((q) => !isCorruptedQuestion(q));
   }
 
   return questions.slice(0, 20); // Cap at sensible max
@@ -193,16 +220,56 @@ export function saveMockInterviewFlashcards(
 }
 
 /**
- * Retrieves all Mock Interview flashcards.
+ * Automatically purges any corrupted cards containing binary tokens or non-text glyphs.
  */
-export function getMockInterviewFlashcards(): Flashcard[] {
+export function purgeCorruptedFlashcards(): Flashcard[] {
   if (typeof window === "undefined") return [];
 
   try {
     const stored = localStorage.getItem(FLASHCARDS_STORAGE_KEY);
     if (!stored) return [];
     const parsed: Flashcard[] = JSON.parse(stored);
-    return parsed.filter((c) => c.isMockInterview || c.deckType === "mock-interview");
+    const cleaned = parsed.filter(
+      (c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)
+    );
+
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(FLASHCARDS_STORAGE_KEY, JSON.stringify(cleaned));
+      window.dispatchEvent(new Event("exam_buddy_flashcards_updated"));
+    }
+    return cleaned;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Deletes all cards for a specific subject so the user can cleanly re-upload.
+ */
+export function deleteCardsForSubject(subjectId: string): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    const stored = localStorage.getItem(FLASHCARDS_STORAGE_KEY);
+    if (!stored) return;
+    const parsed: Flashcard[] = JSON.parse(stored);
+    const filtered = parsed.filter((c) => c.subjectId !== subjectId);
+    localStorage.setItem(FLASHCARDS_STORAGE_KEY, JSON.stringify(filtered));
+    window.dispatchEvent(new Event("exam_buddy_flashcards_updated"));
+  } catch (e) {
+    console.error("Failed to delete cards for subject:", e);
+  }
+}
+
+/**
+ * Retrieves all Mock Interview flashcards, purging any corrupted cards first.
+ */
+export function getMockInterviewFlashcards(): Flashcard[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const cleaned = purgeCorruptedFlashcards();
+    return cleaned.filter((c) => c.isMockInterview || c.deckType === "mock-interview");
   } catch {
     return [];
   }
@@ -215,9 +282,9 @@ export function computeMasterySummary(
   subjects: Subject[],
   allCards: Flashcard[]
 ): OverallMasterySummary {
-  const mockCards = allCards.filter(
-    (c) => c.isMockInterview || c.deckType === "mock-interview"
-  );
+  const mockCards = allCards
+    .filter((c) => !isCorruptedQuestion(c.question))
+    .filter((c) => c.isMockInterview || c.deckType === "mock-interview");
 
   const bySubject: SubjectMasteryStat[] = subjects.map((subj) => {
     const subjCards = mockCards.filter((c) => c.subjectId === subj.id);

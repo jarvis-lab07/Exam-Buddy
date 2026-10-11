@@ -22,6 +22,8 @@ import { DocumentUploadItem, DocumentCategory, Subject } from "@/types";
 import { uploadStudyDocumentToStorage } from "@/lib/storage-service";
 import { uploadToStudentGoogleDrive } from "@/lib/google-drive-service";
 import { MockInterviewSetupModal } from "@/components/subjects/MockInterviewSetupModal";
+import { MockInterviewQuestionReviewModal } from "@/components/subjects/MockInterviewQuestionReviewModal";
+import { extractTextFromPdfFile } from "@/lib/pdf-extractor";
 import {
   parseQuestionsFromRawText,
   generateVivaCardsForQuestions,
@@ -70,6 +72,17 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   const [uploadTab, setUploadTab] = useState<"file" | "paste">("file");
   const [pastedQuestionsText, setPastedQuestionsText] = useState("");
   const [vivaSuccessNotice, setVivaSuccessNotice] = useState<{ count: number; subjectName: string } | null>(null);
+
+  // Question Review Modal State for PDF & Shortlist Uploads
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    initialText: string;
+    isScannedPdf: boolean;
+  }>({
+    isOpen: false,
+    initialText: "",
+    isScannedPdf: false,
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -173,32 +186,32 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       setProgress(55);
       setStage("extracting");
 
-      const textContent = await file.text().catch(() => 
-        `Mock Interview questions and exam syllabus for ${file.name}. Subject: ${selectedSubject.name}. Code: ${selectedSubject.code}. Key viva questions, definitions, and boundary condition criteria.`
-      );
+      let textContent = "";
+      let isScannedPdf = false;
 
-      // Auto-extract Viva Questions for Mock Interview if applicable
-      const isMockInterviewCategory = selectedCategory === "Mock Interview / Shortlist";
-      const parsedQuestions = parseQuestionsFromRawText(textContent);
-
-      if (isMockInterviewCategory || parsedQuestions.length >= 2) {
-        try {
-          const generatedCards = await generateVivaCardsForQuestions(
-            selectedSubject,
-            parsedQuestions.length > 0 ? parsedQuestions : [
-              `What is the primary architecture and invariant criteria of ${selectedSubject.name}?`,
-              `Explain the main algorithmic complexity and runtime bounds in ${selectedSubject.name}.`,
-              `What are the critical failure modes and boundary edge cases in ${selectedSubject.name}?`
-            ]
-          );
-          saveMockInterviewFlashcards(generatedCards, true);
-          setVivaSuccessNotice({
-            count: generatedCards.length,
-            subjectName: selectedSubject.name,
-          });
-        } catch (cardErr) {
-          console.error("Failed to generate viva cards:", cardErr);
+      if (file.name.toLowerCase().endsWith(".pdf")) {
+        const pdfExtract = await extractTextFromPdfFile(file);
+        if (pdfExtract.success && pdfExtract.text.length > 20) {
+          textContent = pdfExtract.text;
+        } else {
+          isScannedPdf = true;
+          textContent = "";
         }
+      } else {
+        textContent = await file.text().catch(() => "");
+      }
+
+      // If Mock Interview Shortlist, launch review modal so user can confirm/edit questions before generating cards!
+      const isMockInterviewCategory = selectedCategory === "Mock Interview / Shortlist";
+      if (isMockInterviewCategory || isScannedPdf) {
+        setReviewModal({
+          isOpen: true,
+          initialText: textContent,
+          isScannedPdf,
+        });
+        setStage("idle");
+        setProgress(0);
+        return;
       }
 
       // Stage 3: Vector Embeddings Generation
@@ -773,6 +786,40 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       <MockInterviewSetupModal
         isOpen={isSetupModalOpen}
         onClose={() => setIsSetupModalOpen(false)}
+      />
+
+      {/* Mock Interview Question Review Modal */}
+      <MockInterviewQuestionReviewModal
+        isOpen={reviewModal.isOpen}
+        onClose={() => setReviewModal((prev) => ({ ...prev, isOpen: false }))}
+        subject={selectedSubject}
+        initialText={reviewModal.initialText}
+        isScannedPdf={reviewModal.isScannedPdf}
+        onSuccess={(cards) => {
+          setVivaSuccessNotice({
+            count: cards.length,
+            subjectName: selectedSubject.name,
+          });
+          const newItem: DocumentUploadItem = {
+            id: `doc-review-${Date.now()}`,
+            title: `${selectedSubject.name} - Shortlist Viva Questions (${cards.length} Qs)`,
+            subjectId: selectedSubject.id,
+            subjectName: selectedSubject.name,
+            subjectCode: selectedSubject.code,
+            subjectColor: selectedSubject.color,
+            unitTitle: "Shortlist Questions Module",
+            fileType: "notes",
+            fileSize: "Validated Document",
+            category: "Mock Interview / Shortlist",
+            status: "vectorized",
+            uploadDate: "Just now",
+            pages: 1,
+            vectorCount: cards.length * 8,
+            summary: `Parsed and validated ${cards.length} viva questions for ${selectedSubject.name}.`,
+            keyTopics: [selectedSubject.name, "Mock Interview", "Oral Viva"],
+          };
+          onFileUploaded(newItem);
+        }}
       />
     </div>
   );

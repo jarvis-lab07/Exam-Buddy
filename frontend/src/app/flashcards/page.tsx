@@ -30,7 +30,14 @@ import { MockInterviewSetupModal } from "@/components/subjects/MockInterviewSetu
 import { MOCK_FLASHCARDS, MOCK_FLASHCARD_DECKS } from "@/lib/mock-data";
 import { Flashcard, Subject } from "@/types";
 import { getUserSubjects, isCustomSyllabusOnly } from "@/lib/subject-service";
-import { computeMasterySummary, SubjectMasteryStat } from "@/lib/mock-interview-service";
+import {
+  computeMasterySummary,
+  SubjectMasteryStat,
+  purgeCorruptedFlashcards,
+  isCorruptedQuestion,
+  deleteCardsForSubject,
+} from "@/lib/mock-interview-service";
+import { Trash2 } from "lucide-react";
 
 function FlashcardsContent() {
   const searchParams = useSearchParams();
@@ -66,13 +73,16 @@ function FlashcardsContent() {
     return () => window.removeEventListener("exam_buddy_subjects_updated", loadSubjects);
   }, []);
 
-  // Load flashcards from localStorage
+  // Load flashcards from localStorage with auto-purge of corrupted cards
   const loadCards = useCallback(() => {
     try {
+      // Automatically purge any raw PDF binary or corrupted cards
+      purgeCorruptedFlashcards();
+
       const stored = localStorage.getItem("exam_buddy_flashcards");
       if (stored) {
         const parsed: Flashcard[] = JSON.parse(stored);
-        setAllCards(parsed);
+        setAllCards(parsed.filter((c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)));
       } else if (isCustomSyllabusOnly()) {
         setAllCards([]);
       }
@@ -455,6 +465,21 @@ function FlashcardsContent() {
                 <RotateCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Reset</span>
               </button>
+
+              {selectedSubjectFilter !== "all-random" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteCardsForSubject(selectedSubjectFilter);
+                    handleReset();
+                  }}
+                  className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs flex items-center gap-1 transition-colors"
+                  title="Clear all cards for this subject to re-upload"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Clear Cards</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
