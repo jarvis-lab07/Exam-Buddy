@@ -60,7 +60,13 @@ export function DegreeFilter({
     <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
       {/* Horizontal Scrollable Degree Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none no-scrollbar">
-        {degrees.map((deg) => {
+        {degrees
+          .filter(
+            (deg) =>
+              deg.id === "All" ||
+              (degreeCounts[deg.id] !== undefined && degreeCounts[deg.id] > 0)
+          )
+          .map((deg) => {
           const Icon = deg.icon;
           const isSelected = selectedDegree === deg.id;
           const count = degreeCounts[deg.id];

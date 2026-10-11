@@ -4,6 +4,19 @@ import { MOCK_SUBJECTS } from "@/lib/mock-data";
 const STORAGE_KEY = "exam_buddy_user_subjects";
 const CUSTOM_ONLY_KEY = "exam_buddy_custom_syllabus_only";
 
+const LEGACY_DUMMY_IDS = new Set([
+  "dsa",
+  "cn",
+  "dbms",
+  "os",
+  "math",
+  "dm",
+  "med-anat",
+  "law-const",
+  "com-acc",
+  "mgt-scm",
+]);
+
 export const DEFAULT_VIVA_COLORS = [
   "#6366F1", // Indigo
   "#06B6D4", // Cyan
@@ -54,7 +67,8 @@ export function getUserSubjects(): Subject[] {
 
     if (stored) {
       const parsed: Subject[] = JSON.parse(stored);
-      if (parsed.length > 0) return parsed;
+      const filtered = parsed.filter((s) => !LEGACY_DUMMY_IDS.has(s.id));
+      if (filtered.length > 0) return filtered;
       if (customOnly) return [];
     }
 

@@ -1,3 +1,5 @@
+import { Flashcard, FlashcardDeck } from "@/types";
+
 /**
  * Verified Faculty Mock Interview Q&A Database
  * Extracted directly from official R. C. Patel Institute of Technology college documents
@@ -662,3 +664,139 @@ export const FACULTY_DATA_BY_SUBJECT: Record<string, FacultyQuestionSeed[]> = {
     },
   ],
 };
+
+export const DEFAULT_VIVA_DECKS: FlashcardDeck[] = [
+  {
+    id: "deck-info",
+    title: "Information & Cyber Security",
+    subjectId: "info-cyber",
+    subjectCode: "RCP23CMD301",
+    color: "#3B82F6",
+    cardCount: 10,
+    masteredCount: 8,
+    tag: "CIA Triad & Ciphers",
+    description: "AES vs DES, RSA, Diffie-Hellman, SHA-256, Firewalls, and Zero Trust.",
+  },
+  {
+    id: "deck-busi",
+    title: "Business Intelligence & Analytics",
+    subjectId: "busi-analytics",
+    subjectCode: "RCP23CPC303",
+    color: "#10B981",
+    cardCount: 10,
+    masteredCount: 7,
+    tag: "Data Warehouse & OLAP",
+    description: "Star vs Snowflake schemas, OLAP cubes, Apriori algorithm, and TCS interview shortlist.",
+  },
+  {
+    id: "deck-mach",
+    title: "Machine Learning Concepts",
+    subjectId: "machine-learning",
+    subjectCode: "RCP23CPC304",
+    color: "#8B5CF6",
+    cardCount: 10,
+    masteredCount: 6,
+    tag: "Supervised & Unsupervised",
+    description: "Bias-Variance tradeoff, SVM hyperplanes, PCA, and L1 vs L2 regularization.",
+  },
+  {
+    id: "deck-auto",
+    title: "Automata & Compiler Design",
+    subjectId: "automata-compiler",
+    subjectCode: "RCP23CPC302",
+    color: "#F59E0B",
+    cardCount: 10,
+    masteredCount: 6,
+    tag: "DFA/NFA & 6 Phases",
+    description: "NFA to DFA conversion, CFG, Turing machine halting problem, and compiler phases.",
+  },
+  {
+    id: "deck-adva",
+    title: "Advanced Algorithms & DP",
+    subjectId: "adv-algorithms",
+    subjectCode: "RCP23CPC301",
+    color: "#EC4899",
+    cardCount: 10,
+    masteredCount: 7,
+    tag: "Graphs, MST & NP",
+    description: "Dijkstra, Bellman-Ford, Prim vs Kruskal, B-Trees, KMP, and P vs NP classes.",
+  },
+  {
+    id: "deck-viva-all",
+    title: "Saturday Placement Viva Shortlist 🔥",
+    subjectId: "all-viva",
+    subjectCode: "ALL",
+    color: "#F43F5E",
+    cardCount: 50,
+    masteredCount: 34,
+    tag: "50 Faculty Questions",
+    description: "Master question bank for R. C. Patel Institute Computer Engineering viva interview.",
+  },
+];
+
+const SUBJECT_MAP: Record<string, { id: string; name: string; code: string; color: string }> = {
+  INFO: {
+    id: "info-cyber",
+    name: "Information and Cyber Security",
+    code: "RCP23CMD301",
+    color: "#3B82F6",
+  },
+  BUSI: {
+    id: "busi-analytics",
+    name: "Business Intelligence and Analytics",
+    code: "RCP23CPC303",
+    color: "#10B981",
+  },
+  MACH: {
+    id: "machine-learning",
+    name: "Machine Learning",
+    code: "RCP23CPC304",
+    color: "#8B5CF6",
+  },
+  AUTO: {
+    id: "automata-compiler",
+    name: "Automata Theory and Compiler Design",
+    code: "RCP23CPC302",
+    color: "#F59E0B",
+  },
+  ADVA: {
+    id: "adv-algorithms",
+    name: "Advanced Algorithm",
+    code: "RCP23CPC301",
+    color: "#EC4899",
+  },
+};
+
+export const DEFAULT_VIVA_FLASHCARDS: Flashcard[] = Object.entries(FACULTY_DATA_BY_SUBJECT).flatMap(
+  ([key, items]) => {
+    const meta = SUBJECT_MAP[key] || {
+      id: "info-cyber",
+      name: "Computer Engineering",
+      code: "RCP23",
+      color: "#3B82F6",
+    };
+
+    return items.map((item, idx) => ({
+      id: `viva-${meta.id}-q${item.number || idx + 1}`,
+      subjectId: meta.id,
+      subjectName: meta.name,
+      subjectCode: meta.code,
+      subjectColor: meta.color,
+      unitNumber: 1,
+      unitTitle: "Mock Interview Shortlist",
+      question: item.question,
+      answer: item.answer,
+      examTip: item.companyTag
+        ? `🏢 ${item.companyTag} Placement Shortlist | Keywords: ${item.keywords.join(", ")} | Verified Faculty Answer`
+        : `Keywords: ${item.keywords.join(", ")} | Verified Faculty Answer`,
+      difficulty: (idx % 3 === 0 ? "hard" : "medium") as Flashcard["difficulty"],
+      deckType: "mock-interview" as Flashcard["deckType"],
+      masteryStatus: (idx < 6 ? "mastered" : idx < 8 ? "learning" : "new") as Flashcard["masteryStatus"],
+      reviewIntervalDays: idx < 6 ? 5 : 2,
+      isMockInterview: true,
+      keywords: item.keywords,
+      companyTag: item.companyTag,
+    }));
+  }
+);
+

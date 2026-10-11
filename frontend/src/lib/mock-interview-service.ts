@@ -452,9 +452,13 @@ export function purgeCorruptedFlashcards(): Flashcard[] {
     let parsed: Flashcard[] = stored ? JSON.parse(stored) : [];
     let hasChanges = false;
 
-    // Filter out binary corruption
+    // Filter out binary corruption and legacy dummy subjects
+    const LEGACY_DUMMY_IDS = new Set(["dsa", "cn", "dbms", "os", "math", "dm"]);
     let cleaned = parsed.filter(
-      (c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)
+      (c) =>
+        !isCorruptedQuestion(c.question) &&
+        !isCorruptedQuestion(c.answer) &&
+        !LEGACY_DUMMY_IDS.has(c.subjectId)
     );
 
     // Auto-heal Business Intelligence if it suffered the old Q1/Q2 merge bug (or has 9 cards instead of 10)
