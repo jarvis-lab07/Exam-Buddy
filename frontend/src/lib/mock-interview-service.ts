@@ -1,5 +1,7 @@
 import { Flashcard, Subject } from "@/types";
 import { executeAISearch } from "@/lib/ai-service";
+import { FACULTY_DATA_BY_SUBJECT } from "./viva-faculty-data";
+import { getUserSubjects } from "./subject-service";
 
 const FLASHCARDS_STORAGE_KEY = "exam_buddy_flashcards";
 
@@ -44,6 +46,7 @@ export interface ExtractedQuestionItem {
   number?: number;
   question: string;
   answer?: string;
+  companyTag?: string;
 }
 
 /**
@@ -141,65 +144,104 @@ export function formatAnswerForRevision(rawAnswer: string, question?: string): s
 }
 
 /**
- * Smart Question & Answer Table Parser
- * Extracts numbered question and answer pairs from continuous table text
- * (such as college question banks with Q. No. | Interview Question | Answer).
+ * Universal Adaptive Q&A Table Parser
+ * Extracts numbered question and answer pairs from ANY college question bank,
+ * placement shortlist, or syllabus document. Supports table rows ending with
+ * question marks (?), company tags ((TCS), (Amazon)), or periods (.).
  */
 export function parseQuestionsAndAnswersFromRawText(text: string): ExtractedQuestionItem[] {
   if (!text || !text.trim() || isCorruptedQuestion(text)) return [];
 
-  // 1. Strip college headers if present
-  let cleanText = text;
-  const headerCutoff = cleanText.search(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*(?:1\b|Q1\b)/i);
+  // 1. Clean OCR symbols, Word bullets, and broken characters
+  let cleanText = text
+    .replace(/[\uF0B7\u2022\u25CF\u25AA]/g, "• ")
+    .replace(/Encr\s+yption/gi, "Encryption")
+    .replace(/Diffie\s*-\s*Hellman/gi, "Diffie-Hellman");
+
+  // 2. Strip top document metadata / institute headers up to table header
+  const headerCutoff = cleanText.search(/\b(?:(?:Q|Sr)\.?\s*No\.?|Interview\s*Question|Questions?)\s+(?:Answer)?/i);
   if (headerCutoff !== -1) {
     cleanText = cleanText.slice(headerCutoff);
   }
 
-  // 2. Strategy A: Regex for continuous table format
-  // Matches "1 What is X? Answer text... 2 What is Y? Answer text..."
-  const tableRegex = /\b(\d{1,2})\s+([A-Z][^?]+?\?)\s*([\s\S]*?)(?=\b(?:\d{1,2})\s+[A-Z][^?]+?\?|$)/g;
+  // 3. Strategy A: Universal Row Splitter anchored by sequential integers (1..30)
+  // Matches "1 What is X...", "2 Explain Y...", "10 What is Z..."
+  const rowRegex = /(?:^|\n|\s)\b([1-9]|[1-2][0-9]|30)\b\s+([A-Z][\s\S]*?)(?=(?:^|\n|\s)\b(?:[1-9]|[1-2][0-9]|30)\b\s+[A-Z]|$)/g;
   const matches: ExtractedQuestionItem[] = [];
   let m;
 
-  while ((m = tableRegex.exec(cleanText)) !== null) {
+  while ((m = rowRegex.exec(cleanText)) !== null) {
     const qNum = parseInt(m[1], 10);
-    const questionText = cleanQuestionString(m[2]);
-    let answerText = m[3]?.trim() || "";
+    const rowBody = m[2].trim();
 
-    // Clean up trailing labels or stray artifacts from answer
-    answerText = answerText
-      .replace(/\b(?:Q\.?\s*No\.?|Interview\s*Question|Answer)\s*$/i, "")
+    // Check for placement company tags: e.g. (TCS), (TCS Infosys Wipro), (Amazon)
+    const compTagMatch = rowBody.match(/\(+\s*(TCS|Infosys|Wipro|Amazon|Cognizant|Accenture|Google|Microsoft|IBM|Capgemini|[A-Z]{2,10}(?:\s+[A-Z]{2,10})*)\s*\)+/i);
+    const companyTag = compTagMatch ? compTagMatch[1].replace(/[()]/g, "").trim() : undefined;
+
+    let rawQuestion = "";
+    let rawAnswer = "";
+
+    if (compTagMatch && compTagMatch.index !== undefined) {
+      // The question extends through the company tag
+      const endOfQ = compTagMatch.index + compTagMatch[0].length;
+      rawQuestion = rowBody.slice(0, endOfQ).trim();
+      rawAnswer = rowBody.slice(endOfQ).trim();
+    } else if (rowBody.includes("?")) {
+      const qMarkIdx = rowBody.indexOf("?");
+      rawQuestion = rowBody.slice(0, qMarkIdx + 1).trim();
+      rawAnswer = rowBody.slice(qMarkIdx + 1).trim();
+    } else if (rowBody.includes("•")) {
+      const bulletIdx = rowBody.indexOf("•");
+      rawQuestion = rowBody.slice(0, bulletIdx).trim();
+      rawAnswer = rowBody.slice(bulletIdx).trim();
+    } else {
+      // Fallback: sentence boundary before answer explanation
+      const dotMatch = rowBody.match(/^([A-Z][^.\n]+?\.)\s+([\s\S]+)$/);
+      if (dotMatch) {
+        rawQuestion = dotMatch[1].trim();
+        rawAnswer = dotMatch[2].trim();
+      } else {
+        rawQuestion = rowBody;
+      }
+    }
+
+    // Clean up trailing labels or stray artifacts
+    rawAnswer = rawAnswer
+      .replace(/\b(?:Q\.?\s*No\.?|Sr\.?\s*No\.?|Interview\s*Question|Answer)\s*$/i, "")
       .trim();
 
-    if (!isCorruptedQuestion(questionText) && questionText.length > 8) {
+    const cleanQ = cleanQuestionString(rawQuestion);
+
+    if (!isCorruptedQuestion(cleanQ) && cleanQ.length > 5) {
       matches.push({
         number: qNum,
-        question: questionText,
-        answer: answerText.length > 5 ? formatAnswerForRevision(answerText, questionText) : undefined,
+        question: cleanQ,
+        answer: rawAnswer.length > 5 ? formatAnswerForRevision(rawAnswer, cleanQ) : undefined,
+        companyTag,
       });
     }
   }
 
   if (matches.length >= 2) {
-    return matches.slice(0, 20);
+    return matches.slice(0, 30);
   }
 
-  // 3. Strategy B: Question sentences ending in '?'
+  // 4. Fallback Strategy B: Question sentences ending in '?'
   const questionMarks = cleanText.match(/[A-Z][^.!?\n]+?\?/g);
   if (questionMarks && questionMarks.length >= 2) {
-    return questionMarks.slice(0, 15).map((q, idx) => ({
+    return questionMarks.slice(0, 20).map((q, idx) => ({
       number: idx + 1,
       question: cleanQuestionString(q),
     }));
   }
 
-  // 4. Strategy C: Line-by-line fallback
+  // 5. Fallback Strategy C: Line-by-line fallback
   const rawLines = cleanText
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 10 && !isCorruptedQuestion(l));
 
-  return rawLines.slice(0, 15).map((l, idx) => ({
+  return rawLines.slice(0, 20).map((l, idx) => ({
     number: idx + 1,
     question: cleanQuestionString(l),
   }));
@@ -236,6 +278,7 @@ export async function generateVivaCardsForQuestions(
     const item = questions[i];
     const q = typeof item === "string" ? item : item.question;
     const teacherAnswer = typeof item === "string" ? undefined : item.answer;
+    const companyTag = typeof item === "string" ? undefined : item.companyTag;
 
     if (!q || isCorruptedQuestion(q)) continue;
 
@@ -257,7 +300,9 @@ export async function generateVivaCardsForQuestions(
       unitTitle: "Mock Interview Shortlist",
       question: q,
       answer: vivaAnswer,
-      examTip: teacherAnswer
+      examTip: companyTag
+        ? `🏢 ${companyTag} Placement Shortlist | Keywords: ${keywords.join(", ")} | Verified Faculty Answer`
+        : teacherAnswer
         ? `Keywords: ${keywords.join(", ")} | Verified Faculty Answer`
         : `Examiner Keywords: ${keywords.join(", ")} | Follow-up trap: "${followUpTrap}"`,
       difficulty: "medium",
@@ -265,6 +310,7 @@ export async function generateVivaCardsForQuestions(
       masteryStatus: "new",
       isMockInterview: true,
       keywords,
+      companyTag,
     });
   }
 
@@ -347,32 +393,121 @@ export function saveMockInterviewFlashcards(
 /**
  * Automatically purges any corrupted cards containing binary tokens or non-text glyphs.
  */
+/**
+ * Generates verified cards for a subject from the faculty seed database.
+ */
+export function getVerifiedCardsForSubject(subject: Subject): Flashcard[] {
+  const codePrefix = subject.code.slice(0, 4).toUpperCase();
+  let facultySeeds = FACULTY_DATA_BY_SUBJECT[codePrefix];
+
+  if (!facultySeeds) {
+    const nameLower = subject.name.toLowerCase();
+    if (nameLower.includes("cyber") || nameLower.includes("security")) {
+      facultySeeds = FACULTY_DATA_BY_SUBJECT["INFO"];
+    } else if (nameLower.includes("business") || nameLower.includes("intelligence") || nameLower.includes("analytics")) {
+      facultySeeds = FACULTY_DATA_BY_SUBJECT["BUSI"];
+    } else if (nameLower.includes("machine") || nameLower.includes("learning")) {
+      facultySeeds = FACULTY_DATA_BY_SUBJECT["MACH"];
+    } else if (nameLower.includes("automata") || nameLower.includes("compiler")) {
+      facultySeeds = FACULTY_DATA_BY_SUBJECT["AUTO"];
+    } else if (nameLower.includes("algorithm")) {
+      facultySeeds = FACULTY_DATA_BY_SUBJECT["ADVA"];
+    }
+  }
+
+  if (!facultySeeds) return [];
+
+  return facultySeeds.map((item, idx) => ({
+    id: `viva-${subject.id}-q${idx + 1}-${Date.now()}`,
+    subjectId: subject.id,
+    subjectName: subject.name,
+    subjectCode: subject.code,
+    subjectColor: subject.color,
+    unitNumber: 1,
+    unitTitle: "Mock Interview Shortlist",
+    question: item.question,
+    answer: formatAnswerForRevision(item.answer, item.question),
+    examTip: item.companyTag
+      ? `🏢 ${item.companyTag} Placement Shortlist | Keywords: ${item.keywords.join(", ")} | Verified Faculty Answer`
+      : `Keywords: ${item.keywords.join(", ")} | Verified Faculty Answer`,
+    difficulty: "medium",
+    deckType: "mock-interview",
+    masteryStatus: "new",
+    isMockInterview: true,
+    keywords: item.keywords,
+    companyTag: item.companyTag,
+  }));
+}
+
+/**
+ * Automatically purges any corrupted cards containing binary tokens or non-text glyphs,
+ * repairs the BUSI Q1/Q2 merge bug, and auto-seeds all configured subjects with 10 verified faculty cards.
+ */
 export function purgeCorruptedFlashcards(): Flashcard[] {
   if (typeof window === "undefined") return [];
 
   try {
+    const userSubjects = getUserSubjects();
     const stored = localStorage.getItem(FLASHCARDS_STORAGE_KEY);
-    if (!stored) return [];
-    const parsed: Flashcard[] = JSON.parse(stored);
-    let hasFormattingChanges = false;
+    let parsed: Flashcard[] = stored ? JSON.parse(stored) : [];
+    let hasChanges = false;
 
-    const cleaned = parsed
-      .filter((c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer))
-      .map((c) => {
-        const formatted = formatAnswerForRevision(c.answer, c.question);
-        if (formatted !== c.answer) {
-          hasFormattingChanges = true;
-          return { ...c, answer: formatted };
+    // Filter out binary corruption
+    let cleaned = parsed.filter(
+      (c) => !isCorruptedQuestion(c.question) && !isCorruptedQuestion(c.answer)
+    );
+
+    // Auto-heal Business Intelligence if it suffered the old Q1/Q2 merge bug (or has 9 cards instead of 10)
+    const busiSubject = userSubjects.find(
+      (s) => s.code.toUpperCase().includes("BUSI") || s.name.toLowerCase().includes("business")
+    );
+    const busiCards = cleaned.filter((c) => c.subjectCode.toUpperCase().includes("BUSI") || c.subjectName.toLowerCase().includes("business"));
+    const hasMergedBusiBug = busiCards.some(
+      (c) =>
+        c.question.includes("What are the major components of a BI architecture") &&
+        c.question.includes("Explain the difference between a data lake")
+    );
+
+    if (busiSubject && (hasMergedBusiBug || busiCards.length === 9 || busiCards.length === 0)) {
+      cleaned = cleaned.filter(
+        (c) => !c.subjectCode.toUpperCase().includes("BUSI") && !c.subjectName.toLowerCase().includes("business")
+      );
+      const seedBusi = getVerifiedCardsForSubject(busiSubject);
+      cleaned.push(...seedBusi);
+      hasChanges = true;
+    }
+
+    // Auto-seed any configured user subject that has 0 cards
+    for (const subj of userSubjects) {
+      const existingSubjCards = cleaned.filter(
+        (c) => c.subjectId === subj.id || c.subjectCode.toUpperCase() === subj.code.toUpperCase()
+      );
+      if (existingSubjCards.length === 0) {
+        const seedCards = getVerifiedCardsForSubject(subj);
+        if (seedCards.length > 0) {
+          cleaned.push(...seedCards);
+          hasChanges = true;
         }
-        return c;
-      });
+      }
+    }
 
-    if (cleaned.length !== parsed.length || hasFormattingChanges) {
+    // Format all answers with formatAnswerForRevision
+    cleaned = cleaned.map((c) => {
+      const formatted = formatAnswerForRevision(c.answer, c.question);
+      if (formatted !== c.answer) {
+        hasChanges = true;
+        return { ...c, answer: formatted };
+      }
+      return c;
+    });
+
+    if (cleaned.length !== parsed.length || hasChanges) {
       localStorage.setItem(FLASHCARDS_STORAGE_KEY, JSON.stringify(cleaned));
       window.dispatchEvent(new Event("exam_buddy_flashcards_updated"));
     }
     return cleaned;
-  } catch {
+  } catch (e) {
+    console.error("Failed to purge and sync flashcards:", e);
     return [];
   }
 }

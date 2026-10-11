@@ -89,6 +89,11 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               >
                 {card.subjectCode}
               </span>
+              {card.companyTag && (
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 flex items-center gap-1 shadow-sm">
+                  🏢 {card.companyTag}
+                </span>
+              )}
               {card.unitTitle && (
                 <span className="text-xs text-[#9B99B5] font-medium hidden sm:inline-block">
                   {card.unitTitle}
@@ -171,6 +176,11 @@ export function Flashcard3D({ card, onRate }: Flashcard3DProps) {
               >
                 {card.subjectCode}
               </span>
+              {card.companyTag && (
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                  🏢 {card.companyTag}
+                </span>
+              )}
               <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Answer & Model Proof
               </span>

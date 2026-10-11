@@ -158,6 +158,8 @@ export interface Flashcard {
   lastReviewed?: string;
   isMockInterview?: boolean;
   keywords?: string[];
+  companyTag?: string;
+  companyTags?: string[];
 }
 
 
