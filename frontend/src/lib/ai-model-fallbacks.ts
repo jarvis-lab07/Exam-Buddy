@@ -29,6 +29,22 @@ export function buildModelsToTry(
   return Array.from(new Set([requested, ...fallbacks].filter(Boolean) as string[]));
 }
 
-export function isModelUnavailableStatus(status: number): boolean {
-  return status === 400 || status === 404;
+export function isModelUnavailableStatus(status: number, errorMsg?: string): boolean {
+  if (status === 404) return true;
+  if (status === 400) {
+    if (errorMsg) {
+      const lower = errorMsg.toLowerCase();
+      if (
+        lower.includes("api key") ||
+        lower.includes("api_key") ||
+        lower.includes("permission") ||
+        lower.includes("unauthorized") ||
+        lower.includes("quota")
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }

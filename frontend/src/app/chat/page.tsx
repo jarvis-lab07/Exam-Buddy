@@ -430,6 +430,22 @@ function ChatContent() {
         }
         if (hasError) break;
       }
+
+      // Flush any lingering data in the buffer after stream completion
+      if (!hasError && buf.trim()) {
+        const raw = buf.replace(/^data:\s*/, "").trim();
+        if (raw && raw !== "[DONE]") {
+          try {
+            const json = JSON.parse(raw);
+            if (json.error) {
+              fullContent = `### ⚠️ Could Not Complete Request\n\n**${json.error}**\n\n#### 💡 Troubleshooting:\n- Add **multiple API keys** for the same provider to avoid rate limits\n- Switch to a different provider (Groq is ultra-fast and free)\n- If using Ollama, run \`ollama serve\` in your terminal`;
+              hasError = true;
+            } else if (json.delta) {
+              fullContent += json.delta;
+            }
+          } catch {}
+        }
+      }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") {
         // User stopped — keep what we have
@@ -441,15 +457,21 @@ function ChatContent() {
 
     const latencyMs = Date.now() - startTime;
     const modelName = `${AI_PROVIDERS[activeProvider]?.name || activeProvider}`;
+    const trimmedFinalContent = fullContent.trim();
+    const finalContent = trimmedFinalContent || (
+      hasError
+        ? "⚠️ An error occurred while communicating with the AI service. Please check your network or try another provider."
+        : "⚠️ No response was received from the AI provider. The model may be rate-limited or the API key quota exhausted. Please check your key in AI Manager or switch to Groq in the top header."
+    );
 
     setMessages((prev) =>
       prev.map((m) =>
         m.id === assistantId
           ? {
               ...m,
-              content: fullContent || (hasError ? "An error occurred." : "No response generated."),
+              content: finalContent,
               isStreaming: false,
-              isError: hasError,
+              isError: hasError || !trimmedFinalContent,
               model: modelName,
               latencyMs,
             }
