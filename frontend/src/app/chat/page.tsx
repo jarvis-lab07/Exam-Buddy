@@ -236,9 +236,71 @@ function renderMarkdown(text: string, onCopyCode?: (code: string) => void): Reac
   return nodes;
 }
 
+function formatMath(expr: string): string {
+  return expr
+    .replace(/\\mathbf\{([^}]+)\}/g, "$1")
+    .replace(/\\mathbb\{R\}\^([a-zA-Z0-9]+)/g, "ℝ^$1")
+    .replace(/\\mathbb\{R\}/g, "ℝ")
+    .replace(/\\mathbb\{([A-Z])\}/g, "$1")
+    .replace(/\\text\{([^}]+)\}/g, "$1")
+    .replace(/\\sigma/g, "σ")
+    .replace(/\\alpha/g, "α")
+    .replace(/\\beta/g, "β")
+    .replace(/\\gamma/g, "γ")
+    .replace(/\\delta/g, "δ")
+    .replace(/\\theta/g, "θ")
+    .replace(/\\eta/g, "η")
+    .replace(/\\lambda/g, "λ")
+    .replace(/\\mu/g, "μ")
+    .replace(/\\nabla/g, "∇")
+    .replace(/\\partial/g, "∂")
+    .replace(/\\sum/g, "∑")
+    .replace(/\\prod/g, "∏")
+    .replace(/\\infty/g, "∞")
+    .replace(/\\in/g, "∈")
+    .replace(/\\notin/g, "∉")
+    .replace(/\\le(q)?/g, "≤")
+    .replace(/\\ge(q)?/g, "≥")
+    .replace(/\\ne(q)?/g, "≠")
+    .replace(/\\approx/g, "≈")
+    .replace(/\\times/g, "×")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\leftarrow/g, "←")
+    .replace(/\\rightarrow/g, "→")
+    .replace(/\\to/g, "→")
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1 / $2)")
+    .replace(/\\hat\{([^}]+)\}/g, "$1̂")
+    .replace(/\\log/g, "log")
+    .replace(/\\sqrt\{([^}]+)\}/g, "√($1)")
+    .replace(/\\{1,2}/g, "")
+    .trim();
+}
+
 function renderInline(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  const parts = text.split(/(\$\$.*?\$\$|\$.*?\$|\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
   return parts.map((part, i) => {
+    if (part.startsWith("$$") && part.endsWith("$$") && part.length > 4) {
+      const math = formatMath(part.slice(2, -2));
+      return (
+        <span
+          key={i}
+          className="my-1.5 px-2 py-1 rounded-lg bg-violet-950/40 border border-violet-500/25 text-cyan-200 font-mono text-xs block text-center shadow-2xs"
+        >
+          {math}
+        </span>
+      );
+    }
+    if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
+      const math = formatMath(part.slice(1, -1));
+      return (
+        <span
+          key={i}
+          className="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-violet-500/15 border border-violet-500/25 text-cyan-300 font-mono text-[11px] font-medium align-baseline shadow-2xs"
+        >
+          {math}
+        </span>
+      );
+    }
     if (part.startsWith("***") && part.endsWith("***"))
       return <strong key={i} className="font-bold italic text-[var(--text-primary)]">{part.slice(3, -3)}</strong>;
     if (part.startsWith("**") && part.endsWith("**"))
@@ -350,7 +412,14 @@ function ChatContent() {
   }, [queryParam]);
 
   const scrollToBottom = useCallback((smooth = true) => {
-    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    }
   }, []);
 
   useEffect(() => {
@@ -574,7 +643,7 @@ function ChatContent() {
   const ScopeIcon = SCOPE_LABELS[activeScope].icon;
 
   return (
-    <div className="w-full h-[calc(100vh-4.5rem)] flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)]">
+    <div className="w-full h-[calc(100dvh-6.5rem)] sm:h-[calc(100dvh-7.5rem)] lg:h-[calc(100dvh-8.5rem)] flex flex-col rounded-2xl border border-[var(--border-card)] bg-[var(--bg-base)] overflow-hidden shadow-2xl relative">
       {/* ── 1. Slim, Modern Sticky Top Toolbar ── */}
       <header className="h-14 px-4 sm:px-6 border-b border-[var(--border-card)] bg-[var(--bg-surface)]/80 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 z-20">
         {/* Left: Brand & Model Identifier */}
@@ -709,7 +778,10 @@ function ChatContent() {
             {keyCount > 0 ? (
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             ) : (
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="hidden md:inline">Add Key</span>
+              </span>
             )}
           </button>
 
@@ -729,7 +801,7 @@ function ChatContent() {
       {/* ── 2. Comfortable, Expansive Chat Reading Canvas ── */}
       <div
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6"
+        className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 pb-44 space-y-6"
       >
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Welcome / Hero Starter State (Displayed before first query) */}
@@ -803,7 +875,7 @@ function ChatContent() {
                 </div>
 
                 {/* Message Body */}
-                <div className={`max-w-[88%] sm:max-w-[82%] space-y-1.5 ${isUser ? "text-right" : "text-left"}`}>
+                <div className="max-w-[88%] sm:max-w-[82%] space-y-1.5 text-left">
                   {/* Assistant Meta Header */}
                   {!isUser && (
                     <div className="flex items-center gap-2 text-[11px] text-slate-400 pl-1">
@@ -825,16 +897,16 @@ function ChatContent() {
 
                   {/* Message Bubble Content */}
                   <div
-                    className={`rounded-2xl p-4 text-sm leading-relaxed shadow-xs ${
+                    className={`rounded-2xl p-4 text-sm leading-relaxed shadow-xs text-left ${
                       isUser
-                        ? "bg-violet-600 text-white font-medium rounded-tr-xs"
+                        ? "bg-violet-600 text-white font-medium rounded-tr-xs shadow-md"
                         : m.isError
                         ? "bg-red-500/10 border border-red-500/30 text-slate-200 rounded-tl-xs"
                         : "bg-[var(--bg-card)] border border-[var(--border-card)] text-[var(--text-primary)] rounded-tl-xs"
                     }`}
                   >
                     {isUser ? (
-                      <p className="whitespace-pre-wrap">{m.content}</p>
+                      <p className="whitespace-pre-wrap text-left break-words">{m.content}</p>
                     ) : (
                       <div className="space-y-1">
                         {m.content ? renderMarkdown(m.content, (code) => copyMessage(`code-${Date.now()}`, code)) : null}
@@ -919,8 +991,8 @@ function ChatContent() {
       </div>
 
       {/* ── 3. Floating Modern Input Dock (ChatGPT / Claude Style) ── */}
-      <footer className="p-4 sm:px-6 pt-0 bg-transparent shrink-0">
-        <div className="max-w-3xl mx-auto space-y-2">
+      <footer className="absolute bottom-0 inset-x-0 p-3 sm:px-6 bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/95 to-transparent pt-8 pointer-events-none z-10">
+        <div className="max-w-3xl mx-auto space-y-2 pointer-events-auto">
           {/* Capsule Input Container */}
           <div className="rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] shadow-xl p-2.5 transition-all focus-within:border-violet-500/50 focus-within:ring-2 focus-within:ring-violet-500/10">
             {/* Active Mode Pills bar inside input */}

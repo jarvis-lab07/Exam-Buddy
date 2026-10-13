@@ -7,12 +7,17 @@ import {
   buildModelsToTry,
   isModelUnavailableStatus,
 } from "@/lib/ai-model-fallbacks";
+import { generateUniversalAcademicResponse } from "@/lib/universal-academic-engine";
 
 export const runtime = "edge";
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
+}
+
+function getLatestUserMessage(messages: ChatMessage[]): string {
+  return [...messages].reverse().find((m) => m.role === "user")?.content || "";
 }
 
 interface RequestBody {
@@ -116,8 +121,8 @@ async function streamGroq(
   }
 
   // Graceful fallback response if all Groq attempts fail
-  const userMsg = (messages.find((m) => m.role === "user")?.content || "");
-  const fallbackAnswer = generateIntelligentAcademicResponse(userMsg);
+  const userMsg = getLatestUserMessage(messages);
+  const fallbackAnswer = generateUniversalAcademicResponse(userMsg);
   controller.enqueue(sseChunk(fallbackAnswer));
 }
 
@@ -303,8 +308,8 @@ async function streamGemini(
   }
 
   // Graceful fallback response so the student is never blocked with an empty response
-  const userMsg = (messages.find((m) => m.role === "user")?.content || "");
-  const fallbackAnswer = generateIntelligentAcademicResponse(userMsg);
+  const userMsg = getLatestUserMessage(messages);
+  const fallbackAnswer = generateUniversalAcademicResponse(userMsg);
   controller.enqueue(sseChunk(fallbackAnswer));
 }
 
@@ -384,8 +389,8 @@ async function streamOpenAI(
     }
   }
 
-  const userMsg = (messages.find((m) => m.role === "user")?.content || "");
-  const fallbackAnswer = generateIntelligentAcademicResponse(userMsg);
+  const userMsg = getLatestUserMessage(messages);
+  const fallbackAnswer = generateUniversalAcademicResponse(userMsg);
   controller.enqueue(sseChunk(fallbackAnswer));
 }
 
@@ -456,65 +461,13 @@ async function streamAnthropic(
     }
   }
 
-  const userMsg = (messages.find((m) => m.role === "user")?.content || "");
-  const fallbackAnswer = generateIntelligentAcademicResponse(userMsg);
+  const userMsg = getLatestUserMessage(messages);
+  const fallbackAnswer = generateUniversalAcademicResponse(userMsg);
   controller.enqueue(sseChunk(fallbackAnswer));
 }
 
 function generateIntelligentAcademicResponse(query: string): string {
-  const q = query.toLowerCase();
-
-  if (q.includes("neural network") || q.includes("neural") || q.includes("deep learning") || q.includes("cnn") || q.includes("rnn")) {
-    return `### 🧠 Mastering Neural Networks & Real-World Industry Applications\n\n` +
-      `A **Neural Network** is a computational architecture inspired by the biological nervous system, designed to learn complex non-linear representations directly from raw data through interconnected nodes (neurons), weights, and activation functions.\n\n` +
-      `---\n\n` +
-      `### 1. 🏗️ Core Architectural Layers\n\n` +
-      `| Layer | Mathematical Role | Engineering Purpose |\n` +
-      `| :--- | :--- | :--- |\n` +
-      `| **Input Layer** | Accepts normalized input vector $\\mathbf{x} \\in \\mathbb{R}^d$ | Feeds feature vector into the network |\n` +
-      `| **Hidden Layers** | Computes $\\mathbf{a} = \\sigma(\\mathbf{W}\\mathbf{x} + \\mathbf{b})$ | Extracts hierarchical non-linear feature representations |\n` +
-      `| **Output Layer** | Computes probability distribution or regression value | Delivers classification logits (Softmax) or scalar predictions |\n\n` +
-      `---\n\n` +
-      `### 2. ⚡ The Learning Pipeline (Backpropagation & Gradient Descent)\n\n` +
-      `1. **Forward Propagation:** Inputs propagate forward through matrix multiplications and non-linear activations (ReLU, GELU, Sigmoid) to generate prediction $\\hat{y}$.\n` +
-      `2. **Loss Calculation:** Loss functions like Cross-Entropy ($L = -\\sum y \\log(\\hat{y})$) or MSE measure error magnitude.\n` +
-      `3. **Backward Propagation:** The Chain Rule of Calculus computes partial derivatives $\\frac{\\partial L}{\\partial \\mathbf{W}}$ for every parameter.\n` +
-      `4. **Weight Updates (Optimization):** Optimizers (Adam, SGD with Momentum) update weights: $\\mathbf{W} \\leftarrow \\mathbf{W} - \\eta \\nabla_{\\mathbf{W}} L$.\n\n` +
-      `---\n\n` +
-      `### 3. 🌐 Critical Real-World & Industry Use Cases\n\n` +
-      `* **Autonomous Vehicles & Computer Vision:** Convolutional Neural Networks (CNNs) & Vision Transformers (ViTs) perform real-time pedestrian detection, lane tracking, and LiDAR point cloud segmentation.\n` +
-      `* **Healthcare & Medical Diagnostics:** Deep neural nets analyze MRI, CT scans, and histopathology slides to detect oncological tumors with human-radiologist parity.\n` +
-      `* **Natural Language Processing & LLMs:** Transformer-based neural architectures power modern conversational agents, semantic code synthesis, and multilingual translation.\n` +
-      `* **Financial Fraud Detection:** High-throughput recurrent and graph neural nets evaluate millions of transactions per second to catch credit card anomalies in sub-10ms latency.\n` +
-      `* **Recommendation Systems:** Deep Learning Recommendation Models (DLRM) personalize video feeds, e-commerce rankings, and content streams for billions of active users.\n\n` +
-      `*💡 Note: Connected live AI provider was temporarily unavailable. Exam-Buddy automatically generated this verified academic breakdown!*`;
-  }
-
-  if (q.includes("facebook") || (q.includes("algorithm") && (q.includes("business") || q.includes("customer") || q.includes("reach")))) {
-    return `### 🌐 Algorithms Used by Facebook (Meta) for Business & Reach\n\n` +
-      `Facebook uses a suite of graph algorithms and deep learning models to connect business pages with their target audience:\n\n` +
-      `1. **Recommendation System (DLRM - Deep Learning Recommendation Model):**\n` +
-      `   - Uses **Neural Collaborative Filtering** to predict Click-Through-Rate (CTR) and conversion probability based on user engagement history.\n\n` +
-      `2. **Targeting & Lookalike Audience (FAISS & Vector Embeddings):**\n` +
-      `   - Uses **k-Nearest Neighbors (k-NN)** in high-dimensional vector space to find users with similar interests and demographic profiles to existing customers.\n\n` +
-      `3. **Social Graph Traversal (TAO & Louvain Community Detection):**\n` +
-      `   - Uses **Breadth-First Search (BFS)** and community detection to map relationships (friends, likes, shares) between users and business pages.\n\n` +
-      `4. **Ad Auction & Bidding (VCG / GSP Auctions):**\n` +
-      `   - Uses Generalized Second-Price (GSP) auctions to rank ads and allocate ad space to business pages efficiently.\n\n` +
-      `*💡 Note: Connected live AI provider was temporarily unavailable. Exam-Buddy automatically generated this verified academic breakdown!*`;
-  }
-
-  return `### 📚 Academic Concept Overview: ${query.slice(0, 70)}\n\n` +
-    `Here is a structured academic examination breakdown for **"${query.slice(0, 60)}"**:\n\n` +
-    `1. **Core Principle & Theoretical Framework:**\n` +
-    `   - This topic forms a foundational pillar in engineering and university curricula.\n` +
-    `   - Requires understanding input preconditions, operational invariants, and output states.\n\n` +
-    `2. **Real-World & Production Applications:**\n` +
-    `   - Deployed in scalable software systems, systems architecture, and distributed engineering workflows.\n\n` +
-    `3. **University Exam Strategy & Mark Distribution:**\n` +
-    `   - **5-Mark Question:** Provide concise definition, formal block diagram, and bulleted pros/cons.\n` +
-    `   - **10-Mark Question:** Include step-by-step mathematical proof, trace table, and sample code implementation.\n\n` +
-    `*💡 Note: Connected live AI provider was temporarily unavailable. Connect a free Groq or Gemini API key in the top header for live streaming responses!*`;
+  return generateUniversalAcademicResponse(query);
 }
 
 async function streamOllama(
@@ -591,15 +544,29 @@ async function streamOllama(
   }
 
   // Graceful fallback response so the user is never blocked by un-pulled Ollama models
-  const userMsg = (messages.find((m) => m.role === "user")?.content || "");
-  const fallbackAnswer = generateIntelligentAcademicResponse(userMsg);
+  const userMsg = getLatestUserMessage(messages);
+  const fallbackAnswer = generateUniversalAcademicResponse(userMsg);
   controller.enqueue(sseChunk(fallbackAnswer));
 }
 
 export async function POST(req: NextRequest) {
   const body: any = await req.json();
   const { provider, apiKeys = [], apiKey, model, messages, ollamaEndpoint, ollamaModel } = body;
-  const keysToUse: string[] = Array.isArray(apiKeys) && apiKeys.length > 0 ? apiKeys : apiKey ? [apiKey] : [];
+  const keysToUse: string[] = Array.isArray(apiKeys) && apiKeys.length > 0 ? [...apiKeys] : apiKey ? [apiKey] : [];
+
+  // Auto-inject server environment keys if client has not configured any keys
+  if (keysToUse.length === 0) {
+    if (provider === "gemini") {
+      const serverKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (serverKey) keysToUse.push(serverKey.trim());
+    } else if (provider === "groq") {
+      const serverKey = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
+      if (serverKey) keysToUse.push(serverKey.trim());
+    } else if (provider === "openai") {
+      const serverKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+      if (serverKey) keysToUse.push(serverKey.trim());
+    }
+  }
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
