@@ -1,29 +1,67 @@
 -- ====================================================================
 -- Exam-Buddy Master Supabase PostgreSQL Schema
--- Includes vector extension, authentication profile sync, RLS policies,
--- spaced repetition tracking, RAG chunking, and campus cohorts.
+-- Includes pgvector extension, storage bucket, RLS policies,
+-- authentication profile sync, spaced repetition tracking, RAG chunking,
+-- classroom exam sync, and campus cohorts.
 -- ====================================================================
 
 -- 1. Enable Vector Extension for RAG
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. Profiles Table (Extends Supabase Auth users)
+-- 2. Storage Bucket for Study Documents (PDFs, Slides, Notes)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('study-documents', 'study-documents', true) 
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Storage RLS Policies
+DO $$
+BEGIN
+  -- Allow public read of study-documents
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read of study-documents'
+  ) THEN
+    CREATE POLICY "Allow public read of study-documents" ON storage.objects
+      FOR SELECT USING (bucket_id = 'study-documents');
+  END IF;
+
+  -- Allow uploads to study-documents
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Allow uploads to study-documents'
+  ) THEN
+    CREATE POLICY "Allow uploads to study-documents" ON storage.objects
+      FOR INSERT WITH CHECK (bucket_id = 'study-documents');
+  END IF;
+
+  -- Allow delete of study-documents
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Allow delete study-documents'
+  ) THEN
+    CREATE POLICY "Allow delete study-documents" ON storage.objects
+      FOR DELETE USING (bucket_id = 'study-documents');
+  END IF;
+END $$;
+
+-- 3. Profiles Table (Extends Supabase Auth users)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
   handle TEXT UNIQUE,
   avatar_url TEXT,
-  college_name TEXT,
-  degree TEXT,
-  department TEXT,
-  year_or_semester TEXT,
+  college_name TEXT DEFAULT 'VJTI Mumbai',
+  degree TEXT DEFAULT 'B.Tech',
+  department TEXT DEFAULT 'Computer Engineering',
+  branch TEXT DEFAULT 'Computer Engineering',
+  year_or_semester TEXT DEFAULT 'Semester 5',
   daily_goal_minutes INT DEFAULT 60,
+  study_streak INT DEFAULT 0,
   streak_count INT DEFAULT 0,
+  total_study_minutes INT DEFAULT 0,
+  quiz_accuracy INT DEFAULT 85,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2b. User Login History & Audit Table
+-- 3b. User Login History & Audit Table
 CREATE TABLE IF NOT EXISTS public.user_logins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -62,13 +100,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Re-create trigger for auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT OR UPDATE ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 3. Campus Cohorts
+-- 4. Campus Cohorts Table
 CREATE TABLE IF NOT EXISTS public.campus_cohorts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   college_name TEXT NOT NULL,
@@ -80,20 +117,20 @@ CREATE TABLE IF NOT EXISTS public.campus_cohorts (
   UNIQUE(college_name, department, degree, year_or_semester)
 );
 
--- 4. Subjects
+-- 5. Subjects Table
 CREATE TABLE IF NOT EXISTS public.subjects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   code TEXT NOT NULL,
-  degree TEXT NOT NULL,
-  term TEXT NOT NULL,
-  color TEXT DEFAULT '#3b82f6',
+  degree TEXT NOT NULL DEFAULT 'Engineering',
+  term TEXT NOT NULL DEFAULT 'Semester 5',
+  color TEXT DEFAULT '#8b5cf6',
   exam_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Units
+-- 6. Units Table
 CREATE TABLE IF NOT EXISTS public.units (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
@@ -104,28 +141,30 @@ CREATE TABLE IF NOT EXISTS public.units (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. Documents & Note Ingestion
+-- 7. Documents & Note Ingestion Table
 CREATE TABLE IF NOT EXISTS public.documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  subject_id UUID REFERENCES public.subjects(id) ON DELETE CASCADE,
-  unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
+  id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id TEXT,
+  unit_id TEXT,
   file_name TEXT NOT NULL,
-  file_url TEXT NOT NULL,
-  file_size BIGINT,
-  file_type TEXT,
-  ocr_status TEXT DEFAULT 'completed',
+  file_url TEXT,
+  file_size TEXT,
+  file_type TEXT DEFAULT 'pdf',
+  category TEXT DEFAULT 'Lecture Notes',
+  chunk_count INT DEFAULT 0,
   uploaded_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. Document Chunks & Embeddings (RAG)
+-- 8. Document Chunks & High-Dimensional Embeddings (pgvector RAG)
 CREATE TABLE IF NOT EXISTS public.document_chunks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  document_id UUID NOT NULL REFERENCES public.documents(id) ON DELETE CASCADE,
-  subject_id UUID REFERENCES public.subjects(id) ON DELETE CASCADE,
-  unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
+  document_id TEXT NOT NULL,
+  subject_id TEXT,
+  unit_id TEXT,
   chunk_index INT NOT NULL,
   content TEXT NOT NULL,
+  token_count INT DEFAULT 0,
   embedding vector(1536),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -136,21 +175,39 @@ ON public.document_chunks
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 
--- 8. Flashcard Decks
-CREATE TABLE IF NOT EXISTS public.flashcard_decks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  subject_id UUID REFERENCES public.subjects(id) ON DELETE SET NULL,
-  unit_id UUID REFERENCES public.units(id) ON DELETE SET NULL,
+-- 9. Classroom Exam Timetable Sync Table
+CREATE TABLE IF NOT EXISTS public.classroom_exams (
+  id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  card_count INT DEFAULT 0,
+  subject_code TEXT NOT NULL,
+  subject_name TEXT NOT NULL,
+  exam_date TEXT NOT NULL,
+  room TEXT DEFAULT 'Main Exam Hall',
+  cohort TEXT DEFAULT 'Computer Engineering (B.Tech - Sem 5)',
+  units_covered TEXT DEFAULT 'Units 1 to 5',
+  added_by TEXT DEFAULT 'Batch Student',
+  synced_count INT DEFAULT 1,
+  total_marks INT DEFAULT 50,
+  exam_type TEXT DEFAULT 'Theory',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. Flashcards (SM-2 Spaced Repetition)
+-- 10. Flashcard Decks Table
+CREATE TABLE IF NOT EXISTS public.flashcard_decks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id TEXT,
+  unit_id TEXT,
+  title TEXT NOT NULL,
+  card_count INT DEFAULT 0,
+  tag TEXT DEFAULT 'General',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. Flashcards (SM-2 Spaced Repetition) Table
 CREATE TABLE IF NOT EXISTS public.flashcards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  deck_id UUID NOT NULL REFERENCES public.flashcard_decks(id) ON DELETE CASCADE,
+  deck_id UUID REFERENCES public.flashcard_decks(id) ON DELETE CASCADE,
   front TEXT NOT NULL,
   back TEXT NOT NULL,
   explanation TEXT,
@@ -161,22 +218,22 @@ CREATE TABLE IF NOT EXISTS public.flashcards (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 10. Quizzes & Quiz Questions
+-- 12. Quizzes Table
 CREATE TABLE IF NOT EXISTS public.quizzes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  subject_id UUID REFERENCES public.subjects(id) ON DELETE SET NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id TEXT,
   title TEXT NOT NULL,
   score INT DEFAULT 0,
   total_questions INT DEFAULT 0,
   completed_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 11. Mistake Notebook (Error Log)
+-- 13. Mistake Notebook (Error Log) Table
 CREATE TABLE IF NOT EXISTS public.mistake_notebook (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  subject_id UUID REFERENCES public.subjects(id) ON DELETE SET NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject_id TEXT,
   question TEXT NOT NULL,
   user_wrong_answer TEXT NOT NULL,
   correct_answer TEXT NOT NULL,
@@ -185,61 +242,65 @@ CREATE TABLE IF NOT EXISTS public.mistake_notebook (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 12. Study Focus Logs
+-- 14. Study Focus Logs Table
 CREATE TABLE IF NOT EXISTS public.study_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   duration_minutes INT NOT NULL,
   session_type TEXT DEFAULT 'pomodoro',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ====================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- RAG VECTOR SIMILARITY SEARCH FUNCTIONS
 -- ====================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.flashcard_decks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.flashcards ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.mistake_notebook ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.study_logs ENABLE ROW LEVEL SECURITY;
 
--- Profiles: Users can view & edit their own profile
-CREATE POLICY "Users can manage their own profile" ON public.profiles
-  FOR ALL USING (auth.uid() = id);
-
--- Subjects: Users manage their subjects
-CREATE POLICY "Users manage their subjects" ON public.subjects
-  FOR ALL USING (auth.uid() = user_id);
-
--- Documents: Users manage their uploaded documents
-CREATE POLICY "Users manage their documents" ON public.documents
-  FOR ALL USING (auth.uid() = user_id);
-
--- Flashcards & Decks: Users manage their decks
-CREATE POLICY "Users manage their decks" ON public.flashcard_decks
-  FOR ALL USING (auth.uid() = user_id);
-
--- Study Logs: Users manage their study logs
-CREATE POLICY "Users manage their study logs" ON public.study_logs
-  FOR ALL USING (auth.uid() = user_id);
-
--- ====================================================================
--- RAG Vector Search Function
--- ====================================================================
-CREATE OR REPLACE FUNCTION match_documents(
+-- 1. match_document_sections (invoked by frontend rag-service.ts)
+CREATE OR REPLACE FUNCTION match_document_sections(
   query_embedding vector(1536),
-  match_threshold float,
-  match_count int,
-  filter_subject_id UUID DEFAULT NULL
+  match_threshold float DEFAULT 0.2,
+  match_count int DEFAULT 5,
+  filter_subject_id TEXT DEFAULT NULL,
+  filter_unit_id TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
-  document_id UUID,
+  document_id TEXT,
+  content TEXT,
+  similarity float,
+  subject_id TEXT,
+  unit_id TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    document_chunks.id,
+    document_chunks.document_id,
+    document_chunks.content,
+    1 - (document_chunks.embedding <=> query_embedding) AS similarity,
+    document_chunks.subject_id,
+    document_chunks.unit_id
+  FROM document_chunks
+  WHERE (1 - (document_chunks.embedding <=> query_embedding)) > match_threshold
+    AND (filter_subject_id IS NULL OR document_chunks.subject_id = filter_subject_id)
+    AND (filter_unit_id IS NULL OR document_chunks.unit_id = filter_unit_id)
+  ORDER BY document_chunks.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+-- 2. match_documents (classic function compatibility)
+CREATE OR REPLACE FUNCTION match_documents(
+  query_embedding vector(1536),
+  match_threshold float DEFAULT 0.2,
+  match_count int DEFAULT 5,
+  filter_subject_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  document_id TEXT,
   content TEXT,
   similarity float
 )
@@ -253,9 +314,59 @@ BEGIN
     document_chunks.content,
     1 - (document_chunks.embedding <=> query_embedding) AS similarity
   FROM document_chunks
-  WHERE 1 - (document_chunks.embedding <=> query_embedding) > match_threshold
+  WHERE (1 - (document_chunks.embedding <=> query_embedding)) > match_threshold
     AND (filter_subject_id IS NULL OR document_chunks.subject_id = filter_subject_id)
   ORDER BY document_chunks.embedding <=> query_embedding
   LIMIT match_count;
 END;
 $$;
+
+-- ====================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ====================================================================
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.classroom_exams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.flashcard_decks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.flashcards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mistake_notebook ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.study_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.campus_cohorts ENABLE ROW LEVEL SECURITY;
+
+-- Profiles: Public read (for leaderboard/cohorts), user can update own profile
+CREATE POLICY "Public profiles can be viewed by all" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Subjects: Public subjects readable by all, users can manage their own
+CREATE POLICY "Subjects are viewable by all" ON public.subjects FOR SELECT USING (true);
+CREATE POLICY "Users can manage own subjects" ON public.subjects FOR ALL USING (auth.uid() = user_id OR user_id IS NULL);
+
+-- Units: Viewable by all
+CREATE POLICY "Units are viewable by all" ON public.units FOR SELECT USING (true);
+
+-- Documents & Document Chunks: Viewable for RAG, manageable by owner or anon
+CREATE POLICY "Documents viewable by all" ON public.documents FOR SELECT USING (true);
+CREATE POLICY "Users can insert documents" ON public.documents FOR INSERT WITH CHECK (true);
+CREATE POLICY "Document chunks viewable by all" ON public.document_chunks FOR SELECT USING (true);
+CREATE POLICY "Users can insert document chunks" ON public.document_chunks FOR INSERT WITH CHECK (true);
+
+-- Classroom Exams: Shared across campus cohorts
+CREATE POLICY "Classroom exams viewable by all" ON public.classroom_exams FOR SELECT USING (true);
+CREATE POLICY "Classroom exams manageable by all" ON public.classroom_exams FOR ALL USING (true);
+
+-- Flashcards & Decks
+CREATE POLICY "Decks viewable by all" ON public.flashcard_decks FOR SELECT USING (true);
+CREATE POLICY "Users manage own decks" ON public.flashcard_decks FOR ALL USING (auth.uid() = user_id OR user_id IS NULL);
+CREATE POLICY "Flashcards viewable by all" ON public.flashcards FOR SELECT USING (true);
+CREATE POLICY "Users manage own flashcards" ON public.flashcards FOR ALL USING (true);
+
+-- Study Logs: Users manage their study logs
+CREATE POLICY "Users manage own study logs" ON public.study_logs FOR ALL USING (auth.uid() = user_id OR user_id IS NULL);
+CREATE POLICY "Study logs readable by all" ON public.study_logs FOR SELECT USING (true);
+
+-- Mistake Notebook: Personal error logs
+CREATE POLICY "Users manage own mistake notebook" ON public.mistake_notebook FOR ALL USING (auth.uid() = user_id OR user_id IS NULL);
