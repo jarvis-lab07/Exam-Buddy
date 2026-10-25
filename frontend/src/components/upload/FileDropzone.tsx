@@ -366,7 +366,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
   };
 
   return (
-    <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] space-y-6">
+    <div className="glass-card p-6 sm:p-7 rounded-2xl border border-[var(--border-card)] space-y-6">
       {/* Storage Mode BYOS Selector */}
       <div className="p-3.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-indigo-500/10 border border-emerald-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -374,26 +374,26 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             <HardDrive className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
               Storage Engine
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
                 100% $0 Cost Architecture
               </span>
             </h4>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[var(--text-muted)]">
               Save files to your personal Google Drive (15 GB Free) or Supabase Cloud Bucket
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1 bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--border-card)]">
           <button
             type="button"
             onClick={() => setStorageMode("gdrive_byos")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
               storageMode === "gdrive_byos"
                 ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             <HardDrive className="w-3.5 h-3.5" />
@@ -405,7 +405,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
               storageMode === "supabase_cloud"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                : "text-slate-400 hover:text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
             <Cloud className="w-3.5 h-3.5" />
@@ -441,11 +441,11 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       )}
 
       {/* Subject & Category Target Controls */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-white/[0.06]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2 border-b border-[var(--border-card)]">
         {/* Subject Selector */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
               Target Subject
             </label>
@@ -462,7 +462,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             value={selectedSubjectId}
             onChange={(e) => setSelectedSubjectId(e.target.value)}
             disabled={stage !== "idle"}
-            className="w-full h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-cyan-500/50"
+            className="w-full h-10 px-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500/50"
           >
             {subjects.length > 0 ? (
               subjects.map((s) => (
@@ -478,7 +478,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
 
         {/* Category Selector */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+          <label className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5 text-cyan-400" />
             Document Type / Classification
           </label>
@@ -492,7 +492,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                   selectedCategory === cat
                     ? "bg-cyan-600 text-white border border-cyan-500/40 shadow-sm"
-                    : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
+                    : "bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-card)]"
                 }`}
               >
                 {cat}
@@ -503,14 +503,14 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
       </div>
 
       {/* Input Mode Switcher (Upload File vs Direct Paste) */}
-      <div className="flex items-center gap-2 border-b border-white/[0.06] pb-2">
+      <div className="flex items-center gap-2 border-b border-[var(--border-card)] pb-2">
         <button
           type="button"
           onClick={() => setUploadTab("file")}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
             uploadTab === "file"
-              ? "bg-white/[0.08] text-white border border-white/[0.12]"
-              : "text-slate-400 hover:text-white"
+              ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-card)]"
+              : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           }`}
         >
           <UploadCloud className="w-3.5 h-3.5" />
@@ -523,7 +523,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
           className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
             uploadTab === "paste"
               ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-              : "text-slate-400 hover:text-white"
+              : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -533,13 +533,13 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
 
       {/* Main Drag & Drop Zone or Direct Paste Zone */}
       {uploadTab === "paste" ? (
-        <div className="glass-card p-5 rounded-2xl border border-white/[0.08] bg-black/25 space-y-4">
+        <div className="glass-card p-5 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] space-y-4">
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+            <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-cyan-400" />
               Paste Shortlist Questions for {selectedSubject.name}
             </h4>
-            <p className="text-xs text-[#9B99B5]">
+            <p className="text-xs text-[var(--text-muted)]">
               Paste the 10 questions given by your teacher (one per line, or numbered Q1, Q2...). We will instantly structure viva answers, keywords, and follow-up traps into flashcards.
             </p>
           </div>
@@ -549,11 +549,11 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
             onChange={(e) => setPastedQuestionsText(e.target.value)}
             placeholder={`1. What is the fundamental invariant of...\n2. Explain the runtime complexity and boundary cases...\n3. Differentiate between approach A and approach B...`}
             rows={7}
-            className="w-full p-3.5 rounded-xl bg-black/50 border border-white/[0.1] text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/60 font-mono resize-y"
+            className="w-full p-3.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-cyan-500/60 font-mono resize-y"
           />
 
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-[var(--text-muted)] font-mono">
               Detected ~{parseQuestionsFromRawText(pastedQuestionsText).length} question(s)
             </span>
 
@@ -586,7 +586,7 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
           className={`p-10 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center space-y-4 cursor-pointer transition-all ${
             isDragging
               ? "border-violet-500 bg-violet-600/10"
-              : "border-white/[0.12] hover:border-violet-500/50 hover:bg-white/[0.02]"
+              : "border-[var(--border-card)] hover:border-violet-500/50 hover:bg-[var(--bg-elevated)]"
           }`}
         >
           <input
@@ -602,15 +602,15 @@ export function FileDropzone({ onFileUploaded }: FileDropzoneProps) {
           </div>
 
           <div className="space-y-1.5 max-w-sm">
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">
               Drag & drop course materials here, or <span className="text-violet-400 underline">browse</span>
             </p>
-            <p className="text-xs text-slate-400">
-              Supports <span className="text-slate-300 font-mono">PDF, PPTX, DOCX, TXT</span> up to 50MB
+            <p className="text-xs text-[var(--text-muted)]">
+              Supports <span className="text-[var(--text-secondary)] font-mono">PDF, PPTX, DOCX, TXT</span> up to 50MB
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-slate-500 bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/[0.05]">
+          <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] bg-[var(--input-bg)] px-3 py-1.5 rounded-full border border-[var(--border-card)]">
             <Cpu className="w-3.5 h-3.5 text-cyan-400" />
             <span>Automatic OCR + 768-dim pgvector indexing</span>
           </div>

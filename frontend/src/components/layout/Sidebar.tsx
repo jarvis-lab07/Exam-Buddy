@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Brain,
   Play,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_USER } from "@/lib/mock-data";
@@ -70,6 +71,13 @@ const navItems = [
     icon: Layers,
     badge: "12 New",
     badgeClass: "bg-violet-500/15 text-violet-300 border-violet-500/25",
+  },
+  {
+    name: "Exam Simulator",
+    href: "/exam",
+    icon: Trophy,
+    badge: "Timed Quiz",
+    badgeClass: "bg-rose-500/15 text-rose-300 border-rose-500/25",
   },
   {
     name: "AI Tutor Chat",

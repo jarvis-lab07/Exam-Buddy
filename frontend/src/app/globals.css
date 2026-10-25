@@ -207,6 +207,26 @@ p, span, li, label { line-height: 1.6; }
   border-color: var(--border-card);
 }
 
+/* Light Theme: Card Headings & Dark Background High-Contrast Safeguards */
+[data-theme="light"] .card h1,
+[data-theme="light"] .card h2,
+[data-theme="light"] .card h3,
+[data-theme="light"] .card h4,
+[data-theme="light"] .glass-card h1,
+[data-theme="light"] .glass-card h2,
+[data-theme="light"] .glass-card h3,
+[data-theme="light"] .glass-card h4 {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] [class*="bg-[#141624]"],
+[data-theme="light"] [class*="bg-[#121320]"],
+[data-theme="light"] [class*="bg-[#16172B]"],
+[data-theme="light"] [class*="bg-[#14172f]"] {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+}
+
 /* 3. NATURE THEME RULE */
 [data-theme="nature"],
 [data-theme="nature"] body {

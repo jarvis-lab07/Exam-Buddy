@@ -24,6 +24,8 @@ import {
   Award,
   Bot,
 } from "lucide-react";
+import { PyqFrequencyModal } from "./PyqFrequencyModal";
+import { ExamAnswerStructurerModal } from "./ExamAnswerStructurerModal";
 
 interface SubjectCardProps {
   subject: Subject;
@@ -47,6 +49,8 @@ export function SubjectCard({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isPyqOpen, setIsPyqOpen] = useState(false);
+  const [isStructurerOpen, setIsStructurerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
@@ -314,6 +318,28 @@ export function SubjectCard({
 
         {/* Card Footer Actions */}
         <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
+          {/* PYQ Frequency Radar Button */}
+          <button
+            type="button"
+            onClick={() => setIsPyqOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+            title="5-Year PYQ Frequency Radar & Recurrence Breakdown"
+          >
+            <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
+            <span>PYQ Radar</span>
+          </button>
+
+          {/* 5/10-Mark Answer Structurer & Formula Sheet Button */}
+          <button
+            type="button"
+            onClick={() => setIsStructurerOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+            title="University 5/10-Mark Structured Answers & Unit Formula Sheet"
+          >
+            <Award className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Answer Structurer</span>
+          </button>
+
           {/* Toggle Syllabus Units Accordion */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -373,6 +399,23 @@ export function SubjectCard({
           </div>
         </div>
       )}
+
+      {/* 5-Year PYQ Radar Modal */}
+      <PyqFrequencyModal
+        isOpen={isPyqOpen}
+        onClose={() => setIsPyqOpen(false)}
+        subjectCode={subject.code}
+        subjectTitle={subject.title || subject.name}
+      />
+
+      {/* 5/10-Mark Answer Structurer & Formula Sheet Modal */}
+      <ExamAnswerStructurerModal
+        isOpen={isStructurerOpen}
+        onClose={() => setIsStructurerOpen(false)}
+        subjectTitle={subject.title || subject.name}
+        unitTitle={units[0]?.title || "Unit 1: Core Fundamentals"}
+        topicTitle={units[0]?.topics?.[0] || `${subject.title || subject.name} Key Concept`}
+      />
     </div>
   );
 }

@@ -16,7 +16,9 @@ import {
   Trash2,
   GripVertical,
   Check,
+  Award,
 } from "lucide-react";
+import { ExamAnswerStructurerModal } from "./ExamAnswerStructurerModal";
 
 interface UnitListItemProps {
   unit: Unit;
@@ -35,6 +37,7 @@ export function UnitListItem({
 }: UnitListItemProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [isStructurerOpen, setIsStructurerOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -212,6 +215,17 @@ export function UnitListItem({
 
         {/* Quick Launch Action Buttons */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsStructurerOpen(true)}
+            className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs font-medium flex items-center gap-1.5 transition-all"
+            title="Format 5/10-Mark University Answer & Formula Sheet"
+          >
+            <Award className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">5/10M Answer</span>
+            <span className="sm:hidden">5/10M</span>
+          </button>
+
           <Link
             href={`/chat?subject=${subjectId}&unit=${unit.unitNumber}`}
             className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-medium flex items-center gap-1.5 transition-all"
@@ -237,6 +251,15 @@ export function UnitListItem({
           </Link>
         </div>
       </div>
+
+      {/* 5/10-Mark Answer Structurer Modal */}
+      <ExamAnswerStructurerModal
+        isOpen={isStructurerOpen}
+        onClose={() => setIsStructurerOpen(false)}
+        subjectTitle={subjectId}
+        unitTitle={`Unit ${unit.unitNumber}: ${unit.title}`}
+        topicTitle={unit.topics?.[0] || unit.title}
+      />
     </div>
   );
 }

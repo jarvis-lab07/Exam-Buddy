@@ -63,19 +63,19 @@ export default function UploadPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Banner & Storage Gauge */}
-      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] border-t-2 border-cyan-500/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-[var(--border-card)] border-t-2 border-cyan-500/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
           <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 shrink-0">
             <UploadCloud className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2.5">
               Upload & Vectorization Center
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
                 pgvector RAG
               </span>
             </h1>
-            <p className="text-sm text-[#9B99B5] max-w-xl">
+            <p className="text-sm text-[var(--text-muted)] max-w-xl">
               Ingest lecture slides, handwritten notes, and question banks. Exam-Buddy automatically extracts text, builds 768-dimensional embeddings, and routes them to your AI Tutor.
             </p>
           </div>
@@ -92,13 +92,13 @@ export default function UploadPage() {
         </div>
 
         {/* Live Storage & Vectors Gauge */}
-        <div className="glass-card p-4 rounded-2xl border border-white/[0.08] bg-black/20 min-w-[260px] space-y-3">
+        <div className="glass-card p-4 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] min-w-[260px] space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400 flex items-center gap-1.5 font-medium">
+            <span className="text-[var(--text-muted)] flex items-center gap-1.5 font-medium">
               <HardDrive className="w-3.5 h-3.5 text-indigo-400" />
               Cloud Knowledge Storage
             </span>
-            <span className="text-white font-bold">
+            <span className="text-[var(--text-primary)] font-bold">
               {MOCK_USER.cloudStorageUsedGB} / {MOCK_USER.cloudStorageTotalGB} GB
             </span>
           </div>
@@ -113,7 +113,7 @@ export default function UploadPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-white/[0.05]">
+          <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] pt-1 border-t border-[var(--border-card)]">
             <span className="flex items-center gap-1">
               <Database className="w-3 h-3 text-emerald-400" />
               {totalVectors.toLocaleString()} vectors

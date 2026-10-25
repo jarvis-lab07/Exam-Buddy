@@ -38,6 +38,7 @@ import {
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { DailyGoalRing } from "@/components/focus/DailyGoalRing";
+import { CohortLeaderboard } from "@/components/cohorts/CohortLeaderboard";
 import { useAuth } from "@/contexts/AuthContext";
 import type { CalendarEvent } from "@/types";
 
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState(MOCK_TODAY_TASKS);
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   const [barsReady, setBarsReady] = useState(false);
+  const [dailyMinutes, setDailyMinutes] = useState(165);
 
   const studentName = useMemo(() => {
     if (user) {
@@ -78,6 +80,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const id = requestAnimationFrame(() => setBarsReady(true));
     return () => cancelAnimationFrame(id);
+  }, []);
+
+  // Sync daily minutes and tasks with Planner and Focus Hub
+  useEffect(() => {
+    try {
+      const storedMins = localStorage.getItem("exam_buddy_daily_minutes");
+      if (storedMins) {
+        setDailyMinutes(Number(storedMins));
+      }
+      const storedTasks = localStorage.getItem("exam_buddy_tasks");
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (e) {}
   }, []);
 
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -104,7 +120,7 @@ export default function DashboardPage() {
       let minutes = 0;
 
       if (isToday) {
-        minutes = 389; // Synced today's total logged minutes (6h 29m)
+        minutes = dailyMinutes; // Synced today's total logged minutes with Planner & Focus timer
       } else if (!isFuture) {
         minutes = d.defaultMins; // Historical logged past day
       } else {
@@ -113,7 +129,7 @@ export default function DashboardPage() {
 
       return { day: d.key, minutes, isToday, isFuture };
     });
-  }, []);
+  }, [dailyMinutes]);
 
   const weekHours = useMemo(
     () => weeklyStudyData.reduce((sum, d) => sum + d.minutes, 0) / 60,
@@ -123,9 +139,13 @@ export default function DashboardPage() {
   const urgentCountdown = countdown <= 14;
 
   const toggleTask = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
-    );
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      try {
+        localStorage.setItem("exam_buddy_tasks", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   const getMetricIcon = (id: string) => {
@@ -204,6 +224,13 @@ export default function DashboardPage() {
               Start Today&apos;s Session
             </Link>
             <Link
+              href="/exam"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/25 border border-rose-500/30 text-rose-300 font-semibold text-sm transition-colors"
+            >
+              <Trophy className="w-4 h-4 text-rose-400" />
+              Exam Simulator
+            </Link>
+            <Link
               href="/chat"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.03] hover:bg-black/[0.08] dark:hover:bg-white/[0.06] border border-black/[0.1] dark:border-white/[0.08] text-theme-primary font-semibold text-sm transition-colors"
             >
@@ -226,10 +253,10 @@ export default function DashboardPage() {
               Today's Goal
             </h3>
             <span className="text-[10px] font-mono text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25">
-              {(389 / 420 * 100).toFixed(0)}%
+              {Math.min(100, Math.round((dailyMinutes / 210) * 100))}%
             </span>
           </div>
-          <DailyGoalRing size="sm" minutesLoggedOverride={389} minutesTargetOverride={420} hideWrapperCard />
+          <DailyGoalRing size="sm" minutesLoggedOverride={dailyMinutes} minutesTargetOverride={210} hideWrapperCard />
         </div>
 
         {/* Card C — Mastered Topics */}
@@ -575,7 +602,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* 6. Recent Course Documents */}
+      {/* 6. Campus Cohort Leaderboard & Class Knowledge Pool */}
+      <section className="space-y-4">
+        <CohortLeaderboard />
+      </section>
+
+      {/* 7. Recent Course Documents */}
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-bold text-[var(--text-primary)]">Recent Course Documents</h2>

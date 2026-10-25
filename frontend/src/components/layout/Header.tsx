@@ -110,7 +110,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <button
             type="button"
             onClick={() => setIsExamSyncOpen(true)}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs font-bold transition-all"
+            className="hidden xs:flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs font-bold transition-all"
             title="Classroom Exam Sync & Batch Countdowns"
           >
             <CalendarCheck className="w-3.5 h-3.5 text-violet-400" />
@@ -135,8 +135,20 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* 3-Way Theme Switcher Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
+          {/* Mobile Theme Cycle Button */}
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "dark" ? "light" : theme === "light" ? "nature" : "dark")}
+            className="sm:hidden p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            title={`Current theme: ${theme}. Click to switch theme`}
+          >
+            {theme === "dark" && <Moon className="w-4 h-4 text-emerald-400" />}
+            {theme === "light" && <Sun className="w-4 h-4 text-amber-500" />}
+            {theme === "nature" && <Trees className="w-4 h-4 text-emerald-400" />}
+          </button>
+
+          {/* Desktop 3-Way Theme Switcher Toggle */}
+          <div className="hidden sm:flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
             <button
               onClick={() => setTheme("dark")}
               className={cn(

@@ -42,17 +42,20 @@ import { Trash2 } from "lucide-react";
 function FlashcardsContent() {
   const searchParams = useSearchParams();
   const initialSubjectParam = searchParams.get("filterSubject") || "";
+  const initialDeckParam = searchParams.get("filterDeck") || "";
 
   const [allCards, setAllCards] = useState<Flashcard[]>(MOCK_FLASHCARDS);
   const [userSubjects, setUserSubjects] = useState<Subject[]>([]);
-  const [appMode, setAppMode] = useState<"mock-interview" | "standard">("mock-interview");
+  const [appMode, setAppMode] = useState<"mock-interview" | "standard">(
+    initialDeckParam ? "standard" : "mock-interview"
+  );
   
   // Mock Interview filters
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>(initialSubjectParam || "all-random");
   const [showUnmasteredOnly, setShowUnmasteredOnly] = useState<boolean>(false);
 
   // Standard deck filter
-  const [selectedDeckId, setSelectedDeckId] = useState<string>("all");
+  const [selectedDeckId, setSelectedDeckId] = useState<string>(initialDeckParam || "all");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -406,6 +409,21 @@ function FlashcardsContent() {
               >
                 <Shuffle className="w-3.5 h-3.5" />
                 <span>Random Across All Subjects ({masterySummary.totalQuestions})</span>
+              </button>
+
+              {/* Mistake Notebook Quick Filter Pill */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAppMode("standard");
+                  setSelectedDeckId("deck-mistakes");
+                  setCurrentIndex(0);
+                  setIsSessionComplete(false);
+                }}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30"
+              >
+                <Flame className="w-3.5 h-3.5 text-rose-400 fill-rose-400/30" />
+                <span>Mistake Notebook 🔥</span>
               </button>
 
               {/* Individual Subject Filter Pills */}
