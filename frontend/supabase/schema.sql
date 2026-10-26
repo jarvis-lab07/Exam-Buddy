@@ -175,3 +175,33 @@ BEGIN
   LIMIT match_count;
 END;
 $$;
+
+-- 11. Google Drive Integration (BYOS) Connections
+CREATE TABLE IF NOT EXISTS public.user_drive_connections (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  google_user_email TEXT,
+  google_account_id TEXT,
+  scope TEXT DEFAULT 'https://www.googleapis.com/auth/drive.file',
+  access_token_encrypted TEXT,
+  refresh_token_encrypted TEXT,
+  token_expiry TIMESTAMPTZ,
+  is_connected BOOLEAN DEFAULT TRUE,
+  last_synced_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Row-Level Security for Google Drive connections (User isolation)
+ALTER TABLE public.user_drive_connections ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own drive connection" 
+  ON public.user_drive_connections FOR ALL 
+  USING (auth.uid() = user_id);
+
+-- 12. Add Google Drive source tracking to documents table if missing
+ALTER TABLE public.documents 
+  ADD COLUMN IF NOT EXISTS source_type TEXT DEFAULT 'local_upload' CHECK (source_type IN ('local_upload', 'google_drive')),
+  ADD COLUMN IF NOT EXISTS drive_file_id TEXT,
+  ADD COLUMN IF NOT EXISTS drive_web_link TEXT;
+

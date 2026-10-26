@@ -61,6 +61,7 @@ export interface UserProfile {
   email?: string;
   username: string;
   avatarUrl?: string;
+  avatar?: string;
   college: string;
   branch: string;
   department?: string;

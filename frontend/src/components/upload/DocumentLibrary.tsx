@@ -38,11 +38,16 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
   ];
 
   const filteredDocs = documents.filter((doc) => {
+    const title = (doc.title || (doc as any).name || "").toLowerCase();
+    const subjectName = (doc.subjectName || (doc as any).subject || "").toLowerCase();
+    const subjectCode = (doc.subjectCode || "").toLowerCase();
+    const topics = Array.isArray(doc.keyTopics) ? doc.keyTopics : [];
+
     const matchesSearch =
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.keyTopics.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      title.includes(searchQuery.toLowerCase()) ||
+      subjectName.includes(searchQuery.toLowerCase()) ||
+      subjectCode.includes(searchQuery.toLowerCase()) ||
+      topics.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === "All" || doc.category === selectedCategory;
 

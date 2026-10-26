@@ -21,21 +21,63 @@ export default function UploadPage() {
   const [documents, setDocuments] = useState<DocumentUploadItem[]>(MOCK_DOCUMENT_ITEMS);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
 
-  // Load from localStorage if available
+  // Load and sanitize from localStorage if available
   useEffect(() => {
     try {
       const stored = localStorage.getItem("exam_buddy_documents");
       if (stored) {
-        setDocuments(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const sanitized: DocumentUploadItem[] = parsed.map((d: any) => ({
+            id: d.id || `doc-${Date.now()}`,
+            title: d.title || d.name || "Study Document",
+            subjectId: d.subjectId || "cs501",
+            subjectName: d.subjectName || d.subject || "General Knowledge",
+            subjectCode: d.subjectCode || "GK101",
+            subjectColor: d.subjectColor || "#3B82F6",
+            unitTitle: d.unitTitle || undefined,
+            fileType: d.fileType || "pdf",
+            fileSize: d.fileSize || d.size || "2.5 MB",
+            category: d.category || "Lecture Notes",
+            status: d.status === "completed" ? "ready" : (d.status || "ready"),
+            uploadDate: d.uploadDate || d.uploadedAt || "Recently",
+            pages: d.pages || 10,
+            vectorCount: d.vectorCount || 150,
+            summary: d.summary || "Imported study material.",
+            keyTopics: Array.isArray(d.keyTopics) ? d.keyTopics : ["Study Notes", "pgvector RAG"],
+            extractedQuestions: Array.isArray(d.extractedQuestions) ? d.extractedQuestions : [],
+          }));
+          setDocuments(sanitized);
+        }
       }
     } catch (e) {
       console.error(e);
     }
   }, []);
 
-  const handleFileUploaded = (item: DocumentUploadItem) => {
+  const handleFileUploaded = (item: any) => {
+    const sanitizedItem: DocumentUploadItem = {
+      id: item.id || `doc-${Date.now()}`,
+      title: item.title || item.name || "Imported Document",
+      subjectId: item.subjectId || "cs501",
+      subjectName: item.subjectName || item.subject || "General Knowledge",
+      subjectCode: item.subjectCode || "GK101",
+      subjectColor: item.subjectColor || "#3B82F6",
+      unitTitle: item.unitTitle || undefined,
+      fileType: item.fileType || (item.name?.endsWith(".docx") ? "doc" : "pdf"),
+      fileSize: item.fileSize || item.size || "3.2 MB",
+      category: item.category || "Lecture Notes",
+      status: item.status === "completed" ? "ready" : (item.status || "ready"),
+      uploadDate: item.uploadDate || item.uploadedAt || "Just now",
+      pages: item.pages || 14,
+      vectorCount: item.vectorCount || 210,
+      summary: item.summary || "Imported from personal Google Drive storage.",
+      keyTopics: Array.isArray(item.keyTopics) ? item.keyTopics : ["Google Drive Sync", "Cloud Notes", "pgvector RAG"],
+      extractedQuestions: Array.isArray(item.extractedQuestions) ? item.extractedQuestions : [],
+    };
+
     setDocuments((prev) => {
-      const updated = [item, ...prev];
+      const updated = [sanitizedItem, ...prev];
       try {
         localStorage.setItem("exam_buddy_documents", JSON.stringify(updated));
       } catch (e) {
@@ -136,26 +178,7 @@ export default function UploadPage() {
       <GoogleDrivePickerModal
         isOpen={isDriveModalOpen}
         onClose={() => setIsDriveModalOpen(false)}
-        onImportFiles={(importedNames) => {
-          const newDocItems: DocumentUploadItem[] = importedNames.map((name, i) => ({
-            id: `gdrive-${Date.now()}-${i}`,
-            title: name.replace(/\.[^/.]+$/, ""),
-            subjectId: "cs501",
-            subjectCode: "CS501",
-            subjectName: "Advanced Data Structures & Algorithms",
-            subjectColor: "#8B5CF6",
-            fileType: name.endsWith(".docx") ? "doc" : "pdf",
-            fileSize: "4.2 MB",
-            category: "Lecture Notes",
-            uploadDate: "Just now",
-            status: "ready" as const,
-            vectorCount: 250,
-            pages: 18,
-            summary: "Imported from personal Google Drive storage.",
-            keyTopics: ["Google Drive Sync", "Cloud Notes", "Syllabus Vector"],
-          }));
-          setDocuments((prev) => [...newDocItems, ...prev]);
-        }}
+        onFileUploaded={handleFileUploaded}
       />
     </div>
   );

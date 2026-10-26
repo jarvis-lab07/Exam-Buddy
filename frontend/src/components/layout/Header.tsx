@@ -247,8 +247,16 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               title={`Logged in as ${user.email}. Click to view & edit student profile or sign out.`}
               className="relative flex items-center gap-2 p-1 pr-2.5 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] hover:border-violet-500/40 transition-all group"
             >
-              <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40">
-                {user.email?.charAt(0).toUpperCase() || 'U'}
+              <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40 overflow-hidden">
+                {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                  <img
+                    src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                    alt={user.user_metadata?.full_name || 'User avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{user.email?.charAt(0).toUpperCase() || 'U'}</span>
+                )}
                 {isGoogleUser && (
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white flex items-center justify-center text-[8px] font-black text-blue-600 border border-slate-900 shadow-xs">
                     G
