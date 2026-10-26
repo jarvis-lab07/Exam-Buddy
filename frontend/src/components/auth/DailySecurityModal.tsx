@@ -261,28 +261,28 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-lg p-4 animate-in fade-in duration-200 overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-[#0b0d19] border border-violet-500/30 rounded-3xl shadow-2xl p-5 text-slate-100 overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in duration-200 overflow-y-auto">
+      <div className="relative w-full max-w-xl bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl shadow-2xl p-6 text-[var(--text-primary)] overflow-hidden my-6">
         {/* Ambient Neon Glows */}
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-violet-600/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-indigo-600/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-violet-600/40 to-indigo-600/40 rounded-2xl text-violet-400 border border-violet-500/40 shadow-lg shadow-violet-600/20">
-              <ShieldCheck className="w-6 h-6 animate-pulse" />
+            <div className="p-2.5 bg-violet-500/15 text-violet-500 dark:text-violet-400 rounded-xl border border-violet-500/25 shadow-xs">
+              <ShieldCheck className="w-5 h-5 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-extrabold text-white tracking-tight">
+                <h2 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
                   Daily Security Verification
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/15 text-violet-600 dark:text-violet-300 border border-violet-500/25">
                   {user?.user_metadata?.provider_type === 'google' ? 'Google Account Verified' : 'Daily Gate'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Tap secret image spots (e.g. Car Window, Tyre) to unlock access
               </p>
             </div>
@@ -290,7 +290,7 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-xl hover:bg-[var(--bg-elevated)] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -298,32 +298,32 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
         </div>
 
         {/* User Identity Banner */}
-        <div className="mt-3 p-2.5 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex items-center justify-between">
+        <div className="mt-4 p-3 bg-[var(--input-bg)] border border-[var(--border-card)] rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center font-bold text-xs text-white ring-2 ring-violet-400/40">
               {user?.email ? user.email.charAt(0).toUpperCase() : 'G'}
             </div>
             <div>
-              <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <div className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                 <span>{user?.user_metadata?.full_name || user?.email || 'Logged In Student'}</span>
                 {user?.user_metadata?.provider_type === 'google' && (
-                  <span className="text-[10px] text-blue-400 font-medium">Google Verified</span>
+                  <span className="text-[10px] text-blue-500 dark:text-blue-400 font-medium">Google Verified</span>
                 )}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono">
+              <div className="text-[11px] text-[var(--text-muted)] font-mono">
                 {user?.email || 'student@campus.edu'}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs font-bold">
-            <Award className="w-3.5 h-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-600 dark:text-amber-300 text-xs font-bold">
+            <Award className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <span>{streakCount} Day Streak</span>
           </div>
         </div>
 
         {/* --- MAIN GAME CONTAINER --- */}
-        <div className="mt-3 p-3 bg-[#0d0f1f] border border-white/10 rounded-2xl relative overflow-hidden space-y-3">
+        <div className="mt-4 p-4 bg-[var(--bg-subtle)] border border-[var(--border-card)] rounded-xl relative overflow-hidden space-y-3.5">
           {/* Image Preset & Custom Spot Toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
             {/* Preset Image Selectors */}
@@ -336,7 +336,7 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
                   className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold border transition-all shrink-0 ${
                     !isUsingCustomImage && selectedImageIndex === idx
                       ? 'bg-violet-600 text-white border-violet-400 shadow-sm'
-                      : 'bg-white/5 text-slate-400 hover:text-white border-white/10'
+                      : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-[var(--border-card)]'
                   }`}
                 >
                   {preset.name}
@@ -348,7 +348,7 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
               <button
                 type="button"
                 onClick={() => setShowTargetHintPins(!showTargetHintPins)}
-                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1"
+                className="text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1"
                 title="Toggle secret target markers view"
               >
                 {showTargetHintPins ? (
@@ -381,26 +381,26 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
 
           {/* Status Banner */}
           <div
-            className={`p-2 rounded-xl text-xs flex items-center justify-between border ${
+            className={`p-2.5 rounded-xl text-xs flex items-center justify-between border ${
               imageTapSuccess
-                ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300 font-bold'
+                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-300 font-bold'
                 : isConfiguringSpots
-                ? 'bg-violet-950/60 border-violet-500/40 text-violet-200'
-                : 'bg-slate-900 border-white/10 text-slate-200'
+                ? 'bg-violet-500/15 border-violet-500/40 text-violet-600 dark:text-violet-200'
+                : 'bg-[var(--bg-elevated)] border-[var(--border-card)] text-[var(--text-secondary)]'
             }`}
           >
-            <span className="truncate pr-2">{imageTapMessage}</span>
+            <span className="truncate pr-2 font-medium">{imageTapMessage}</span>
             <div className="flex items-center gap-2 shrink-0">
               {isConfiguringSpots ? (
                 <button
                   type="button"
                   onClick={saveCustomSpots}
-                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold rounded-lg text-[10px] uppercase transition-colors"
+                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] uppercase transition-colors"
                 >
                   Save Spots ({newDraftSpots.length})
                 </button>
               ) : (
-                <span className="font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded-md text-slate-300">
+                <span className="font-mono text-[10px] bg-[var(--input-bg)] border border-[var(--border-card)] px-2 py-0.5 rounded-md text-[var(--text-secondary)]">
                   {userTappedSpots.length} / {targetSpots.length} Spots Hit
                 </span>
               )}
@@ -409,18 +409,18 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
 
           {/* Target Sequence Hint Bar */}
           {!isConfiguringSpots && (
-            <div className="flex items-center justify-between px-3 py-1.5 bg-black/40 rounded-xl border border-white/5 text-xs">
-              <span className="text-slate-400 text-[11px]">Secret Spot Sequence:</span>
-              <div className="flex items-center gap-2">
-                {targetSpots.map((spot, idx) => {
+            <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] text-xs">
+              <span className="text-[var(--text-muted)] text-[11px] font-medium">Secret Spot Sequence:</span>
+              <div className="flex items-center gap-1.5">
+                {targetSpots.map((spot) => {
                   const isHit = userTappedSpots.some((h) => h.spotId === spot.id);
                   return (
                     <div
                       key={spot.id}
                       className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all ${
                         isHit
-                          ? 'bg-emerald-500/30 text-emerald-300 border-emerald-400 scale-105'
-                          : 'bg-slate-800 text-slate-400 border-slate-700'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40 scale-105'
+                          : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--border-card)]'
                       }`}
                     >
                       <span>#{spot.id}</span>
@@ -517,7 +517,7 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
                 }
               }}
               placeholder="Paste custom image URL (or photo link)..."
-              className="flex-1 bg-[#121424] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+              className="flex-1 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-3.5 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-violet-500"
             />
             <button
               type="button"
@@ -527,7 +527,7 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
                   resetImageTapGame();
                 }
               }}
-              className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center gap-1"
+              className="px-3.5 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Use Photo</span>
@@ -536,12 +536,12 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
         </div>
 
         {/* Bottom Unlock Button */}
-        <div className="mt-4 space-y-2">
+        <div className="mt-5 space-y-2.5">
           {unlocked ? (
             <button
               type="button"
               onClick={unlockDailySecurity}
-              className="w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 font-extrabold rounded-2xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 animate-bounce"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 animate-bounce"
             >
               <Unlock className="w-4 h-4" />
               <span>ACCESS GRANTED • ENTER EXAM-BUDDY</span>
@@ -551,15 +551,15 @@ export function DailySecurityModal({ isOpen, onClose }: DailySecurityModalProps)
               <button
                 type="button"
                 onClick={unlockDailySecurity}
-                className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-semibold border border-white/10 transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 px-4 bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl text-xs font-semibold border border-[var(--border-card)] transition-colors flex items-center justify-center gap-1.5 shadow-xs"
               >
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 <span>Quick Bypass (Demo Access)</span>
               </button>
             </div>
           )}
 
-          <p className="text-[11px] text-slate-500 text-center">
+          <p className="text-[11px] text-[var(--text-muted)] text-center">
             🔐 Daily Security resets every 24 hours. Image spot patterns are encrypted.
           </p>
         </div>

@@ -136,7 +136,7 @@ export default function PlannerPage() {
           <div>
             <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
               Study Planner & Spaced Repetition
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25">
                 SM-2 Calibrated
               </span>
             </h1>
@@ -159,20 +159,20 @@ export default function PlannerPage() {
       {/* Midterm Exam Countdown Banner */}
       <div className="glass-card p-5 rounded-2xl border border-rose-500/30 border-t-2 border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
+          <div className="p-2.5 rounded-xl bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/30">
             <Flame className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-400">
+              <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
                 Exam Countdown
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-700 dark:text-rose-300">
                 Midterms in {countdownDays} Days
               </span>
             </div>
             <p className="text-sm font-semibold text-[var(--text-primary)] mt-0.5">
-              Semester 3 Midterm Examinations begin on <span className="text-amber-500 dark:text-amber-300 font-bold">Oct 18, 2026</span>
+              Semester 3 Midterm Examinations begin on <span className="text-amber-600 dark:text-amber-300 font-bold">Oct 18, 2026</span>
             </p>
           </div>
         </div>

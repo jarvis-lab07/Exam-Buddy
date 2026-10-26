@@ -170,7 +170,7 @@ export function CompetitiveExamSimulatorModal({
             <div>
               <h3 className="text-lg font-bold text-theme-primary flex items-center gap-2">
                 Competitive Exam Simulation Mode
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 font-semibold border border-rose-500/30">
                   +4 / -1 Penalty
                 </span>
               </h3>
@@ -220,12 +220,12 @@ export function CompetitiveExamSimulatorModal({
                       onClick={() => handleOptionSelect(idx)}
                       className={`w-full p-3.5 rounded-xl text-left text-xs font-medium border transition-all flex items-center justify-between ${
                         isSelected
-                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-200'
+                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-800 dark:text-indigo-200'
                           : 'bg-theme-card border-[var(--border-card)] text-theme-secondary hover:text-theme-primary hover:border-theme-hover'
                       }`}
                     >
                       <span>{opt}</span>
-                      {isSelected && <CheckCircle className="w-4 h-4 text-indigo-400 shrink-0" />}
+                      {isSelected && <CheckCircle className="w-4 h-4 text-indigo-500 dark:text-indigo-400 shrink-0" />}
                     </button>
                   );
                 })}
@@ -268,18 +268,18 @@ export function CompetitiveExamSimulatorModal({
                 Final Score: {result?.finalScore} / {result?.maxScore}
               </h4>
               <p className="text-xs text-theme-secondary">
-                Accuracy Score: <strong className="text-emerald-400">{result?.percentage}%</strong> · Speed Rating: <strong className="text-indigo-400">{result?.speedRating}</strong>
+                Accuracy Score: <strong className="text-emerald-600 dark:text-emerald-400">{result?.percentage}%</strong> · Speed Rating: <strong className="text-indigo-600 dark:text-indigo-400">{result?.speedRating}</strong>
               </p>
             </div>
 
             {/* Metrics Breakdown */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <span className="text-lg font-bold text-emerald-400">{result?.correctCount}</span>
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{result?.correctCount}</span>
                 <p className="text-[11px] text-theme-muted">Correct (+4 each)</p>
               </div>
               <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <span className="text-lg font-bold text-rose-400">{result?.incorrectCount}</span>
+                <span className="text-lg font-bold text-rose-600 dark:text-rose-400">{result?.incorrectCount}</span>
                 <p className="text-[11px] text-theme-muted">Incorrect (-1 penalty)</p>
               </div>
               <div className="p-3 rounded-xl bg-theme-input border border-[var(--border-card)]">
@@ -287,7 +287,7 @@ export function CompetitiveExamSimulatorModal({
                 <p className="text-[11px] text-theme-muted">Unattempted</p>
               </div>
               <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                <span className="text-lg font-bold text-indigo-300">{result?.avgSecondsPerQuestion}s</span>
+                <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{result?.avgSecondsPerQuestion}s</span>
                 <p className="text-[11px] text-theme-muted">Avg time/question</p>
               </div>
             </div>
@@ -296,11 +296,11 @@ export function CompetitiveExamSimulatorModal({
             {(result?.incorrectCount || 0) > 0 && (
               <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-lg bg-rose-500/20 text-rose-300 shrink-0">
-                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                  <div className="p-2 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-300 shrink-0">
+                    <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-rose-300">
+                    <h5 className="font-bold text-rose-700 dark:text-rose-300">
                       {result?.incorrectCount} Question{result?.incorrectCount === 1 ? '' : 's'} Auto-Saved to Mistake Notebook
                     </h5>
                     <p className="text-[11px] text-theme-muted mt-0.5">

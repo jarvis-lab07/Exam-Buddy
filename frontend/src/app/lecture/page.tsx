@@ -306,10 +306,10 @@ export default function YouTubeStudyWorkspacePage() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold uppercase tracking-wider text-red-400">
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400">
                 YouTube AI Study Workspace
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-700 dark:text-violet-400 border border-violet-500/30">
                 {workspace.subjectName}
               </span>
             </div>

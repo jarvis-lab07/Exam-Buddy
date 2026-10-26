@@ -652,8 +652,8 @@ function ChatContent() {
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">AI Tutor</h1>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/25 hidden sm:inline-block">
+            <h1 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">AI Tutor</h1>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25 hidden sm:inline-block">
               RAG 4-Scope
             </span>
           </div>
@@ -996,17 +996,17 @@ function ChatContent() {
           {/* Capsule Input Container */}
           <div className="rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] shadow-xl p-2.5 transition-all focus-within:border-violet-500/50 focus-within:ring-2 focus-within:ring-violet-500/10">
             {/* Active Mode Pills bar inside input */}
-            <div className="flex items-center gap-1.5 px-2 pb-1.5 text-[10px] text-slate-400 border-b border-white/[0.05] overflow-x-auto no-scrollbar">
-              <span className="font-semibold text-violet-400 flex items-center gap-1">
+            <div className="flex items-center gap-1.5 px-2 pb-1.5 text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
+              <span className="font-semibold text-violet-600 dark:text-violet-400 flex items-center gap-1">
                 <ScopeIcon className="w-3 h-3" />
                 {SCOPE_LABELS[activeScope].label}
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-400 font-medium">
+              <span className="text-[var(--text-muted)] opacity-40">•</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
                 {LEVEL_LABELS[explanationLevel].label}
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-slate-400 truncate max-w-[140px]">
+              <span className="text-[var(--text-muted)] opacity-40">•</span>
+              <span className="text-[var(--text-muted)] truncate max-w-[140px]">
                 {selectedSubject === "all" ? "All Subjects" : selectedSubject}
               </span>
             </div>
@@ -1020,7 +1020,7 @@ function ChatContent() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask any concept, algorithm, exam question... (Shift+Enter for newline)"
                 rows={1}
-                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none resize-none min-h-[38px] max-h-[160px] leading-relaxed"
+                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[var(--text-primary)] placeholder-[var(--input-placeholder)] focus:outline-none resize-none min-h-[38px] max-h-[160px] leading-relaxed"
               />
 
               <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
@@ -1047,10 +1047,10 @@ function ChatContent() {
           </div>
 
           {/* Micro Footer Legend */}
-          <div className="flex items-center justify-between px-2 text-[10px] text-slate-500">
+          <div className="flex items-center justify-between px-2 text-[10px] text-[var(--text-muted)]">
             <span>Enter to send • Shift+Enter for new line</span>
             <span className="flex items-center gap-1">
-              <Cpu className="w-3 h-3 text-violet-400" />
+              <Cpu className="w-3 h-3 text-violet-500 dark:text-violet-400" />
               <span>{AI_PROVIDERS[activeProvider]?.name || "Google Gemini"}</span>
             </span>
           </div>

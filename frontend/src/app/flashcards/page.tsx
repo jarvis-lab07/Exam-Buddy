@@ -302,7 +302,7 @@ function FlashcardsContent() {
           {/* Overall Viva Readiness Bar */}
           <div className="glass-card p-5 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+              <span className="text-xs font-semibold text-[var(--text-secondary)]">
                 Overall Mock Interview Readiness
               </span>
               <div className="flex items-baseline gap-2">

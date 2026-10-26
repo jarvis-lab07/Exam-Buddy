@@ -70,28 +70,28 @@ const navItems = [
     href: "/flashcards",
     icon: Layers,
     badge: "12 New",
-    badgeClass: "bg-violet-500/15 text-violet-300 border-violet-500/25",
+    badgeClass: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25",
   },
   {
     name: "Exam Simulator",
     href: "/exam",
     icon: Trophy,
     badge: "Timed Quiz",
-    badgeClass: "bg-rose-500/15 text-rose-300 border-rose-500/25",
+    badgeClass: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/25",
   },
   {
     name: "AI Tutor Chat",
     href: "/chat",
     icon: Bot,
     badge: "GPT-4o",
-    badgeClass: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25",
+    badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/25",
   },
   {
     name: "YouTube AI Study",
     href: "/lecture",
     icon: Play,
     badge: "AI Study",
-    badgeClass: "bg-red-500/15 text-red-300 border-red-500/25",
+    badgeClass: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/25",
   },
   {
     name: "Upload Center",
@@ -261,7 +261,7 @@ export function Sidebar({
         <nav className={cn("flex-1 py-4 overflow-y-auto", isIcon ? "lg:px-2 px-3" : "px-3")}>
           <div
             className={cn(
-              "px-3 pb-2 text-[10px] font-semibold text-theme-muted uppercase tracking-[0.14em]",
+              "px-3 pb-2 text-xs font-semibold text-[var(--text-muted)]",
               isIcon && "lg:hidden"
             )}
           >
@@ -314,7 +314,7 @@ export function Sidebar({
                   )}
 
                   {isIcon && (
-                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--bg-elevated)] px-2.5 py-1 text-xs text-white border border-white/10 opacity-0 group-hover:opacity-100 z-50 hidden lg:block shadow-lg">
+                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--bg-elevated)] px-2.5 py-1 text-xs text-[var(--text-primary)] border border-[var(--border-card)] opacity-0 group-hover:opacity-100 z-50 hidden lg:block shadow-lg">
                       {item.name}
                     </span>
                   )}

@@ -53,11 +53,11 @@ export function DailyGoalRing({
     <div className="flex flex-col items-center space-y-3.5 w-full">
       {!hideWrapperCard && (
         <div className="flex items-center justify-between w-full px-0.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)]">
             <Target className="w-3.5 h-3.5 text-violet-400" />
             Daily Goal
           </span>
-          <span className="text-[10px] text-violet-400 font-semibold bg-violet-500/15 px-1.5 py-0.5 rounded-md border border-violet-500/25 font-mono">
+          <span className="text-[10px] text-violet-500 dark:text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25 font-mono">
             {pct}%
           </span>
         </div>
@@ -93,9 +93,9 @@ export function DailyGoalRing({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[11px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Logged</span>
+          <span className="text-xs text-[var(--text-muted)] font-medium">Logged</span>
           <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-3xl font-black font-mono tracking-tight text-[var(--text-primary)]">
+            <span className="text-3xl font-bold font-mono tracking-tight text-[var(--text-primary)]">
               {hours}h
             </span>
             <span className="text-lg font-bold font-mono text-[var(--text-secondary)]">
@@ -110,22 +110,22 @@ export function DailyGoalRing({
 
       <div className="grid grid-cols-2 gap-2.5 w-full pt-1">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <Flame className="w-4 h-4 text-amber-400 shrink-0" />
+          <Flame className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
           <div className="min-w-0">
             <div className="text-[10px] text-[var(--text-muted)] leading-none font-medium">Streak</div>
-            <div className="text-xs font-black text-[var(--text-primary)] mt-1 font-mono leading-none flex items-baseline gap-0.5">
+            <div className="text-xs font-bold text-[var(--text-primary)] mt-1 font-mono leading-none flex items-baseline gap-0.5">
               {MOCK_USER.streakDays}
-              <span className="text-[10px] font-semibold text-[var(--text-muted)]">days</span>
+              <span className="text-[10px] font-medium text-[var(--text-muted)]">days</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <Trophy className="w-4 h-4 text-emerald-400 shrink-0" />
+          <Trophy className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
           <div className="min-w-0">
             <div className="text-[10px] text-[var(--text-muted)] leading-none font-medium">Cohort</div>
-            <div className="text-xs font-black text-[var(--text-primary)] mt-1 font-mono leading-none flex items-baseline gap-0.5">
+            <div className="text-xs font-bold text-[var(--text-primary)] mt-1 font-mono leading-none flex items-baseline gap-0.5">
               Top 5
-              <span className="text-[10px] font-semibold text-[var(--text-muted)]">%</span>
+              <span className="text-[10px] font-medium text-[var(--text-muted)]">%</span>
             </div>
           </div>
         </div>
@@ -135,5 +135,5 @@ export function DailyGoalRing({
 
   if (hideWrapperCard) return content;
 
-  return <div className="card p-4 flex flex-col items-center">{content}</div>;
+  return <div className="card p-6 flex flex-col items-center">{content}</div>;
 }

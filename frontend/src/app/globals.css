@@ -101,7 +101,7 @@
   --color-text-muted: var(--text-muted);
   --color-input-bg: var(--input-bg);
   --color-input-border: var(--input-border);
-  --font-sans: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -125,7 +125,7 @@ div,
 li,
 label,
 option {
-  font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -139,12 +139,43 @@ samp,
   font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
 
-/* Standardized Heading & Body Sizing */
-h1 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 800; letter-spacing: -0.02em; }
-h2 { font-size: 1.4rem; line-height: 1.85rem; font-weight: 700; letter-spacing: -0.01em; }
-h3 { font-size: 1.2rem; line-height: 1.6rem; font-weight: 700; }
-h4 { font-size: 1.05rem; line-height: 1.45rem; font-weight: 600; }
-p, span, li, label { line-height: 1.6; }
+/* Standardized Typographic Scale & Line-Heights (Phase 2 Design System) */
+h1 {
+  font-size: clamp(1.65rem, 2.2vw, 2.15rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+  line-height: 1.35;
+  font-weight: 600;
+}
+h4 {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.4;
+  font-weight: 600;
+}
+p, span, li {
+  line-height: 1.55;
+}
+label, .label-caption {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+/* Focus Visibility & Accessibility Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--brand-violet);
+  outline-offset: 2px;
+}
 
 /* Explicit CSS Theme Helper Utilities */
 .text-theme-primary {
