@@ -74,14 +74,14 @@ function renderMarkdown(text: string, onCopyCode?: (code: string) => void): Reac
       }
       const rawCode = codeLines.join("\n");
       nodes.push(
-        <div key={`code-${i}`} className="my-3.5 rounded-xl overflow-hidden border border-[var(--border-card)] bg-[#121320] shadow-sm">
-          <div className="flex items-center justify-between px-3.5 py-1.5 bg-white/[0.04] border-b border-white/[0.06] text-[11px] text-slate-400 font-mono">
+        <div key={`code-${i}`} className="my-3.5 rounded-xl overflow-hidden border border-[var(--border-card)] bg-[#111322] dark:bg-[#0c0d18] shadow-sm">
+          <div className="flex items-center justify-between px-3.5 py-1.5 bg-black/40 border-b border-white/[0.08] text-[11px] text-slate-300 font-mono">
             <span className="uppercase tracking-wider font-semibold text-violet-400">{lang || "code"}</span>
             {onCopyCode && (
               <button
                 type="button"
                 onClick={() => onCopyCode(rawCode)}
-                className="flex items-center gap-1.5 hover:text-white transition-colors py-0.5 px-1.5 rounded hover:bg-white/[0.06]"
+                className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors py-0.5 px-1.5 rounded hover:bg-white/[0.1]"
               >
                 <Copy className="w-3 h-3" />
                 <span>Copy</span>
@@ -652,8 +652,8 @@ function ChatContent() {
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold text-white tracking-tight">AI Tutor</h1>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/25 hidden sm:inline-block">
+            <h1 className="text-base sm:text-lg font-bold text-theme-primary tracking-tight">AI Tutor</h1>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25 hidden sm:inline-block">
               RAG 4-Scope
             </span>
           </div>
@@ -668,15 +668,15 @@ function ChatContent() {
                 setIsScopeOpen(!isScopeOpen);
                 setIsLevelOpen(false);
               }}
-              className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-white/[0.08] border border-[var(--border-card)] text-xs text-slate-200 flex items-center gap-1.5 transition-all"
+              className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--border-card)] border border-[var(--border-card)] text-xs text-[var(--text-primary)] flex items-center gap-1.5 transition-all"
             >
               <ScopeIcon className="w-3.5 h-3.5 text-violet-400" />
               <span className="font-medium">{SCOPE_LABELS[activeScope].label}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
             </button>
 
             {isScopeOpen && (
-              <div className="absolute right-0 top-10 w-64 p-1.5 rounded-2xl bg-[#181928] border border-white/10 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 top-10 w-64 p-1.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
                 {(Object.keys(SCOPE_LABELS) as ChatScope[]).map((scopeKey) => {
                   const item = SCOPE_LABELS[scopeKey];
                   const Icon = item.icon;
@@ -691,13 +691,13 @@ function ChatContent() {
                       className={`w-full p-2 rounded-xl text-left transition-all flex items-start gap-2.5 ${
                         isSelected
                           ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
-                          : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
                       }`}
                     >
                       <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                       <div>
                         <div className="text-xs font-semibold">{item.label}</div>
-                        <div className={`text-[10px] leading-tight ${isSelected ? "text-violet-200" : "text-slate-400"}`}>
+                        <div className={`text-[10px] leading-tight ${isSelected ? "text-violet-200" : "text-[var(--text-muted)]"}`}>
                           {item.desc}
                         </div>
                       </div>
@@ -715,15 +715,15 @@ function ChatContent() {
                 setIsLevelOpen(!isLevelOpen);
                 setIsScopeOpen(false);
               }}
-              className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-white/[0.08] border border-[var(--border-card)] text-xs text-slate-200 flex items-center gap-1.5 transition-all"
+              className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--border-card)] border border-[var(--border-card)] text-xs text-[var(--text-primary)] flex items-center gap-1.5 transition-all"
             >
-              <span className="text-slate-400 text-[11px]">Format:</span>
-              <span className="font-medium text-emerald-400">{LEVEL_LABELS[explanationLevel].label}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <span className="text-[var(--text-muted)] text-[11px]">Format:</span>
+              <span className="font-medium text-emerald-500 dark:text-emerald-400">{LEVEL_LABELS[explanationLevel].label}</span>
+              <ChevronDown className="w-3 h-3 text-[var(--text-muted)]" />
             </button>
 
             {isLevelOpen && (
-              <div className="absolute right-0 top-10 w-56 p-1.5 rounded-2xl bg-[#181928] border border-white/10 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 top-10 w-56 p-1.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
                 {(Object.keys(LEVEL_LABELS) as ExplanationLevel[]).map((lvlKey) => {
                   const item = LEVEL_LABELS[lvlKey];
                   const isSelected = explanationLevel === lvlKey;
@@ -737,11 +737,11 @@ function ChatContent() {
                       className={`w-full p-2 rounded-xl text-left transition-all ${
                         isSelected
                           ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
-                          : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
                       }`}
                     >
                       <div className="text-xs font-semibold">{item.label}</div>
-                      <div className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-slate-400"}`}>
+                      <div className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-[var(--text-muted)]"}`}>
                         {item.desc}
                       </div>
                     </button>
@@ -755,7 +755,7 @@ function ChatContent() {
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
-            className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs text-slate-200 focus:outline-none focus:border-violet-500/50 cursor-pointer hidden md:block"
+            className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-violet-500/50 cursor-pointer hidden md:block"
           >
             <option value="all">All Subjects</option>
             {MOCK_SUBJECTS.map((s) => (
@@ -768,17 +768,17 @@ function ChatContent() {
           {/* Provider & Key Status */}
           <button
             onClick={() => setIsKeyModalOpen(true)}
-            className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-white/[0.08] border border-[var(--border-card)] text-xs text-slate-200 flex items-center gap-1.5 transition-all"
+            className="h-8 px-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--border-card)] border border-[var(--border-card)] text-xs text-[var(--text-primary)] flex items-center gap-1.5 transition-all"
             title="Configure AI Engine API Keys"
           >
-            <Key className="w-3.5 h-3.5 text-amber-400" />
+            <Key className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <span className="text-[11px] font-medium hidden sm:inline-block">
               {AI_PROVIDERS[activeProvider].name.split(" ")[0]}
             </span>
             {keyCount > 0 ? (
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             ) : (
-              <span className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
+              <span className="flex items-center gap-1 text-[10px] text-amber-500 dark:text-amber-400 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                 <span className="hidden md:inline">Add Key</span>
               </span>
@@ -790,7 +790,7 @@ function ChatContent() {
             <button
               onClick={clearChat}
               title="Clear current conversation"
-              className="h-8 w-8 rounded-xl bg-[var(--bg-elevated)] hover:bg-red-500/15 hover:border-red-500/30 border border-[var(--border-card)] text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors"
+              className="h-8 w-8 rounded-xl bg-[var(--bg-elevated)] hover:bg-red-500/15 hover:border-red-500/30 border border-[var(--border-card)] text-[var(--text-muted)] hover:text-red-500 flex items-center justify-center transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -812,10 +812,10 @@ function ChatContent() {
               </div>
 
               <div className="space-y-2 max-w-lg mx-auto">
-                <h2 className="text-2xl font-bold text-white tracking-tight">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
                   What concept are we mastering today?
                 </h2>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                   Grounded in your university syllabus, verified textbooks, and past exam questions. Select a prompt below or ask anything.
                 </p>
               </div>
@@ -828,21 +828,21 @@ function ChatContent() {
                     <button
                       key={idx}
                       onClick={() => handleSendMessage(item.prompt)}
-                      className="p-4 rounded-2xl bg-[var(--bg-card)] hover:bg-white/[0.06] border border-[var(--border-card)] hover:border-violet-500/40 text-left transition-all duration-200 group flex flex-col justify-between space-y-3 shadow-xs hover:shadow-lg hover:shadow-violet-500/5 hover:-translate-y-0.5"
+                      className="p-4 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] hover:border-violet-500/40 text-left transition-all duration-200 group flex flex-col justify-between space-y-3 shadow-xs hover:shadow-lg hover:shadow-violet-500/5 hover:-translate-y-0.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="p-2 rounded-xl bg-violet-600/15 text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                        <span className="p-2 rounded-xl bg-violet-600/15 text-violet-500 dark:text-violet-400 group-hover:bg-violet-600 group-hover:text-white transition-colors">
                           <ItemIcon className="w-4 h-4" />
                         </span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 group-hover:text-violet-300 transition-colors">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-violet-400 transition-colors">
                           {item.tag}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-xs font-bold text-white group-hover:text-violet-300 transition-colors">
+                        <h3 className="text-xs font-bold text-[var(--text-primary)] group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-colors">
                           {item.title}
                         </h3>
-                        <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 leading-snug">
+                        <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 mt-1 leading-snug">
                           {item.prompt}
                         </p>
                       </div>
@@ -868,7 +868,7 @@ function ChatContent() {
                   className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
                     isUser
                       ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white"
-                      : "bg-[#1f2033] text-violet-400 border border-violet-500/30"
+                      : "bg-[var(--bg-elevated)] text-violet-400 border border-[var(--border-card)]"
                   }`}
                 >
                   {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
@@ -878,17 +878,17 @@ function ChatContent() {
                 <div className="max-w-[88%] sm:max-w-[82%] space-y-1.5 text-left">
                   {/* Assistant Meta Header */}
                   {!isUser && (
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400 pl-1">
-                      <span className="font-bold text-white flex items-center gap-1.5">
+                    <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] pl-1">
+                      <span className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
                         Exam-Buddy AI
                       </span>
                       {m.model && (
-                        <span className="px-1.5 py-0.2 rounded bg-white/[0.05] font-mono text-[10px] text-slate-400">
+                        <span className="px-1.5 py-0.2 rounded bg-[var(--bg-elevated)] border border-[var(--border-card)] font-mono text-[10px] text-[var(--text-muted)]">
                           {m.model}
                         </span>
                       )}
                       {m.latencyMs && (
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-[var(--text-muted)]">
                           ⚡ {(m.latencyMs / 1000).toFixed(1)}s
                         </span>
                       )}
@@ -901,7 +901,7 @@ function ChatContent() {
                       isUser
                         ? "bg-violet-600 text-white font-medium rounded-tr-xs shadow-md"
                         : m.isError
-                        ? "bg-red-500/10 border border-red-500/30 text-slate-200 rounded-tl-xs"
+                        ? "bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-200 rounded-tl-xs"
                         : "bg-[var(--bg-card)] border border-[var(--border-card)] text-[var(--text-primary)] rounded-tl-xs"
                     }`}
                   >
@@ -917,17 +917,17 @@ function ChatContent() {
 
                   {/* Assistant Footer Action Toolbar */}
                   {!isUser && !m.isStreaming && m.content && (
-                    <div className="flex items-center gap-1.5 pt-1 pl-1 text-[11px] text-slate-400 flex-wrap">
+                    <div className="flex items-center gap-1.5 pt-1 pl-1 text-[11px] text-[var(--text-muted)] flex-wrap">
                       <button
                         type="button"
                         onClick={() => copyMessage(m.id, m.content)}
-                        className="p-1 px-2 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-1 text-[10px]"
+                        className="p-1 px-2 rounded-lg hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] text-[var(--text-muted)] transition-colors flex items-center gap-1 text-[10px]"
                         title="Copy answer to clipboard"
                       >
                         {copiedId === m.id ? (
                           <>
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span className="text-emerald-400 font-semibold">Copied!</span>
+                            <Check className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                            <span className="text-emerald-500 dark:text-emerald-400 font-semibold">Copied!</span>
                           </>
                         ) : (
                           <>
@@ -944,7 +944,7 @@ function ChatContent() {
                             `Please reformat the above explanation into a high-scoring University Exam 10-Mark Answer structure (Formal Definition, Architecture/Block Diagram description, Step-by-Step Logic, Pros/Cons, and Practical Example).`
                           )
                         }
-                        className="p-1 px-2 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-1 text-[10px]"
+                        className="p-1 px-2 rounded-lg hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] text-[var(--text-muted)] transition-colors flex items-center gap-1 text-[10px]"
                         title="Format as university exam 10-mark answer"
                       >
                         <FileText className="w-3 h-3 text-violet-400" />
@@ -958,14 +958,14 @@ function ChatContent() {
                             `Can you explain the core principle of the above answer in a simpler way using an intuitive real-world analogy?`
                           )
                         }
-                        className="p-1 px-2 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-1 text-[10px]"
+                        className="p-1 px-2 rounded-lg hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] text-[var(--text-muted)] transition-colors flex items-center gap-1 text-[10px]"
                         title="Explain with simple analogy"
                       >
-                        <HelpCircle className="w-3 h-3 text-emerald-400" />
+                        <HelpCircle className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
                         <span>Simpler Analogy</span>
                       </button>
 
-                      <span className="text-[10px] text-slate-500 ml-auto mr-1">{m.timestamp}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] ml-auto mr-1">{m.timestamp}</span>
                     </div>
                   )}
                 </div>
@@ -996,17 +996,17 @@ function ChatContent() {
           {/* Capsule Input Container */}
           <div className="rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] shadow-xl p-2.5 transition-all focus-within:border-violet-500/50 focus-within:ring-2 focus-within:ring-violet-500/10">
             {/* Active Mode Pills bar inside input */}
-            <div className="flex items-center gap-1.5 px-2 pb-1.5 text-[10px] text-slate-400 border-b border-white/[0.05] overflow-x-auto no-scrollbar">
-              <span className="font-semibold text-violet-400 flex items-center gap-1">
+            <div className="flex items-center gap-1.5 px-2 pb-1.5 text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] overflow-x-auto no-scrollbar">
+              <span className="font-semibold text-violet-600 dark:text-violet-400 flex items-center gap-1">
                 <ScopeIcon className="w-3 h-3" />
                 {SCOPE_LABELS[activeScope].label}
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-400 font-medium">
+              <span className="text-[var(--text-muted)] opacity-40">•</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
                 {LEVEL_LABELS[explanationLevel].label}
               </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-slate-400 truncate max-w-[140px]">
+              <span className="text-[var(--text-muted)] opacity-40">•</span>
+              <span className="text-[var(--text-muted)] truncate max-w-[140px]">
                 {selectedSubject === "all" ? "All Subjects" : selectedSubject}
               </span>
             </div>
@@ -1020,7 +1020,7 @@ function ChatContent() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask any concept, algorithm, exam question... (Shift+Enter for newline)"
                 rows={1}
-                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none resize-none min-h-[38px] max-h-[160px] leading-relaxed"
+                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[var(--text-primary)] placeholder-[var(--input-placeholder)] focus:outline-none resize-none min-h-[38px] max-h-[160px] leading-relaxed"
               />
 
               <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
@@ -1047,10 +1047,10 @@ function ChatContent() {
           </div>
 
           {/* Micro Footer Legend */}
-          <div className="flex items-center justify-between px-2 text-[10px] text-slate-500">
+          <div className="flex items-center justify-between px-2 text-[10px] text-[var(--text-muted)]">
             <span>Enter to send • Shift+Enter for new line</span>
             <span className="flex items-center gap-1">
-              <Cpu className="w-3 h-3 text-violet-400" />
+              <Cpu className="w-3 h-3 text-violet-500 dark:text-violet-400" />
               <span>{AI_PROVIDERS[activeProvider]?.name || "Google Gemini"}</span>
             </span>
           </div>

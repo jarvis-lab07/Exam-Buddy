@@ -23,6 +23,21 @@ export interface SharedCohortResource {
   uploadTime: string;
 }
 
+export interface ClassroomExamDbItem {
+  id: string;
+  title: string;
+  subjectCode: string;
+  subjectName: string;
+  examDate: string;
+  room?: string;
+  cohort?: string;
+  unitsCovered?: string;
+  addedBy?: string;
+  syncedCount?: number;
+  totalMarks?: number;
+  examType?: string;
+}
+
 const isSupabaseConfigured = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   return Boolean(url && !url.includes('placeholder'));
@@ -107,4 +122,66 @@ export async function fetchCohortKnowledgePool(): Promise<SharedCohortResource[]
       uploadTime: 'Yesterday',
     },
   ];
+}
+
+/**
+ * Fetches cohort classroom exam timetable from Supabase cloud
+ */
+export async function fetchClassroomExamsFromDb(): Promise<ClassroomExamDbItem[] | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('classroom_exams')
+      .select('*')
+      .order('exam_date', { ascending: true });
+
+    if (error || !data || data.length === 0) return null;
+
+    return data.map((d: any) => ({
+      id: d.id,
+      title: d.title,
+      subjectCode: d.subject_code,
+      subjectName: d.subject_name,
+      examDate: d.exam_date,
+      room: d.room || 'Main Exam Hall',
+      cohort: d.cohort || 'Computer Engineering (B.Tech - Sem 5)',
+      unitsCovered: d.units_covered || 'Units 1 to 5',
+      addedBy: d.added_by || 'Batch Student',
+      syncedCount: d.synced_count || 1,
+      totalMarks: d.total_marks || 50,
+      examType: d.exam_type || 'Theory',
+    }));
+  } catch (e) {
+    console.warn('[Cohort Service] fetchClassroomExamsFromDb error:', e);
+    return null;
+  }
+}
+
+/**
+ * Persists created or updated classroom exam to Supabase cloud
+ */
+export async function saveClassroomExamToDb(exam: ClassroomExamDbItem): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from('classroom_exams').upsert({
+      id: exam.id,
+      title: exam.title,
+      subject_code: exam.subjectCode,
+      subject_name: exam.subjectName,
+      exam_date: exam.examDate,
+      room: exam.room || 'Main Exam Hall',
+      cohort: exam.cohort || 'Computer Engineering (B.Tech - Sem 5)',
+      units_covered: exam.unitsCovered || 'Units 1 to 5',
+      added_by: exam.addedBy || 'Batch Student',
+      synced_count: exam.syncedCount ?? 1,
+      total_marks: exam.totalMarks ?? 50,
+      exam_type: exam.examType || 'Theory',
+    });
+    return !error;
+  } catch (e) {
+    console.warn('[Cohort Service] saveClassroomExamToDb error:', e);
+    return false;
+  }
 }

@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Brain,
   Play,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_USER } from "@/lib/mock-data";
@@ -69,21 +70,28 @@ const navItems = [
     href: "/flashcards",
     icon: Layers,
     badge: "12 New",
-    badgeClass: "bg-violet-500/15 text-violet-300 border-violet-500/25",
+    badgeClass: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/25",
+  },
+  {
+    name: "Exam Simulator",
+    href: "/exam",
+    icon: Trophy,
+    badge: "Timed Quiz",
+    badgeClass: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/25",
   },
   {
     name: "AI Tutor Chat",
     href: "/chat",
     icon: Bot,
     badge: "GPT-4o",
-    badgeClass: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25",
+    badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/25",
   },
   {
     name: "YouTube AI Study",
     href: "/lecture",
     icon: Play,
     badge: "AI Study",
-    badgeClass: "bg-red-500/15 text-red-300 border-red-500/25",
+    badgeClass: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/25",
   },
   {
     name: "Upload Center",
@@ -253,7 +261,7 @@ export function Sidebar({
         <nav className={cn("flex-1 py-4 overflow-y-auto", isIcon ? "lg:px-2 px-3" : "px-3")}>
           <div
             className={cn(
-              "px-3 pb-2 text-[10px] font-semibold text-theme-muted uppercase tracking-[0.14em]",
+              "px-3 pb-2 text-xs font-semibold text-[var(--text-muted)]",
               isIcon && "lg:hidden"
             )}
           >
@@ -306,7 +314,7 @@ export function Sidebar({
                   )}
 
                   {isIcon && (
-                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--bg-elevated)] px-2.5 py-1 text-xs text-white border border-white/10 opacity-0 group-hover:opacity-100 z-50 hidden lg:block shadow-lg">
+                    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[var(--bg-elevated)] px-2.5 py-1 text-xs text-[var(--text-primary)] border border-[var(--border-card)] opacity-0 group-hover:opacity-100 z-50 hidden lg:block shadow-lg">
                       {item.name}
                     </span>
                   )}
@@ -316,11 +324,11 @@ export function Sidebar({
           </div>
         </nav>
 
-        <div className={cn("mt-auto border-t border-white/[0.08] p-3 space-y-3", isIcon && "lg:px-2")}>
+        <div className={cn("mt-auto border-t border-[var(--border-card)] p-3 space-y-3", isIcon && "lg:px-2")}>
           <div
             onClick={() => setIsProfileModalOpen(true)}
             className={cn(
-              "flex items-center gap-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] hover:border-violet-500/40 p-2.5 cursor-pointer transition-all group",
+              "flex items-center gap-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] border border-[var(--border-card)] hover:border-violet-500/40 p-2.5 cursor-pointer transition-all group",
               isIcon && "lg:justify-center lg:p-2"
             )}
             title="Click to edit student profile"
@@ -330,7 +338,7 @@ export function Sidebar({
             </div>
             <div className={cn("min-w-0 flex-1", isIcon && "lg:hidden")}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-[var(--text-primary)] truncate group-hover:text-violet-300 transition-colors">
+                <p className="text-xs font-semibold text-[var(--text-primary)] truncate group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-colors">
                   {userProfile.username}
                 </p>
                 <Edit2 className="w-3 h-3 text-[var(--text-muted)] group-hover:text-violet-400 transition-colors" />
@@ -344,11 +352,11 @@ export function Sidebar({
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
               <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
-                <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
+                <HardDrive className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
                 <span>{userProfile.cloudStorageUsedGB || 3.4} / {userProfile.cloudStorageTotalGB || 10} GB</span>
               </div>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-card)]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
                 style={{ width: `${storagePercent}%` }}
@@ -359,11 +367,11 @@ export function Sidebar({
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
               <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
-                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                <Sparkles className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
                 <span>{Math.round((userProfile.aiTokensUsed || 45000) / 1000)}k / {Math.round((userProfile.aiTokensTotal || 100000) / 1000)}k</span>
               </div>
             </div>
-            <div className="w-full h-1.5 rounded-full bg-var(--input-bg) overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-card)]">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600"
                 style={{ width: `${tokenPercent}%` }}
@@ -379,7 +387,7 @@ export function Sidebar({
             title="Claude 3.7 + GPT-4o"
           >
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-400" />
+              <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-500" />
             </span>
             <span className={cn(isIcon && "lg:hidden")}>Claude 3.7 + GPT-4o</span>
           </div>
@@ -420,8 +428,8 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
           className={cn(
             "relative p-2 rounded-xl border transition-all",
             nowStudying.active
-              ? "bg-white/[0.06] border-l-2 border-l-indigo-500/60 text-indigo-300 border-indigo-500/40"
-              : "bg-white/[0.03] text-[var(--text-muted)] border-white/[0.06]"
+              ? "bg-violet-500/10 border-l-2 border-l-indigo-500 text-indigo-500 dark:text-indigo-300 border-indigo-500/40"
+              : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-card)]"
           )}
           title={
             nowStudying.active
@@ -441,10 +449,10 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
   if (!nowStudying.active) {
     return (
       <div
-        className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-between gap-2 animate-[fadeIn_0.2s_ease-out]"
+        className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] flex items-center justify-between gap-2 animate-[fadeIn_0.2s_ease-out]"
       >
         <div className="min-w-0 flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[var(--text-muted)] shrink-0">
+          <div className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] text-[var(--text-muted)] shrink-0">
             <Brain className="w-4 h-4" />
           </div>
           <div className="min-w-0">
@@ -457,7 +465,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
         <button
           type="button"
           onClick={() => router.push("/planner")}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold transition-colors shrink-0"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-bold transition-colors shrink-0 shadow-sm"
         >
           <Play className="w-2.5 h-2.5 fill-white" />
           Start
@@ -471,7 +479,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
 
   return (
     <div
-      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/30 border-l-4 border-l-violet-400 bg-white/[0.04] relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
+      className="now-studying-widget mt-3 mx-3 px-3 py-3 rounded-2xl border border-violet-500/30 border-l-4 border-l-violet-500 bg-[var(--bg-elevated)] relative overflow-hidden animate-[fadeIn_0.2s_ease-out]"
     >
       <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0 flex items-start gap-2.5">
@@ -490,13 +498,13 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
             </span>
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-300 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-300 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               ◉ LIVE · {nowStudying.mode === "focus" ? "Focus" : nowStudying.mode === "shortBreak" ? "Short Break" : "Long Break"}
             </div>
             <div className="text-sm font-bold text-[var(--text-primary)] truncate">
               {nowStudying.subjectName}
-              <span className="text-[10px] font-mono ml-1 text-violet-300">
+              <span className="text-[10px] font-mono ml-1 text-violet-600 dark:text-violet-300">
                 {nowStudying.subjectCode}
               </span>
             </div>
@@ -509,7 +517,7 @@ function NowStudyingWidget({ isIcon }: { isIcon: boolean }) {
           </span>
           <span className="font-mono text-base font-black text-[var(--text-primary)] leading-none mt-0.5">
             {String(mins).padStart(2, "0")}
-            <span className="text-violet-300">:</span>
+            <span className="text-violet-500 dark:text-violet-300">:</span>
             {String(secs).padStart(2, "0")}
           </span>
         </div>

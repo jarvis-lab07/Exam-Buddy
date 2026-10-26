@@ -30,7 +30,17 @@ function applyThemeToDocument(mode: ThemeMode) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>("dark");
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
+        if (saved === "dark" || saved === "light" || saved === "nature") {
+          return saved;
+        }
+      } catch {}
+    }
+    return "dark";
+  });
 
   useEffect(() => {
     try {

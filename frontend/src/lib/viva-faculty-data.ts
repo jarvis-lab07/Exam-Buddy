@@ -732,6 +732,17 @@ export const DEFAULT_VIVA_DECKS: FlashcardDeck[] = [
     tag: "50 Faculty Questions",
     description: "Master question bank for R. C. Patel Institute Computer Engineering viva interview.",
   },
+  {
+    id: "deck-mistakes",
+    title: "The Mistake Notebook 🔥",
+    subjectId: "all-viva",
+    subjectCode: "ERR-LOG",
+    color: "#EF4444",
+    cardCount: 6,
+    masteredCount: 1,
+    tag: "Exam Error Deck",
+    description: "Auto-saved incorrect practice quiz & exam questions with trap explanations.",
+  },
 ];
 
 const SUBJECT_MAP: Record<string, { id: string; name: string; code: string; color: string }> = {
@@ -767,8 +778,47 @@ const SUBJECT_MAP: Record<string, { id: string; name: string; code: string; colo
   },
 };
 
-export const DEFAULT_VIVA_FLASHCARDS: Flashcard[] = Object.entries(FACULTY_DATA_BY_SUBJECT).flatMap(
-  ([key, items]) => {
+const SAMPLE_MISTAKE_FLASHCARDS: Flashcard[] = [
+  {
+    id: "sample-mistake-1",
+    subjectId: "all-viva",
+    subjectName: "Advanced Algorithms",
+    subjectCode: "RCP23CPC301",
+    subjectColor: "#EF4444",
+    unitNumber: 1,
+    unitTitle: "AVL Balanced Trees",
+    question: "[Exam Error] Which rotation is required when a node is inserted into the right sub-tree of the left child of an unbalanced AVL node?",
+    answer: "**Your Answer:** Single Right Rotation (❌ Incorrect)\n\n**Correct Answer:** Left-Right (LR) Double Rotation (✅ Correct)\n\n**Trap Explanation:** An LR imbalance occurs in a zig-zag orientation. A single rotation cannot restore height balance; it requires a 2-step double rotation (Left rotate left child, then Right rotate node).",
+    examTip: "⚡ Common University Trap: Single rotations only fix LL or RR straight-line imbalances!",
+    difficulty: "hard",
+    deckType: "mistake-notebook",
+    masteryStatus: "learning",
+    reviewIntervalDays: 1,
+    isMockInterview: false,
+    keywords: ["AVL", "LR Rotation", "Double Rotation"],
+  },
+  {
+    id: "sample-mistake-2",
+    subjectId: "all-viva",
+    subjectName: "Operating Systems",
+    subjectCode: "RCP23CPC302",
+    subjectColor: "#EF4444",
+    unitNumber: 2,
+    unitTitle: "Deadlocks & Resource Allocation",
+    question: "[Exam Error] Which of the following is NOT one of the 4 Coffman conditions required for Deadlock?",
+    answer: "**Your Answer:** Circular Wait (❌ Incorrect)\n\n**Correct Answer:** Preemption Allowed (✅ Correct)\n\n**Trap Explanation:** The 4 Coffman conditions require 'No Preemption' (resources cannot be confiscated). Allowing preemption actively prevents deadlocks.",
+    examTip: "⚡ Exam Tip: Remember the mnemonic: Mutual exclusion, Hold and wait, No preemption, Circular wait.",
+    difficulty: "medium",
+    deckType: "mistake-notebook",
+    masteryStatus: "learning",
+    reviewIntervalDays: 2,
+    isMockInterview: false,
+    keywords: ["Coffman Conditions", "Deadlock", "Preemption"],
+  },
+];
+
+export const DEFAULT_VIVA_FLASHCARDS: Flashcard[] = [
+  ...Object.entries(FACULTY_DATA_BY_SUBJECT).flatMap(([key, items]) => {
     const meta = SUBJECT_MAP[key] || {
       id: "info-cyber",
       name: "Computer Engineering",
@@ -797,6 +847,7 @@ export const DEFAULT_VIVA_FLASHCARDS: Flashcard[] = Object.entries(FACULTY_DATA_
       keywords: item.keywords,
       companyTag: item.companyTag,
     }));
-  }
-);
+  }),
+  ...SAMPLE_MISTAKE_FLASHCARDS,
+];
 

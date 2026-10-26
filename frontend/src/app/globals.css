@@ -1,50 +1,63 @@
 @import "tailwindcss";
 
-/* ————— DEFAULT ROOT (ChatGPT Dark Theme) ————— */
+/* Tailwind CSS v4 custom dark variant binding to [data-theme="dark"] and .dark */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
+/* ————— DEFAULT ROOT & DARK THEME ————— */
 :root,
 [data-theme="dark"] {
-  --bg-base: #212121;           /* ChatGPT Main Workspace Canvas background */
-  --bg-surface: #171717;        /* ChatGPT Sidebar & Navigation background */
-  --bg-elevated: #2f2f2f;       /* ChatGPT Cards, Input Pills & Surfaces */
-  --bg-card: #2f2f2f;           /* ChatGPT Card Background */
-  --border-card: rgba(255, 255, 255, 0.12); /* Crisp ChatGPT border (#383838) */
+  --bg-base: #13141c;           /* Deep dark slate-indigo workspace canvas */
+  --bg-surface: #191b26;        /* Sidebar, header & modal surface */
+  --bg-elevated: #242738;       /* Elevated cards, pills, search bars */
+  --bg-card: #1e2030;           /* Primary Card Background */
+  --bg-subtle: #161722;         /* Inner wells, subtle nested containers */
+  --border-card: rgba(255, 255, 255, 0.1);  /* Crisp contrast border */
   --border-hover: rgba(255, 255, 255, 0.22);
-  --brand-violet: #10a37f;       /* ChatGPT Signature Emerald Accent */
-  --brand-indigo: #00a67e;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --brand-violet: #8b5cf6;       /* ExamBuddy Signature Purple Accent */
+  --brand-indigo: #6366f1;       /* Indigo gradient companion */
   --accent-cyan: #38bdf8;
   --accent-amber: #f59e0b;
-  --accent-emerald: #10a37f;     /* ChatGPT Emerald Green */
-  --accent-rose: #ef4444;
-  --text-primary: #f4f4f5;       /* Crisp bright white text */
-  --text-secondary: #d4d4d8;     /* High-contrast secondary text */
-  --text-muted: #a1a1aa;        /* Soft readable muted text */
-  --input-bg: #2f2f2f;          /* ChatGPT Input Bar background */
-  --input-border: #424242;       /* Subtle input outline */
+  --accent-emerald: #10b981;     /* Success Green */
+  --accent-rose: #ef4444;        /* Error / Warning Rose */
+  --text-primary: #f8fafc;       /* Crisp bright white text */
+  --text-secondary: #cbd5e1;     /* High-contrast secondary text (slate-300) */
+  --text-muted: #94a3b8;        /* Readable muted text (slate-400) */
+  --input-bg: #1c1d2b;          /* Input bar background */
+  --input-border: rgba(255, 255, 255, 0.14); /* Subtle input outline */
+  --input-text: #f8fafc;
+  --input-placeholder: #64748b;
   --radius-card: 16px;
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 16px 40px -4px rgba(0, 0, 0, 0.75);
 }
 
 /* ————— PRO LIGHT THEME (Clean White & High Contrast) ————— */
 [data-theme="light"] {
-  --bg-base: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-elevated: #f1f5f9;
-  --bg-card: #ffffff;
-  --border-card: #e2e8f0;
-  --border-hover: #cbd5e1;
-  --brand-violet: #10a37f;
-  --brand-indigo: #059669;
+  --bg-base: #f8fafc;           /* Light slate canvas */
+  --bg-surface: #ffffff;        /* Pure white sidebar & navigation */
+  --bg-elevated: #f1f5f9;       /* Slate-100 surfaces, pills, subtle areas */
+  --bg-card: #ffffff;           /* Clean white cards */
+  --bg-subtle: #f8fafc;         /* Slate-50 inner wells */
+  --border-card: #e2e8f0;       /* Slate-200 visible borders */
+  --border-hover: #cbd5e1;      /* Slate-300 hover */
+  --border-subtle: #edf2f7;
+  --brand-violet: #7c3aed;       /* Vibrant purple accent */
+  --brand-indigo: #4f46e5;
   --accent-cyan: #0284c7;
   --accent-amber: #d97706;
   --accent-emerald: #059669;
   --accent-rose: #e11d48;
-  --text-primary: #0f172a;       /* Deep slate high-contrast text */
-  --text-secondary: #334155;     /* Slate-700 secondary text */
-  --text-muted: #475569;        /* Slate-600 readable muted text */
+  --text-primary: #0f172a;       /* Deep slate-900 high-contrast text */
+  --text-secondary: #334155;     /* Slate-700 secondary text (WCAG AAA) */
+  --text-muted: #64748b;        /* Slate-500 readable muted text (WCAG AA > 4.5:1) */
   --input-bg: #ffffff;
-  --input-border: #cbd5e1;
+  --input-border: #cbd5e1;       /* Visible input borders */
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
   --radius-card: 16px;
-  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 4px 18px -2px rgba(15, 23, 42, 0.07);
+  --shadow-dropdown: 0 12px 32px -4px rgba(15, 23, 42, 0.12);
 }
 
 /* ————— NATURE CALM MOTION THEME ————— */
@@ -53,8 +66,10 @@
   --bg-surface: rgba(14, 25, 17, 0.94);
   --bg-elevated: rgba(20, 36, 24, 0.96);
   --bg-card: rgba(16, 29, 20, 0.92);
+  --bg-subtle: rgba(11, 20, 14, 0.9);
   --border-card: rgba(167, 243, 208, 0.22);
   --border-hover: rgba(52, 211, 153, 0.5);
+  --border-subtle: rgba(167, 243, 208, 0.12);
   --brand-violet: #059669;
   --brand-indigo: #10b981;
   --accent-cyan: #14b8a6;
@@ -66,8 +81,11 @@
   --text-muted: #86efac;        /* Mint-300 readable muted text */
   --input-bg: rgba(11, 20, 14, 0.9);
   --input-border: rgba(167, 243, 208, 0.3);
+  --input-text: #f0fdf4;
+  --input-placeholder: #6ee7b7;
   --radius-card: 16px;
   --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.6);
+  --shadow-dropdown: 0 16px 40px -4px rgba(0, 0, 0, 0.8);
 }
 
 @theme inline {
@@ -75,12 +93,15 @@
   --color-surface: var(--bg-surface);
   --color-elevated: var(--bg-elevated);
   --color-card: var(--bg-card);
+  --color-subtle: var(--bg-subtle);
+  --color-border-card: var(--border-card);
+  --color-border-subtle: var(--border-subtle);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-input-bg: var(--input-bg);
   --color-input-border: var(--input-border);
-  --font-sans: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -104,7 +125,7 @@ div,
 li,
 label,
 option {
-  font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -118,12 +139,47 @@ samp,
   font-family: var(--font-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
 
-/* Standardized Heading & Body Sizing */
-h1 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 800; letter-spacing: -0.02em; }
-h2 { font-size: 1.4rem; line-height: 1.85rem; font-weight: 700; letter-spacing: -0.01em; }
-h3 { font-size: 1.2rem; line-height: 1.6rem; font-weight: 700; }
-h4 { font-size: 1.05rem; line-height: 1.45rem; font-weight: 600; }
-p, span, li, label { line-height: 1.6; }
+/* Standardized Typographic Scale & Line-Heights (Phase 2 Design System) */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: clamp(1.65rem, 2.2vw, 2.15rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+  line-height: 1.35;
+  font-weight: 600;
+}
+h4 {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.4;
+  font-weight: 600;
+}
+p, span, li {
+  line-height: 1.55;
+}
+label, .label-caption {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+/* Focus Visibility & Accessibility Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--brand-violet);
+  outline-offset: 2px;
+}
 
 /* Explicit CSS Theme Helper Utilities */
 .text-theme-primary {
@@ -138,19 +194,47 @@ p, span, li, label { line-height: 1.6; }
   color: var(--text-muted) !important;
 }
 
+.bg-theme-base {
+  background-color: var(--bg-base) !important;
+}
+
+.bg-theme-surface {
+  background-color: var(--bg-surface) !important;
+}
+
+.bg-theme-card {
+  background-color: var(--bg-card) !important;
+}
+
+.bg-theme-elevated {
+  background-color: var(--bg-elevated) !important;
+}
+
+.bg-theme-subtle {
+  background-color: var(--bg-subtle) !important;
+}
+
 .bg-theme-input {
-  background-color: var(--input-bg);
+  background-color: var(--input-bg) !important;
+}
+
+.border-theme-card {
+  border-color: var(--border-card) !important;
+}
+
+.border-theme-subtle {
+  border-color: var(--border-subtle) !important;
 }
 
 .border-theme-input {
-  border-color: var(--input-border);
+  border-color: var(--input-border) !important;
 }
 
 /* ==========================================================================
    UNIVERSAL THEME COLOR OVERRIDES & CONTRAST FIXES
    ========================================================================== */
 
-/* 1. DARK THEME RULE */
+/* 1. DARK THEME RULES */
 [data-theme="dark"],
 [data-theme="dark"] body {
   color: var(--text-primary);
@@ -166,15 +250,15 @@ p, span, li, label { line-height: 1.6; }
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-  color: #8e8e93;
+  color: var(--input-placeholder);
 }
 
 [data-theme="dark"] select option {
-  background-color: #2f2f2f;
-  color: #ececec;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
-/* 2. LIGHT THEME RULE */
+/* 2. LIGHT THEME RULES */
 [data-theme="light"],
 [data-theme="light"] body {
   color: var(--text-primary);
@@ -190,7 +274,7 @@ p, span, li, label { line-height: 1.6; }
 
 [data-theme="light"] input::placeholder,
 [data-theme="light"] textarea::placeholder {
-  color: #64748b;
+  color: var(--input-placeholder);
 }
 
 [data-theme="light"] select option {
@@ -205,9 +289,138 @@ p, span, li, label { line-height: 1.6; }
   color: var(--text-primary);
   background-color: var(--bg-card);
   border-color: var(--border-card);
+  box-shadow: var(--shadow-card);
 }
 
-/* 3. NATURE THEME RULE */
+/* Light Theme: Card Headings & Text High-Contrast Safeguards */
+[data-theme="light"] .card h1,
+[data-theme="light"] .card h2,
+[data-theme="light"] .card h3,
+[data-theme="light"] .card h4,
+[data-theme="light"] .glass-card h1,
+[data-theme="light"] .glass-card h2,
+[data-theme="light"] .glass-card h3,
+[data-theme="light"] .glass-card h4,
+[data-theme="light"] aside h1,
+[data-theme="light"] aside h2,
+[data-theme="light"] aside h3,
+[data-theme="light"] aside h4,
+[data-theme="light"] main h1,
+[data-theme="light"] main h2,
+[data-theme="light"] main h3,
+[data-theme="light"] main h4,
+[data-theme="light"] h1.text-white,
+[data-theme="light"] h2.text-white,
+[data-theme="light"] h3.text-white,
+[data-theme="light"] h4.text-white,
+[data-theme="light"] h5.text-white {
+  color: var(--text-primary) !important;
+}
+
+/* Prevent white text on white cards/page in light mode (excluding colored buttons & badges) */
+[data-theme="light"] .card .text-white:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]),
+[data-theme="light"] .glass-card .text-white:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]),
+[data-theme="light"] main .text-white:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]) {
+  color: var(--text-primary) !important;
+}
+
+/* Light Theme: Comprehensive Dark Hex Backgrounds to Elevated Surface */
+[data-theme="light"] [class*="bg-[#090A12]"],
+[data-theme="light"] [class*="bg-[#090A14]"],
+[data-theme="light"] [class*="bg-[#0A0A13]"],
+[data-theme="light"] [class*="bg-[#0A0A14]"],
+[data-theme="light"] [class*="bg-[#0b0d19]"],
+[data-theme="light"] [class*="bg-[#0b0e21]"],
+[data-theme="light"] [class*="bg-[#0c0e1e]"],
+[data-theme="light"] [class*="bg-[#0c0e20]"],
+[data-theme="light"] [class*="bg-[#0d0f1f]"],
+[data-theme="light"] [class*="bg-[#0D111D]"],
+[data-theme="light"] [class*="bg-[#0e1026]"],
+[data-theme="light"] [class*="bg-[#0E131F]"],
+[data-theme="light"] [class*="bg-[#0F111E]"],
+[data-theme="light"] [class*="bg-[#0f1226]"],
+[data-theme="light"] [class*="bg-[#10121E]"],
+[data-theme="light"] [class*="bg-[#11132b]"],
+[data-theme="light"] [class*="bg-[#11142a]"],
+[data-theme="light"] [class*="bg-[#121320]"],
+[data-theme="light"] [class*="bg-[#121424]"],
+[data-theme="light"] [class*="bg-[#121429]"],
+[data-theme="light"] [class*="bg-[#12142d]"],
+[data-theme="light"] [class*="bg-[#12142e]"],
+[data-theme="light"] [class*="bg-[#12152e]"],
+[data-theme="light"] [class*="bg-[#13131F]"],
+[data-theme="light"] [class*="bg-[#141624]"],
+[data-theme="light"] [class*="bg-[#14172f]"],
+[data-theme="light"] [class*="bg-[#16172B]"],
+[data-theme="light"] [class*="bg-[#181928]"],
+[data-theme="light"] [class*="bg-[#181a38]"],
+[data-theme="light"] [class*="bg-[#1A1A2E]"],
+[data-theme="light"] [class*="bg-[#1f2033]"] {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-card) !important;
+}
+
+/* Light Theme: Dark semi-transparent black overlays inside cards mapped to elevated surface */
+[data-theme="light"] .card [class*="bg-black/"],
+[data-theme="light"] .glass-card [class*="bg-black/"] {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-card) !important;
+}
+
+/* Light Theme: Low-contrast dark palette text classes converted to crisp readable slate */
+[data-theme="light"] [class*="text-[#9B99B5]"] {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] [class*="text-[#5A5875]"] {
+  color: var(--text-muted) !important;
+}
+[data-theme="light"] [class*="text-[#d9d8e5]"] {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] [class*="text-[#F1F1F8]"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .card [class*="text-slate-100"],
+[data-theme="light"] .card [class*="text-slate-200"],
+[data-theme="light"] .card [class*="text-slate-300"],
+[data-theme="light"] .glass-card [class*="text-slate-100"],
+[data-theme="light"] .glass-card [class*="text-slate-200"],
+[data-theme="light"] .glass-card [class*="text-slate-300"],
+[data-theme="light"] main [class*="text-slate-100"]:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]),
+[data-theme="light"] main [class*="text-slate-200"]:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]),
+[data-theme="light"] main [class*="text-slate-300"]:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]) {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .card [class*="text-slate-400"],
+[data-theme="light"] .glass-card [class*="text-slate-400"],
+[data-theme="light"] main [class*="text-slate-400"]:not(button, button *, a[class*="bg-"], [class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"], [class*="bg-gradient"]) {
+  color: var(--text-muted) !important;
+}
+
+/* Light Theme: Subtle White Borders Converted to Visible Slate Borders */
+[data-theme="light"] [class*="border-white/"],
+[data-theme="light"] [class*="border-white/["] {
+  border-color: var(--border-card) !important;
+}
+
+/* Light Theme: Transparent White Sub-Panels Converted to Elevated/Subtle Surfaces */
+[data-theme="light"] .card [class*="bg-white/0"],
+[data-theme="light"] .glass-card [class*="bg-white/0"],
+[data-theme="light"] .card [class*="bg-white/[0"],
+[data-theme="light"] .glass-card [class*="bg-white/[0"] {
+  background-color: var(--bg-elevated) !important;
+}
+
+/* Light Theme: Prevent hover:text-white from turning text invisible on light backgrounds */
+[data-theme="light"] button[class*="hover:text-white"]:not([class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"]):hover,
+[data-theme="light"] a[class*="hover:text-white"]:not([class*="bg-violet"], [class*="bg-indigo"], [class*="bg-rose"], [class*="bg-emerald"], [class*="bg-cyan"], [class*="bg-red"], [class*="bg-amber"]):hover {
+  color: var(--text-primary) !important;
+}
+
+/* 3. NATURE THEME RULES */
 [data-theme="nature"],
 [data-theme="nature"] body {
   color: var(--text-primary);

@@ -118,7 +118,7 @@ export function YouTubePlayer({
   const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}&start=${Math.floor(initialTimestampSec)}&autoplay=0&rel=0&modestbranding=1`;
 
   return (
-    <div className="relative w-full rounded-2xl glass-card border border-white/[0.08] overflow-hidden flex flex-col bg-[#0A0A14] shadow-2xl">
+    <div className="relative w-full rounded-2xl glass-card border border-[var(--border-card)] overflow-hidden flex flex-col bg-[var(--bg-card)] shadow-2xl">
       {/* Embedded Video iFrame */}
       <div className="relative w-full aspect-video bg-black overflow-hidden group">
         <iframe
@@ -149,7 +149,7 @@ export function YouTubePlayer({
       </div>
 
       {/* Interactive Custom Control Bar */}
-      <div className="p-3 bg-[#13131F] border-t border-white/[0.06] flex items-center justify-between gap-3 flex-wrap">
+      <div className="p-3 bg-[var(--bg-elevated)] border-t border-[var(--border-card)] flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           {/* Play/Pause Button */}
           <button
@@ -164,7 +164,7 @@ export function YouTubePlayer({
           <button
             type="button"
             onClick={() => handleJump(-10)}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.06] transition-colors"
+            className="p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-card)] transition-colors"
             title="Rewind 10s"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -174,21 +174,21 @@ export function YouTubePlayer({
           <button
             type="button"
             onClick={() => handleJump(10)}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.06] transition-colors"
+            className="p-2 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-card)] transition-colors"
             title="Forward 10s"
           >
             <RotateCw className="w-3.5 h-3.5" />
           </button>
 
-          <span className="font-mono text-xs font-bold text-slate-300 ml-1">
+          <span className="font-mono text-xs font-bold text-[var(--text-primary)] ml-1">
             {formatTimestamp(currentTimeSec)}
           </span>
         </div>
 
         {/* Speed Controls */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-[#9B99B5] uppercase tracking-wider hidden sm:inline flex items-center gap-1">
-            <Gauge className="w-3 h-3 text-cyan-400" /> Speed:
+          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider hidden sm:inline flex items-center gap-1">
+            <Gauge className="w-3 h-3 text-cyan-500 dark:text-cyan-400" /> Speed:
           </span>
           {[0.75, 1.0, 1.25, 1.5, 2.0].map((rate) => (
             <button
@@ -197,8 +197,8 @@ export function YouTubePlayer({
               onClick={() => handleChangePlaybackRate(rate)}
               className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
                 playbackRate === rate
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                  : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.06]"
+                  ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/40"
+                  : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-card)] hover:bg-[var(--bg-elevated)]"
               }`}
             >
               {rate}x

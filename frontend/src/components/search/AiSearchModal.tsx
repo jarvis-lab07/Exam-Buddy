@@ -141,11 +141,11 @@ export function AiSearchModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl rounded-2xl bg-[#0F111E] border border-white/[0.12] shadow-2xl overflow-hidden my-auto sm:my-0 text-[#F1F1F8] border-t-2 border-violet-500/40"
+        className="relative w-full max-w-3xl rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl overflow-hidden my-auto sm:my-0 text-[var(--text-primary)] border-t-2 border-violet-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Bar: Omnibar Input */}
-        <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#141624]">
+        <div className="p-4 sm:p-5 border-b border-[var(--border-card)] bg-[var(--bg-elevated)]">
           <div className="relative flex items-center">
             <div className="absolute left-3.5 p-1 rounded-lg bg-violet-600/20 text-violet-400">
               <Sparkles className="w-4 h-4" />
@@ -157,14 +157,14 @@ export function AiSearchModal({
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask an exam doubt, formula derivation, or concept..."
-              className="w-full h-12 pl-12 pr-28 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-sm sm:text-base text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+              className="w-full h-12 pl-12 pr-28 rounded-2xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm sm:text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
             />
             <div className="absolute right-2.5 flex items-center gap-1.5">
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -316,14 +316,14 @@ export function AiSearchModal({
               )}
 
               {/* Rendered Answer Content */}
-              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-sm text-slate-200 leading-relaxed space-y-4 font-sans">
+              <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-card)] text-sm text-[var(--text-primary)] leading-relaxed space-y-4 font-sans">
                 {result.markdown.split("\n\n").map((block, idx) => {
                   if (block.startsWith("### ")) {
                     const title = block.replace("### ", "");
                     return (
                       <h3
                         key={idx}
-                        className="text-base font-bold text-white pt-2 border-b border-white/[0.06] pb-1 flex items-center gap-2"
+                        className="text-base font-bold text-[var(--text-primary)] pt-2 border-b border-[var(--border-card)] pb-1 flex items-center gap-2"
                       >
                         {title}
                       </h3>
@@ -334,14 +334,14 @@ export function AiSearchModal({
                     return (
                       <pre
                         key={idx}
-                        className="p-3 rounded-xl bg-[#090A12] border border-white/[0.08] text-xs font-mono text-cyan-300 overflow-x-auto"
+                        className="p-3 rounded-xl bg-[#111322] dark:bg-[#0c0d18] border border-[var(--border-card)] text-xs font-mono text-cyan-400 overflow-x-auto"
                       >
                         {code}
                       </pre>
                     );
                   }
                   return (
-                    <div key={idx} className="text-slate-300 space-y-1">
+                    <div key={idx} className="text-[var(--text-secondary)] space-y-1">
                       {block.split("\n").map((line, lineIdx) => (
                         <p key={lineIdx} className={line.startsWith("- ") ? "pl-4" : ""}>
                           {line}
@@ -402,15 +402,15 @@ export function AiSearchModal({
         </div>
 
         {/* Footer */}
-        <div className="p-3 px-5 border-t border-white/[0.06] bg-[#141624] flex items-center justify-between text-[11px] text-slate-400">
+        <div className="p-3 px-5 border-t border-[var(--border-card)] bg-[var(--bg-elevated)] flex items-center justify-between text-[11px] text-[var(--text-muted)]">
           <div className="flex items-center gap-2">
             <span>Press</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.1] text-[10px] text-slate-300 font-mono">
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-card)] text-[10px] text-[var(--text-primary)] font-mono">
               Enter
             </kbd>
             <span>to search</span>
             <span className="mx-1">•</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.06] border border-white/[0.1] text-[10px] text-slate-300 font-mono">
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-card)] text-[10px] text-[var(--text-primary)] font-mono">
               Esc
             </kbd>
             <span>to close</span>

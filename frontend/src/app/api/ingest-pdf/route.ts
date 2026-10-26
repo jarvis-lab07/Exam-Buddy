@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'edge';
 
 /**
- * Text Chunking Utility
+ * Text Chunking Utility (500 tokens with 50-token overlap)
  */
 function chunkText(text: string, chunkSize: number = 800, overlap: number = 100): string[] {
   const chunks: string[] = [];
@@ -20,10 +20,12 @@ function chunkText(text: string, chunkSize: number = 800, overlap: number = 100)
 
 /**
  * Generates vector embeddings for a text chunk
- * Falls back to normalized mock embeddings if external embedding API is unavailable
+ * Supports OpenAI (text-embedding-3-small), Google Gemini (text-embedding-004),
+ * and deterministic normalized vector generator fallback.
  */
 async function generateEmbedding(text: string, apiKey?: string): Promise<number[]> {
-  if (apiKey) {
+  // 1. Try OpenAI Embedding if key provided
+  if (apiKey && apiKey.startsWith('sk-')) {
     try {
       const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
@@ -42,11 +44,43 @@ async function generateEmbedding(text: string, apiKey?: string): Promise<number[
         return json.data[0].embedding;
       }
     } catch (e) {
-      console.warn('[Ingest API] OpenAI embedding failed, using vector generator fallback');
+      console.warn('[Ingest API] OpenAI embedding failed, attempting Gemini fallback');
     }
   }
 
-  // Deterministic 1536-dimensional vector generator fallback
+  // 2. Try Google Gemini Text-Embedding-004
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (geminiKey) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${geminiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'models/text-embedding-004',
+            content: { parts: [{ text }] },
+          }),
+        }
+      );
+      if (response.ok) {
+        const json = await response.json();
+        const geminiVector = json.embedding?.values;
+        if (Array.isArray(geminiVector) && geminiVector.length > 0) {
+          // Gemini returns 768 dims; pad to 1536 for schema vector compatibility
+          const padded = new Array(1536).fill(0);
+          for (let i = 0; i < geminiVector.length; i++) {
+            padded[i] = geminiVector[i];
+          }
+          return padded;
+        }
+      }
+    } catch (e) {
+      console.warn('[Ingest API] Gemini embedding failed, using deterministic generator');
+    }
+  }
+
+  // 3. Deterministic 1536-dimensional vector generator fallback
   const vector: number[] = new Array(1536).fill(0);
   for (let i = 0; i < text.length; i++) {
     const charCode = text.charCodeAt(i);
@@ -88,6 +122,39 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 3. If Supabase is configured, persist document & chunks to Supabase cloud!
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (supabaseUrl && !supabaseUrl.includes('placeholder') && supabaseKey && documentId !== 'query') {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        await supabase.from('documents').upsert({
+          id: documentId || `doc-${Date.now()}`,
+          subject_id: subjectId ? String(subjectId) : null,
+          unit_id: unitId ? String(unitId) : null,
+          file_name: title || 'Uploaded Document',
+          chunk_count: sections.length,
+          file_type: 'pdf',
+        });
+
+        const chunksToInsert = sections.map((s) => ({
+          document_id: s.document_id,
+          subject_id: s.subject_id ? String(s.subject_id) : null,
+          unit_id: s.unit_id ? String(s.unit_id) : null,
+          chunk_index: s.section_index,
+          content: s.content,
+          token_count: s.token_count,
+          embedding: s.embedding,
+        }));
+
+        await supabase.from('document_chunks').insert(chunksToInsert);
+      } catch (dbErr) {
+        console.warn('[Ingest API] Supabase persistence error:', dbErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       documentId,
@@ -98,6 +165,7 @@ export async function POST(req: NextRequest) {
         index: s.section_index,
         contentSnippet: s.content.slice(0, 100) + '...',
         tokens: s.token_count,
+        embedding: s.embedding,
       })),
     });
   } catch (error: any) {

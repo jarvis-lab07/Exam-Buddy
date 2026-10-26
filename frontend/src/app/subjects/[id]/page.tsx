@@ -2,7 +2,7 @@
 
 export const runtime = 'edge';
 
-import React, { use, useState, useMemo } from "react";
+import React, { use, useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -23,7 +23,10 @@ import {
   Bot,
 } from "lucide-react";
 import { MOCK_SUBJECTS } from "@/lib/mock-data";
+import { getUserSubjects, saveUserSubjects } from "@/lib/subject-service";
 import { UnitListItem } from "@/components/subjects/UnitListItem";
+import { PyqFrequencyModal } from "@/components/subjects/PyqFrequencyModal";
+import { ExamAnswerStructurerModal } from "@/components/subjects/ExamAnswerStructurerModal";
 import { Subject } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +40,20 @@ export default function SubjectDetailPage({
   const [subjectsState, setSubjectsState] = useState<Subject[]>(MOCK_SUBJECTS);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isPyqOpen, setIsPyqOpen] = useState(false);
+  const [isStructurerOpen, setIsStructurerOpen] = useState(false);
+
+  useEffect(() => {
+    const load = () => {
+      const list = getUserSubjects();
+      if (list && list.length > 0) {
+        setSubjectsState(list);
+      }
+    };
+    load();
+    window.addEventListener("exam_buddy_subjects_updated", load);
+    return () => window.removeEventListener("exam_buddy_subjects_updated", load);
+  }, []);
 
   const subject = useMemo(
     () => subjectsState.find((s) => s.id === resolvedParams.id) || subjectsState[0] || MOCK_SUBJECTS[0],
@@ -137,14 +154,14 @@ export default function SubjectDetailPage({
     <div className="space-y-6 pb-16">
       <Link
         href="/subjects"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to All Subjects
       </Link>
 
       {/* Header Card */}
-      <div className="glass-card p-6 sm:p-8 rounded-2xl border border-white/[0.08] border-t-2 border-indigo-500/40 space-y-4 relative overflow-hidden">
+      <div className="glass-card p-6 sm:p-8 rounded-2xl border border-[var(--border-card)] border-t-2 border-indigo-500/40 space-y-4 relative overflow-hidden">
         <div
           className="absolute top-0 left-0 right-0 h-1.5"
           style={{ backgroundColor: subjectColor }}
@@ -167,10 +184,10 @@ export default function SubjectDetailPage({
                 {subject.courseCode}
               </span>
             )}
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/[0.05] text-slate-300 border border-white/[0.08]">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)]">
               {subject.degree}
             </span>
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-xs text-[var(--text-muted)] font-medium">
               {subject.semesterOrYear}
             </span>
           </div>
@@ -186,18 +203,18 @@ export default function SubjectDetailPage({
               <button
                 type="button"
                 onClick={() => { setMenuOpen((v) => !v); setConfirmDelete(false); }}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08] transition-all"
+                className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] border border-transparent hover:border-[var(--border-card)] transition-all"
                 title="Subject actions"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1.5 z-30 w-56 rounded-2xl border border-white/[0.1] bg-[#0D111D]/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5 animate-[fadeIn_0.12s_ease-out]">
+                <div className="absolute right-0 top-full mt-1.5 z-30 w-56 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5 animate-[fadeIn_0.12s_ease-out]">
                   <Link
                     href={`/chat?subject=${subject.id}`}
                     onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/[0.06] hover:text-white transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                   >
                     <Bot className="w-3.5 h-3.5 text-indigo-400" />
                     Launch AI Tutor
@@ -205,7 +222,7 @@ export default function SubjectDetailPage({
                   <Link
                     href={`/upload?subject=${subject.id}`}
                     onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/[0.06] hover:text-white transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                   >
                     <UploadCloud className="w-3.5 h-3.5 text-cyan-400" />
                     Upload Materials
@@ -213,7 +230,7 @@ export default function SubjectDetailPage({
                   <Link
                     href={`/flashcards?subject=${subject.id}`}
                     onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/[0.06] hover:text-white transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                   >
                     <Layers className="w-3.5 h-3.5 text-purple-400" />
                     Flashcard Drill
@@ -248,7 +265,7 @@ export default function SubjectDetailPage({
                         <button
                           type="button"
                           onClick={() => setConfirmDelete(false)}
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[11px] font-semibold text-slate-200 transition-colors"
+                          className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--input-bg)] hover:bg-[var(--bg-card)] border border-[var(--border-card)] text-[11px] font-semibold text-[var(--text-secondary)] transition-colors"
                         >
                           Cancel
                         </button>
@@ -278,26 +295,26 @@ export default function SubjectDetailPage({
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
             {subject.title || subject.name}
           </h1>
           {subject.category && (
-            <p className="text-sm text-slate-400 mt-1">{subject.category}</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">{subject.category}</p>
           )}
         </div>
 
         {/* Progress Bar & CTA */}
-        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-3">
+        <div className="p-4 rounded-2xl bg-[var(--input-bg)]/50 border border-[var(--border-card)] space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+            <span className="text-[var(--text-secondary)] font-semibold flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-emerald-400" />
               Syllabus Readiness: {totalProgress}%
             </span>
-            <span className="text-slate-400 font-mono">
+            <span className="text-[var(--text-muted)] font-mono">
               {units.length} Curriculum Units
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-subtle)]">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -316,9 +333,32 @@ export default function SubjectDetailPage({
             <Sparkles className="w-4 h-4" />
             Launch AI Study Assistant
           </Link>
+
+          {/* PYQ Frequency Radar Button */}
+          <button
+            type="button"
+            onClick={() => setIsPyqOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-2 transition-all shadow-xs"
+            title="5-Year PYQ Frequency Radar & Mistake Notebook"
+          >
+            <TrendingUp className="w-4 h-4 text-amber-400" />
+            <span>PYQ Frequency Radar</span>
+          </button>
+
+          {/* 5/10-Mark Answer Structurer Button */}
+          <button
+            type="button"
+            onClick={() => setIsStructurerOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-2 transition-all shadow-xs"
+            title="University 5/10-Mark Answer Structurer & Formula Sheet"
+          >
+            <Award className="w-4 h-4 text-emerald-400" />
+            <span>5/10M Answer Structurer</span>
+          </button>
+
           <Link
             href={`/upload?subject=${subject.id}`}
-            className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-medium border border-white/[0.08] flex items-center gap-2 transition-all"
+            className="px-4 py-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium border border-[var(--border-card)] flex items-center gap-2 transition-all"
           >
             <FileText className="w-4 h-4 text-cyan-400" />
             Upload Course Materials
@@ -328,7 +368,7 @@ export default function SubjectDetailPage({
 
       {/* Unit Syllabus Tree */}
       <div className="space-y-3">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
+        <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-indigo-400" />
           Units & Topic Modules ({units.length})
         </h2>
@@ -346,6 +386,23 @@ export default function SubjectDetailPage({
           ))}
         </div>
       </div>
+
+      {/* 5-Year PYQ Radar Modal */}
+      <PyqFrequencyModal
+        isOpen={isPyqOpen}
+        onClose={() => setIsPyqOpen(false)}
+        subjectCode={subject.code}
+        subjectTitle={subject.title || subject.name}
+      />
+
+      {/* 5/10-Mark Answer Structurer & Formula Sheet Modal */}
+      <ExamAnswerStructurerModal
+        isOpen={isStructurerOpen}
+        onClose={() => setIsStructurerOpen(false)}
+        subjectTitle={subject.title || subject.name}
+        unitTitle={units[0]?.title || "Unit 1: Core Fundamentals"}
+        topicTitle={units[0]?.topics?.[0] || `${subject.title || subject.name} Key Concept`}
+      />
     </div>
   );
 }

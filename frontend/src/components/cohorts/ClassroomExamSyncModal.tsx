@@ -32,6 +32,7 @@ import {
   FolderPlus,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchClassroomExamsFromDb, saveClassroomExamToDb } from '@/lib/cohort-service';
 
 export interface ClassroomExam {
   id: string;
@@ -1458,6 +1459,14 @@ export function ClassroomExamSyncModal({ isOpen, onClose }: ClassroomExamSyncMod
             setSyncedExamIds(parsed);
           }
         }
+
+        // Fetch cloud-synchronized classroom exams if Supabase is connected
+        fetchClassroomExamsFromDb().then((cloudExams) => {
+          if (cloudExams && cloudExams.length > 0) {
+            setExams(cloudExams as ClassroomExam[]);
+            saveExamsToStorage(cloudExams as ClassroomExam[]);
+          }
+        }).catch((err) => console.warn('Supabase classroom exam fetch fallback:', err));
       } catch (err) {
         console.error('Error loading stored cohort exams:', err);
       }
@@ -1797,6 +1806,16 @@ export function ClassroomExamSyncModal({ isOpen, onClose }: ClassroomExamSyncMod
 
     setExams(nextExams);
     saveExamsToStorage(nextExams);
+
+    // Save to Supabase DB asynchronously if connected
+    if (editingExamId) {
+      const updated = nextExams.find((e) => e.id === editingExamId);
+      if (updated) {
+        saveClassroomExamToDb(updated).catch(() => {});
+      }
+    } else if (nextExams[0]) {
+      saveClassroomExamToDb(nextExams[0]).catch(() => {});
+    }
 
     setNewTitle('');
     setNewCode('');

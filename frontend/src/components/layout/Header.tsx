@@ -19,7 +19,6 @@ import {
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
-import { DailySecurityModal } from "@/components/auth/DailySecurityModal";
 import { ClassroomExamSyncModal } from "@/components/cohorts/ClassroomExamSyncModal";
 import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
 import { CalendarCheck, User } from "lucide-react";
@@ -44,13 +43,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  const {
-    user,
-    signOut,
-    isDailyUnlocked,
-    isSecurityModalOpen,
-    setIsSecurityModalOpen,
-  } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const refreshKeyStatus = () => {
@@ -110,10 +103,10 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
           <button
             type="button"
             onClick={() => setIsExamSyncOpen(true)}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-300 border border-violet-500/30 text-xs font-bold transition-all"
+            className="hidden xs:flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-700 dark:text-violet-300 border border-violet-500/30 text-xs font-bold transition-all"
             title="Classroom Exam Sync & Batch Countdowns"
           >
-            <CalendarCheck className="w-3.5 h-3.5 text-violet-400" />
+            <CalendarCheck className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
             <span className="hidden md:inline">Exam Sync</span>
           </button>
         </div>
@@ -135,8 +128,20 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* 3-Way Theme Switcher Toggle */}
-          <div className="flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
+          {/* Mobile Theme Cycle Button */}
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "dark" ? "light" : theme === "light" ? "nature" : "dark")}
+            className="sm:hidden p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            title={`Current theme: ${theme}. Click to switch theme`}
+          >
+            {theme === "dark" && <Moon className="w-4 h-4 text-emerald-400" />}
+            {theme === "light" && <Sun className="w-4 h-4 text-amber-500" />}
+            {theme === "nature" && <Trees className="w-4 h-4 text-emerald-400" />}
+          </button>
+
+          {/* Desktop 3-Way Theme Switcher Toggle */}
+          <div className="hidden sm:flex items-center p-1 rounded-xl bg-[var(--input-bg)] border border-[var(--border-card)] gap-1">
             <button
               onClick={() => setTheme("dark")}
               className={cn(
@@ -184,19 +189,19 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
             className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs transition-colors"
             title="Configure AI API Key (Gemini, Groq, OpenAI)"
           >
-            <Key className="w-3 h-3 text-amber-400" />
+            <Key className="w-3 h-3 text-amber-500 dark:text-amber-400" />
             {hasApiKey ? (
-              <span className="text-emerald-400 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
                 {AI_PROVIDERS[activeProvider].name.split(" ")[0]}
               </span>
             ) : (
-              <span className="text-amber-300 font-medium text-[11px]">API Key</span>
+              <span className="text-amber-700 dark:text-amber-300 font-medium text-[11px]">API Key</span>
             )}
           </button>
 
           <div className="badge-streak hidden xs:inline-flex sm:inline-flex h-8 px-2.5 border border-amber-500/35 bg-amber-500/10">
-            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+            <Flame className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 fill-amber-400/30" />
             <span>7 Days</span>
           </div>
 
@@ -207,7 +212,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-400 ring-2 ring-[var(--bg-surface)]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-[var(--bg-surface)]" />
             </button>
 
             {showNotifications && (
@@ -215,7 +220,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border-card)]">
                   <span className="text-xs font-semibold text-[var(--text-primary)]">Notifications</span>
                   <button
-                    className="text-[10px] text-violet-400 hover:underline"
+                    className="text-[10px] text-violet-600 dark:text-violet-400 hover:underline"
                     onClick={() => setShowNotifications(false)}
                   >
                     Mark all read
@@ -235,8 +240,16 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
               title={`Logged in as ${user.email}. Click to view & edit student profile or sign out.`}
               className="relative flex items-center gap-2 p-1 pr-2.5 rounded-full bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] hover:border-violet-500/40 transition-all group"
             >
-              <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40">
-                {user.email?.charAt(0).toUpperCase() || 'U'}
+              <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-violet-500/40 overflow-hidden">
+                {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                  <img
+                    src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                    alt={user.user_metadata?.full_name || 'User avatar'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{user.email?.charAt(0).toUpperCase() || 'U'}</span>
+                )}
                 {isGoogleUser && (
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white flex items-center justify-center text-[8px] font-black text-blue-600 border border-slate-900 shadow-xs">
                     G
@@ -283,11 +296,6 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      <DailySecurityModal
-        isOpen={isSecurityModalOpen}
-        onClose={() => setIsSecurityModalOpen(false)}
       />
 
       <ClassroomExamSyncModal

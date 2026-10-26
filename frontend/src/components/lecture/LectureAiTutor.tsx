@@ -129,21 +129,21 @@ User Notes Count: ${workspace.notes.length}
   };
 
   return (
-    <div className="glass-card rounded-2xl border border-white/[0.08] flex flex-col h-[640px] overflow-hidden bg-[#0A0A14] shadow-2xl">
+    <div className="glass-card rounded-2xl border border-[var(--border-card)] flex flex-col h-[640px] overflow-hidden bg-[var(--bg-card)] shadow-2xl">
       {/* Header */}
-      <div className="p-3.5 bg-[#13131F] border-b border-white/[0.06] flex items-center justify-between gap-2 shrink-0">
+      <div className="p-3.5 bg-[var(--bg-elevated)] border-b border-[var(--border-card)] flex items-center justify-between gap-2 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-400">
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+            <h3 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
               AI Lecture Tutor
-              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-300 border border-amber-500/25">
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-500 dark:text-amber-300 border border-amber-500/25">
                 [{formatTimestamp(currentTimestampSec)}]
               </span>
             </h3>
-            <p className="text-[10px] text-[#9B99B5]">Context-Aware Study Assistant</p>
+            <p className="text-[10px] text-[var(--text-muted)]">Context-Aware Study Assistant</p>
           </div>
         </div>
 
@@ -151,7 +151,7 @@ User Notes Count: ${workspace.notes.length}
           <button
             type="button"
             onClick={onTriggerQuiz}
-            className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold transition-all"
+            className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-500 dark:text-cyan-300 border border-cyan-500/30 text-[10px] font-bold transition-all"
             title="Generate Quiz from Lecture"
           >
             Quiz
@@ -159,7 +159,7 @@ User Notes Count: ${workspace.notes.length}
           <button
             type="button"
             onClick={onTriggerFlashcards}
-            className="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-[10px] font-bold transition-all"
+            className="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-500 dark:text-purple-300 border border-purple-500/30 text-[10px] font-bold transition-all"
             title="Generate Flashcards"
           >
             Cards
@@ -168,7 +168,7 @@ User Notes Count: ${workspace.notes.length}
       </div>
 
       {/* Quick Action Shortcuts */}
-      <div className="p-2 bg-white/[0.02] border-b border-white/[0.04] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+      <div className="p-2 bg-[var(--bg-subtle)] border-b border-[var(--border-card)] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
         <span className="text-[9px] font-bold text-violet-400 uppercase shrink-0 px-1 flex items-center gap-1">
           <Zap className="w-2.5 h-2.5" /> Prompts:
         </span>
@@ -185,7 +185,7 @@ User Notes Count: ${workspace.notes.length}
             type="button"
             onClick={() => handleSend(promptText)}
             disabled={isStreaming}
-            className="px-2.5 py-1 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-200 text-[10px] font-semibold whitespace-nowrap transition-all disabled:opacity-50 shrink-0 cursor-pointer shadow-xs"
+            className="px-2.5 py-1 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-500 dark:text-violet-200 text-[10px] font-semibold whitespace-nowrap transition-all disabled:opacity-50 shrink-0 cursor-pointer shadow-xs"
           >
             {promptText}
           </button>
@@ -206,7 +206,7 @@ User Notes Count: ${workspace.notes.length}
                   "p-3.5 rounded-2xl text-xs max-w-[88%] leading-relaxed space-y-2",
                   isUser
                     ? "bg-violet-600 text-white rounded-br-none"
-                    : "glass-card border border-white/[0.08] text-slate-200 rounded-bl-none bg-white/[0.03]"
+                    : "glass-card border border-[var(--border-card)] text-[var(--text-primary)] rounded-bl-none bg-[var(--bg-elevated)]"
                 )}
               >
                 {msg.timestampSec !== undefined && (
@@ -218,11 +218,11 @@ User Notes Count: ${workspace.notes.length}
 
                 {/* Message Action Bar for Assistant Responses */}
                 {!isUser && msg.content && (
-                  <div className="flex items-center gap-1.5 pt-2 border-t border-white/[0.06] flex-wrap">
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-[var(--border-subtle)] flex-wrap">
                     <button
                       type="button"
                       onClick={() => handleCopy(msg.id, msg.content)}
-                      className="p-1 rounded text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors"
+                      className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                       title="Copy response"
                     >
                       {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -231,7 +231,7 @@ User Notes Count: ${workspace.notes.length}
                     <button
                       type="button"
                       onClick={() => onSaveAsNote?.(msg.content, `AI Note [${formatTimestamp(currentTimestampSec)}]`)}
-                      className="p-1 rounded text-[#9B99B5] hover:text-white hover:bg-white/[0.06] transition-colors flex items-center gap-1 text-[9px] font-bold"
+                      className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors flex items-center gap-1 text-[9px] font-bold"
                       title="Save as Study Note"
                     >
                       <FileText className="w-3 h-3 text-violet-400" /> Note
@@ -251,7 +251,7 @@ User Notes Count: ${workspace.notes.length}
           e.preventDefault();
           handleSend();
         }}
-        className="p-3 bg-[#13131F] border-t border-white/[0.06] flex items-center gap-2 shrink-0"
+        className="p-3 bg-[var(--bg-elevated)] border-t border-[var(--border-card)] flex items-center gap-2 shrink-0"
       >
         <input
           type="text"
@@ -259,7 +259,7 @@ User Notes Count: ${workspace.notes.length}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isStreaming}
-          className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0A0A14] border border-white/[0.08] text-white text-xs focus:outline-none focus:border-violet-500/50 disabled:opacity-50"
+          className="flex-1 px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-primary)] placeholder-[var(--text-muted)] text-xs focus:outline-none focus:border-violet-500/50 disabled:opacity-50"
         />
         <button
           type="submit"

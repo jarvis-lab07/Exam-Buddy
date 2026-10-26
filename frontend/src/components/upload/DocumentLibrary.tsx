@@ -38,11 +38,16 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
   ];
 
   const filteredDocs = documents.filter((doc) => {
+    const title = (doc.title || (doc as any).name || "").toLowerCase();
+    const subjectName = (doc.subjectName || (doc as any).subject || "").toLowerCase();
+    const subjectCode = (doc.subjectCode || "").toLowerCase();
+    const topics = Array.isArray(doc.keyTopics) ? doc.keyTopics : [];
+
     const matchesSearch =
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.subjectCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.keyTopics.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      title.includes(searchQuery.toLowerCase()) ||
+      subjectName.includes(searchQuery.toLowerCase()) ||
+      subjectCode.includes(searchQuery.toLowerCase()) ||
+      topics.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === "All" || doc.category === selectedCategory;
 
@@ -54,27 +59,27 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Layers className="w-5 h-5 text-indigo-400" />
             Vectorized Document Library
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">
               {documents.length} Files
             </span>
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[var(--text-muted)]">
             Ingested notes indexed in pgvector and ready for retrieval in the AI Tutor.
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search documents or topics..."
-            className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#141624] border border-white/[0.08] text-xs text-white placeholder-slate-400 focus:outline-none focus:border-violet-500/50"
+            className="w-full h-9 pl-9 pr-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-violet-500/50"
           />
         </div>
       </div>
@@ -89,7 +94,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
             className={`px-3 py-1 rounded-xl text-xs font-medium shrink-0 transition-all ${
               selectedCategory === cat
                 ? "bg-indigo-600 text-white border border-indigo-500/40"
-                : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
+                : "bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-card)]"
             }`}
           >
             {cat}
@@ -99,12 +104,12 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
 
       {/* Documents Grid / List */}
       {filteredDocs.length === 0 ? (
-        <div className="glass-card p-10 rounded-2xl border border-white/[0.08] text-center space-y-3">
-          <div className="p-3 rounded-2xl bg-white/[0.04] text-slate-400 w-fit mx-auto">
+        <div className="glass-card p-10 rounded-2xl border border-[var(--border-card)] text-center space-y-3">
+          <div className="p-3 rounded-2xl bg-[var(--input-bg)] text-[var(--text-muted)] w-fit mx-auto border border-[var(--border-card)]">
             <FileText className="w-6 h-6" />
           </div>
-          <p className="text-sm font-semibold text-white">No documents found</p>
-          <p className="text-xs text-slate-400">
+          <p className="text-sm font-semibold text-[var(--text-primary)]">No documents found</p>
+          <p className="text-xs text-[var(--text-muted)]">
             Try adjusting your search query or upload a new file above.
           </p>
         </div>
@@ -113,7 +118,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
           {filteredDocs.map((doc) => (
             <div
               key={doc.id}
-              className="glass-card p-4 sm:p-5 rounded-2xl border border-white/[0.08] hover:border-violet-500/30 transition-all flex flex-col justify-between space-y-3.5 group"
+              className="glass-card p-4 sm:p-5 rounded-2xl border border-[var(--border-card)] hover:border-violet-500/30 transition-all flex flex-col justify-between space-y-3.5 group"
             >
               {/* Top Row: File icon, Title, Badges */}
               <div className="flex items-start gap-3">
@@ -132,7 +137,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                     >
                       {doc.subjectCode}
                     </span>
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 border border-white/[0.06]">
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)]">
                       {doc.category}
                     </span>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
@@ -141,12 +146,12 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-white truncate mt-1.5 group-hover:text-violet-300 transition-colors">
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] truncate mt-1.5 group-hover:text-violet-400 transition-colors">
                     {doc.title}
                   </h3>
 
                   {doc.unitTitle && (
-                    <p className="text-xs text-[#9B99B5] truncate mt-0.5">
+                    <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">
                       {doc.unitTitle}
                     </p>
                   )}
@@ -154,7 +159,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
               </div>
 
               {/* Meta details & Tags */}
-              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400 pt-1 border-t border-white/[0.04]">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--text-muted)] pt-1 border-t border-[var(--border-card)]">
                 <span>{doc.fileSize}</span>
                 <span>•</span>
                 <span>{doc.pages} pages</span>
@@ -184,7 +189,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                   <button
                     type="button"
                     onClick={() => setActivePreviewDoc(doc)}
-                    className="h-7 px-2.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 text-xs font-medium flex items-center gap-1.5 transition-colors"
+                    className="h-7 px-2.5 rounded-lg bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-card)] text-xs font-medium flex items-center gap-1.5 transition-colors"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Summary</span>
@@ -208,7 +213,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
       {/* Document Summary Modal */}
       {activePreviewDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="glass-card w-full max-w-xl p-6 rounded-2xl border border-white/[0.1] bg-[#121320] shadow-2xl space-y-5 border-t-2 border-violet-500/40">
+          <div className="glass-card w-full max-w-xl p-6 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-card)] shadow-2xl space-y-5 border-t-2 border-violet-500/40">
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -216,8 +221,8 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">{activePreviewDoc.title}</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="text-base font-bold text-[var(--text-primary)]">{activePreviewDoc.title}</h3>
+                  <p className="text-xs text-[var(--text-muted)]">
                     {activePreviewDoc.subjectCode}: {activePreviewDoc.subjectName} • {activePreviewDoc.category}
                   </p>
                 </div>
@@ -226,26 +231,26 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
               <button
                 type="button"
                 onClick={() => setActivePreviewDoc(null)}
-                className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white"
+                className="p-1.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors border border-[var(--border-card)]"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* AI Summary Card */}
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
-              <h4 className="text-xs font-bold text-violet-300 flex items-center gap-1.5">
+            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-card)] space-y-2">
+              <h4 className="text-xs font-bold text-violet-400 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-violet-400" />
                 AI Syllabus Summary
               </h4>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {activePreviewDoc.summary}
               </p>
             </div>
 
             {/* Key Topics Chunks */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5 text-cyan-400" />
                 Indexed Concept Vectors
               </h4>
@@ -253,7 +258,7 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                 {activePreviewDoc.keyTopics.map((topic, i) => (
                   <span
                     key={i}
-                    className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-medium"
+                    className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium"
                   >
                     {topic}
                   </span>
@@ -263,32 +268,32 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
 
             {/* Vector Stats */}
             <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
-              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <p className="text-[10px] text-slate-400">Total Pages</p>
-                <p className="font-bold text-white mt-0.5">{activePreviewDoc.pages}</p>
+              <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)]">
+                <p className="text-[10px] text-[var(--text-muted)]">Total Pages</p>
+                <p className="font-bold text-[var(--text-primary)] mt-0.5">{activePreviewDoc.pages}</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <p className="text-[10px] text-slate-400">Embeddings</p>
+              <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)]">
+                <p className="text-[10px] text-[var(--text-muted)]">Embeddings</p>
                 <p className="font-bold text-cyan-400 mt-0.5">{activePreviewDoc.vectorCount} chunks</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <p className="text-[10px] text-slate-400">Status</p>
+              <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)]">
+                <p className="text-[10px] text-[var(--text-muted)]">Status</p>
                 <p className="font-bold text-emerald-400 mt-0.5">Vectorized ⚡</p>
               </div>
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-card)]">
               <button
                 type="button"
                 onClick={() => setActivePreviewDoc(null)}
-                className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-medium text-slate-300"
+                className="px-4 py-2 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-xs font-medium text-[var(--text-secondary)] border border-[var(--border-card)] transition-colors"
               >
                 Close
               </button>
               <Link
                 href={`/chat?subject=${activePreviewDoc.subjectId}&q=Explain key concepts from ${encodeURIComponent(activePreviewDoc.title)}`}
-                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-violet-600/20 transition-all"
               >
                 <Bot className="w-3.5 h-3.5" />
                 <span>Launch in AI Tutor</span>

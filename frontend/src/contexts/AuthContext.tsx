@@ -15,6 +15,7 @@ interface AuthContextType {
   unlockDailySecurity: () => void;
   relockDailySecurity: () => void;
   setIsSecurityModalOpen: (open: boolean) => void;
+  signInWithGoogle: (redirectTo?: string) => Promise<{ error: Error | null; url?: string | null }>;
   loginWithGoogleDemo: (email?: string, name?: string) => void;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -30,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   unlockDailySecurity: () => {},
   relockDailySecurity: () => {},
   setIsSecurityModalOpen: () => {},
+  signInWithGoogle: async () => ({ error: null, url: null }),
   loginWithGoogleDemo: () => {},
   signOut: async () => {},
   refreshSession: async () => {},
@@ -128,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const demoUser = createDemoUser(demoGoogleProfile);
     setUser(demoUser);
     checkDailyUnlockedState(demoUser);
-    setIsSecurityModalOpen(true);
   };
 
   useEffect(() => {
@@ -175,16 +176,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const signInWithGoogle = async (redirectTo?: string): Promise<{ error: Error | null; url?: string | null }> => {
+    const targetOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const targetPath = redirectTo || (typeof window !== 'undefined' ? window.location.pathname : '/');
+    const callbackUrl = `${targetOrigin}/auth/callback?next=${encodeURIComponent(targetPath)}`;
+
+    // 1. Supabase Google OAuth PKCE flow (Real Google accounts.google.com redirect)
+    if (isConfigured) {
+      try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: callbackUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account',
+            },
+          },
+        });
+
+        if (error) {
+          console.error('[Supabase Google OAuth Error]', error);
+          return { error, url: null };
+        }
+        if (data?.url && typeof window !== 'undefined') {
+          window.location.href = data.url;
+        }
+        return { error: null, url: data?.url ?? null };
+      } catch (err: any) {
+        console.error('[Supabase Google Sign-In Exception]', err);
+        return { error: err instanceof Error ? err : new Error(String(err)), url: null };
+      }
+    }
+
+    // 2. Direct Google OAuth 2.0 Web Client redirect (if Google Client ID configured in env)
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (googleClientId && !googleClientId.includes('placeholder')) {
+      const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      googleAuthUrl.searchParams.set('client_id', googleClientId);
+      googleAuthUrl.searchParams.set('redirect_uri', callbackUrl);
+      googleAuthUrl.searchParams.set('response_type', 'code');
+      googleAuthUrl.searchParams.set('scope', 'openid email profile');
+      googleAuthUrl.searchParams.set('access_type', 'offline');
+      googleAuthUrl.searchParams.set('prompt', 'select_account');
+      if (typeof window !== 'undefined') {
+        window.location.href = googleAuthUrl.toString();
+      }
+      return { error: null, url: googleAuthUrl.toString() };
+    }
+
+    // 3. Inform user that Google Cloud credentials are required for live accounts.google.com redirection
+    return {
+      error: new Error(
+        'Real Google Authentication requires your Supabase Project URL or Google Client ID. Please provide your Supabase URL & Key or Google Client ID in frontend/.env.local.'
+      ),
+      url: null,
+    };
+  };
+
   const signOut = async () => {
     if (isConfigured) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('[SignOut Warning]', err);
+      }
     }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('exambuddy_cohort_user');
+      localStorage.removeItem('exam_buddy_user_profile');
+      localStorage.removeItem('exambuddy_drive_connected');
+      localStorage.removeItem('exambuddy_drive_access_token');
     }
     setUser(null);
     setSession(null);
-    setIsDailyUnlocked(false);
+    setIsDailyUnlocked(true);
     setIsSecurityModalOpen(false);
   };
 
@@ -213,6 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unlockDailySecurity,
         relockDailySecurity,
         setIsSecurityModalOpen,
+        signInWithGoogle,
         loginWithGoogleDemo,
         signOut,
         refreshSession,

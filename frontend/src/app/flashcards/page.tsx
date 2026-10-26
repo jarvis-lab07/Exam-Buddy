@@ -42,17 +42,20 @@ import { Trash2 } from "lucide-react";
 function FlashcardsContent() {
   const searchParams = useSearchParams();
   const initialSubjectParam = searchParams.get("filterSubject") || "";
+  const initialDeckParam = searchParams.get("filterDeck") || "";
 
   const [allCards, setAllCards] = useState<Flashcard[]>(MOCK_FLASHCARDS);
   const [userSubjects, setUserSubjects] = useState<Subject[]>([]);
-  const [appMode, setAppMode] = useState<"mock-interview" | "standard">("mock-interview");
+  const [appMode, setAppMode] = useState<"mock-interview" | "standard">(
+    initialDeckParam ? "standard" : "mock-interview"
+  );
   
   // Mock Interview filters
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>(initialSubjectParam || "all-random");
   const [showUnmasteredOnly, setShowUnmasteredOnly] = useState<boolean>(false);
 
   // Standard deck filter
-  const [selectedDeckId, setSelectedDeckId] = useState<string>("all");
+  const [selectedDeckId, setSelectedDeckId] = useState<string>(initialDeckParam || "all");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
@@ -234,13 +237,13 @@ function FlashcardsContent() {
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
               Oral Viva & Active Recall Deck
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
                 Saturday Mock Interview
               </span>
             </h1>
-            <p className="text-sm text-[#9B99B5]">
+            <p className="text-sm text-[var(--text-muted)]">
               Master your 10 shortlisted questions per subject. Drill concise spoken answers, keywords, and follow-up traps.
             </p>
           </div>
@@ -248,7 +251,7 @@ function FlashcardsContent() {
 
         <div className="flex items-center gap-2">
           {/* Mode Switcher */}
-          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/[0.08]">
+          <div className="flex items-center bg-[var(--bg-elevated)] p-1 rounded-xl border border-[var(--border-card)]">
             <button
               type="button"
               onClick={() => {
@@ -259,7 +262,7 @@ function FlashcardsContent() {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 appMode === "mock-interview"
                   ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                  : "text-slate-400 hover:text-white"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               }`}
             >
               Mock Interview
@@ -274,7 +277,7 @@ function FlashcardsContent() {
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 appMode === "standard"
                   ? "bg-violet-600 text-white shadow-md shadow-violet-600/20"
-                  : "text-slate-400 hover:text-white"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               }`}
             >
               Standard Decks
@@ -284,7 +287,7 @@ function FlashcardsContent() {
           <button
             type="button"
             onClick={() => setIsSetupModalOpen(true)}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="p-2 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--border-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-card)] text-xs font-semibold flex items-center gap-1.5 transition-colors"
             title="Configure your 5 subjects"
           >
             <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
@@ -297,32 +300,32 @@ function FlashcardsContent() {
       {appMode === "mock-interview" && (
         <div className="space-y-4">
           {/* Overall Viva Readiness Bar */}
-          <div className="glass-card p-5 rounded-2xl border border-white/[0.08] bg-black/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="glass-card p-5 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-[var(--text-secondary)]">
                 Overall Mock Interview Readiness
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white font-mono">
+                <span className="text-3xl font-black text-[var(--text-primary)] font-mono">
                   {masterySummary.totalMastered} / {masterySummary.totalQuestions}
                 </span>
-                <span className="text-sm font-semibold text-emerald-400">
+                <span className="text-sm font-semibold text-emerald-500 dark:text-emerald-400">
                   ({masterySummary.overallPercentage}% Mastered)
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-[var(--text-muted)]">
                   • {masterySummary.totalRemaining} remaining for Saturday
                 </span>
               </div>
             </div>
 
             <div className="w-full sm:w-64 space-y-1.5">
-              <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
+              <div className="w-full h-2.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-card)] overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-400 transition-all duration-500 rounded-full"
                   style={{ width: `${masterySummary.overallPercentage}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)]">
                 <span>0 Mastered</span>
                 <span>Goal: {masterySummary.totalQuestions} Questions</span>
               </div>
@@ -346,7 +349,7 @@ function FlashcardsContent() {
                     className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden group ${
                       isSelected
                         ? "bg-cyan-500/15 border-cyan-500/60 shadow-lg shadow-cyan-500/15"
-                        : "bg-white/[0.02] border-white/[0.06] hover:border-white/[0.15] hover:bg-white/[0.04]"
+                        : "bg-[var(--bg-card)] border-[var(--border-card)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-elevated)]"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1 mb-2">
@@ -354,25 +357,25 @@ function FlashcardsContent() {
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: stat.subjectColor }}
                       />
-                      <span className="text-[10px] font-mono text-slate-400 font-bold truncate">
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] font-bold truncate">
                         {stat.subjectCode || "SUB"}
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-white truncate group-hover:text-cyan-300 transition-colors">
+                    <h4 className="text-xs font-bold text-[var(--text-primary)] truncate group-hover:text-cyan-500 dark:group-hover:text-cyan-300 transition-colors">
                       {stat.subjectName}
                     </h4>
 
                     <div className="mt-2 flex items-baseline justify-between text-[11px]">
-                      <span className="font-bold text-white font-mono">
+                      <span className="font-bold text-[var(--text-primary)] font-mono">
                         {stat.masteredCount} / {stat.totalQuestions}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-[var(--text-muted)]">
                         {stat.remainingCount} left
                       </span>
                     </div>
 
-                    <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden mt-1.5">
+                    <div className="w-full h-1.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] overflow-hidden mt-1.5">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{
@@ -401,11 +404,26 @@ function FlashcardsContent() {
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   selectedSubjectFilter === "all-random"
                     ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black shadow-md shadow-cyan-500/20"
-                    : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
+                    : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-card)] hover:bg-[var(--bg-elevated)]"
                 }`}
               >
                 <Shuffle className="w-3.5 h-3.5" />
                 <span>Random Across All Subjects ({masterySummary.totalQuestions})</span>
+              </button>
+
+              {/* Mistake Notebook Quick Filter Pill */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAppMode("standard");
+                  setSelectedDeckId("deck-mistakes");
+                  setCurrentIndex(0);
+                  setIsSessionComplete(false);
+                }}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 bg-rose-500/15 text-rose-500 dark:text-rose-300 hover:bg-rose-500/25 border border-rose-500/30"
+              >
+                <Flame className="w-3.5 h-3.5 text-rose-400 fill-rose-400/30" />
+                <span>Mistake Notebook 🔥</span>
               </button>
 
               {/* Individual Subject Filter Pills */}
@@ -421,7 +439,7 @@ function FlashcardsContent() {
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-all ${
                     selectedSubjectFilter === subj.id
                       ? "bg-cyan-600 text-white border border-cyan-500/40"
-                      : "bg-white/[0.03] text-slate-400 hover:text-white border border-white/[0.05]"
+                      : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-card)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
                   <span
@@ -533,18 +551,18 @@ function FlashcardsContent() {
       )}
 
       {/* Active Deck Position Gauge */}
-      <div className="glass-card p-3 rounded-2xl border border-white/[0.08] flex items-center justify-between text-xs">
+      <div className="glass-card p-3 rounded-2xl border border-[var(--border-card)] flex items-center justify-between text-xs">
         <div className="flex items-center gap-3">
-          <span className="font-bold text-white">
+          <span className="font-bold text-[var(--text-primary)]">
             Card {activeDeckCards.length > 0 ? currentIndex + 1 : 0} of {activeDeckCards.length}
           </span>
-          <div className="w-28 sm:w-36 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+          <div className="w-28 sm:w-36 h-2 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-subtle)]">
             <div
               className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <span className="text-slate-400 font-mono hidden sm:inline">{progressPercent}% Mastered in View</span>
+          <span className="text-[var(--text-muted)] font-mono hidden sm:inline">{progressPercent}% Mastered in View</span>
         </div>
 
         {currentCard && (
@@ -568,20 +586,20 @@ function FlashcardsContent() {
           </div>
 
           <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-white">Oral Viva Session Completed! 🎉</h2>
-            <p className="text-sm text-slate-300 max-w-md mx-auto">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Oral Viva Session Completed! 🎉</h2>
+            <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
               You reviewed all {activeDeckCards.length} cards in this set. Your subject mastery counters have been updated!
             </p>
           </div>
 
           <div className="grid grid-cols-2 max-w-xs mx-auto gap-3 text-center text-xs">
-            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-              <span className="text-slate-400">Mastered in Round</span>
+            <div className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-card)]">
+              <span className="text-[var(--text-muted)]">Mastered in Round</span>
               <p className="text-lg font-bold text-emerald-400 mt-1">+{sessionMasteredCount}</p>
             </div>
-            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-              <span className="text-slate-400">Cards in View</span>
-              <p className="text-lg font-bold text-white mt-1">{activeDeckCards.length}</p>
+            <div className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-card)]">
+              <span className="text-[var(--text-muted)]">Cards in View</span>
+              <p className="text-lg font-bold text-[var(--text-primary)] mt-1">{activeDeckCards.length}</p>
             </div>
           </div>
 
@@ -589,7 +607,7 @@ function FlashcardsContent() {
             <button
               type="button"
               onClick={handleReset}
-              className="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
             >
               <RotateCw className="w-4 h-4" />
               <span>Review Again</span>
@@ -601,21 +619,21 @@ function FlashcardsContent() {
                 setShowUnmasteredOnly(false);
                 handleReset();
               }}
-              className="px-5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold transition-all"
+              className="px-5 py-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-semibold transition-all border border-[var(--border-card)]"
             >
               Shuffle All 5 Subjects
             </button>
           </div>
         </div>
       ) : activeDeckCards.length === 0 ? (
-        <div className="glass-card p-12 rounded-2xl border border-white/[0.08] text-center space-y-5">
+        <div className="glass-card p-12 rounded-2xl border border-[var(--border-card)] text-center space-y-5">
           <div className="p-4 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 w-fit mx-auto">
             <UploadCloud className="w-8 h-8" />
           </div>
 
           <div className="space-y-1.5 max-w-md mx-auto">
-            <h3 className="text-lg font-bold text-white">No Mock Interview Questions Loaded Yet</h3>
-            <p className="text-xs text-[#9B99B5]">
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">No Mock Interview Questions Loaded Yet</h3>
+            <p className="text-xs text-[var(--text-muted)]">
               Upload your 5 subject shortlist files in the Upload Center, or paste your 10 questions directly. Each question will be structured into viva flashcards with keywords and examiner follow-up traps.
             </p>
           </div>
@@ -624,7 +642,7 @@ function FlashcardsContent() {
             <button
               type="button"
               onClick={() => setIsSetupModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs font-semibold flex items-center gap-2 transition-colors border border-white/[0.08]"
+              className="px-4 py-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-semibold flex items-center gap-2 transition-colors border border-[var(--border-card)]"
             >
               <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
               <span>Configure My 5 Subjects</span>

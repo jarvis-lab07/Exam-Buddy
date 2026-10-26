@@ -21,21 +21,63 @@ export default function UploadPage() {
   const [documents, setDocuments] = useState<DocumentUploadItem[]>(MOCK_DOCUMENT_ITEMS);
   const [isDriveModalOpen, setIsDriveModalOpen] = useState(false);
 
-  // Load from localStorage if available
+  // Load and sanitize from localStorage if available
   useEffect(() => {
     try {
       const stored = localStorage.getItem("exam_buddy_documents");
       if (stored) {
-        setDocuments(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const sanitized: DocumentUploadItem[] = parsed.map((d: any) => ({
+            id: d.id || `doc-${Date.now()}`,
+            title: d.title || d.name || "Study Document",
+            subjectId: d.subjectId || "cs501",
+            subjectName: d.subjectName || d.subject || "General Knowledge",
+            subjectCode: d.subjectCode || "GK101",
+            subjectColor: d.subjectColor || "#3B82F6",
+            unitTitle: d.unitTitle || undefined,
+            fileType: d.fileType || "pdf",
+            fileSize: d.fileSize || d.size || "2.5 MB",
+            category: d.category || "Lecture Notes",
+            status: d.status === "completed" ? "ready" : (d.status || "ready"),
+            uploadDate: d.uploadDate || d.uploadedAt || "Recently",
+            pages: d.pages || 10,
+            vectorCount: d.vectorCount || 150,
+            summary: d.summary || "Imported study material.",
+            keyTopics: Array.isArray(d.keyTopics) ? d.keyTopics : ["Study Notes", "pgvector RAG"],
+            extractedQuestions: Array.isArray(d.extractedQuestions) ? d.extractedQuestions : [],
+          }));
+          setDocuments(sanitized);
+        }
       }
     } catch (e) {
       console.error(e);
     }
   }, []);
 
-  const handleFileUploaded = (item: DocumentUploadItem) => {
+  const handleFileUploaded = (item: any) => {
+    const sanitizedItem: DocumentUploadItem = {
+      id: item.id || `doc-${Date.now()}`,
+      title: item.title || item.name || "Imported Document",
+      subjectId: item.subjectId || "cs501",
+      subjectName: item.subjectName || item.subject || "General Knowledge",
+      subjectCode: item.subjectCode || "GK101",
+      subjectColor: item.subjectColor || "#3B82F6",
+      unitTitle: item.unitTitle || undefined,
+      fileType: item.fileType || (item.name?.endsWith(".docx") ? "doc" : "pdf"),
+      fileSize: item.fileSize || item.size || "3.2 MB",
+      category: item.category || "Lecture Notes",
+      status: item.status === "completed" ? "ready" : (item.status || "ready"),
+      uploadDate: item.uploadDate || item.uploadedAt || "Just now",
+      pages: item.pages || 14,
+      vectorCount: item.vectorCount || 210,
+      summary: item.summary || "Imported from personal Google Drive storage.",
+      keyTopics: Array.isArray(item.keyTopics) ? item.keyTopics : ["Google Drive Sync", "Cloud Notes", "pgvector RAG"],
+      extractedQuestions: Array.isArray(item.extractedQuestions) ? item.extractedQuestions : [],
+    };
+
     setDocuments((prev) => {
-      const updated = [item, ...prev];
+      const updated = [sanitizedItem, ...prev];
       try {
         localStorage.setItem("exam_buddy_documents", JSON.stringify(updated));
       } catch (e) {
@@ -63,19 +105,19 @@ export default function UploadPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Banner & Storage Gauge */}
-      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-white/[0.08] border-t-2 border-cyan-500/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="glass-card p-6 sm:p-7 rounded-2xl border border-[var(--border-card)] border-t-2 border-cyan-500/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
           <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 shrink-0">
             <UploadCloud className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2.5">
               Upload & Vectorization Center
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25">
                 pgvector RAG
               </span>
             </h1>
-            <p className="text-sm text-[#9B99B5] max-w-xl">
+            <p className="text-sm text-[var(--text-muted)] max-w-xl">
               Ingest lecture slides, handwritten notes, and question banks. Exam-Buddy automatically extracts text, builds 768-dimensional embeddings, and routes them to your AI Tutor.
             </p>
           </div>
@@ -92,13 +134,13 @@ export default function UploadPage() {
         </div>
 
         {/* Live Storage & Vectors Gauge */}
-        <div className="glass-card p-4 rounded-2xl border border-white/[0.08] bg-black/20 min-w-[260px] space-y-3">
+        <div className="glass-card p-4 rounded-2xl border border-[var(--border-card)] bg-[var(--bg-elevated)] min-w-[260px] space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400 flex items-center gap-1.5 font-medium">
+            <span className="text-[var(--text-muted)] flex items-center gap-1.5 font-medium">
               <HardDrive className="w-3.5 h-3.5 text-indigo-400" />
               Cloud Knowledge Storage
             </span>
-            <span className="text-white font-bold">
+            <span className="text-[var(--text-primary)] font-bold">
               {MOCK_USER.cloudStorageUsedGB} / {MOCK_USER.cloudStorageTotalGB} GB
             </span>
           </div>
@@ -113,7 +155,7 @@ export default function UploadPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-white/[0.05]">
+          <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] pt-1 border-t border-[var(--border-card)]">
             <span className="flex items-center gap-1">
               <Database className="w-3 h-3 text-emerald-400" />
               {totalVectors.toLocaleString()} vectors
@@ -136,26 +178,7 @@ export default function UploadPage() {
       <GoogleDrivePickerModal
         isOpen={isDriveModalOpen}
         onClose={() => setIsDriveModalOpen(false)}
-        onImportFiles={(importedNames) => {
-          const newDocItems: DocumentUploadItem[] = importedNames.map((name, i) => ({
-            id: `gdrive-${Date.now()}-${i}`,
-            title: name.replace(/\.[^/.]+$/, ""),
-            subjectId: "cs501",
-            subjectCode: "CS501",
-            subjectName: "Advanced Data Structures & Algorithms",
-            subjectColor: "#8B5CF6",
-            fileType: name.endsWith(".docx") ? "doc" : "pdf",
-            fileSize: "4.2 MB",
-            category: "Lecture Notes",
-            uploadDate: "Just now",
-            status: "ready" as const,
-            vectorCount: 250,
-            pages: 18,
-            summary: "Imported from personal Google Drive storage.",
-            keyTopics: ["Google Drive Sync", "Cloud Notes", "Syllabus Vector"],
-          }));
-          setDocuments((prev) => [...newDocItems, ...prev]);
-        }}
+        onFileUploaded={handleFileUploaded}
       />
     </div>
   );

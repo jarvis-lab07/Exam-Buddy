@@ -38,6 +38,7 @@ import {
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { DailyGoalRing } from "@/components/focus/DailyGoalRing";
+import { CohortLeaderboard } from "@/components/cohorts/CohortLeaderboard";
 import { useAuth } from "@/contexts/AuthContext";
 import type { CalendarEvent } from "@/types";
 
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState(MOCK_TODAY_TASKS);
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   const [barsReady, setBarsReady] = useState(false);
+  const [dailyMinutes, setDailyMinutes] = useState(165);
 
   const studentName = useMemo(() => {
     if (user) {
@@ -78,6 +80,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const id = requestAnimationFrame(() => setBarsReady(true));
     return () => cancelAnimationFrame(id);
+  }, []);
+
+  // Sync daily minutes and tasks with Planner and Focus Hub
+  useEffect(() => {
+    try {
+      const storedMins = localStorage.getItem("exam_buddy_daily_minutes");
+      if (storedMins) {
+        setDailyMinutes(Number(storedMins));
+      }
+      const storedTasks = localStorage.getItem("exam_buddy_tasks");
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (e) {}
   }, []);
 
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -104,7 +120,7 @@ export default function DashboardPage() {
       let minutes = 0;
 
       if (isToday) {
-        minutes = 389; // Synced today's total logged minutes (6h 29m)
+        minutes = dailyMinutes; // Synced today's total logged minutes with Planner & Focus timer
       } else if (!isFuture) {
         minutes = d.defaultMins; // Historical logged past day
       } else {
@@ -113,7 +129,7 @@ export default function DashboardPage() {
 
       return { day: d.key, minutes, isToday, isFuture };
     });
-  }, []);
+  }, [dailyMinutes]);
 
   const weekHours = useMemo(
     () => weeklyStudyData.reduce((sum, d) => sum + d.minutes, 0) / 60,
@@ -123,9 +139,13 @@ export default function DashboardPage() {
   const urgentCountdown = countdown <= 14;
 
   const toggleTask = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
-    );
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      try {
+        localStorage.setItem("exam_buddy_tasks", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   const getMetricIcon = (id: string) => {
@@ -204,6 +224,13 @@ export default function DashboardPage() {
               Start Today&apos;s Session
             </Link>
             <Link
+              href="/exam"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/25 border border-rose-500/30 text-rose-300 font-semibold text-sm transition-colors"
+            >
+              <Trophy className="w-4 h-4 text-rose-400" />
+              Exam Simulator
+            </Link>
+            <Link
               href="/chat"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.03] hover:bg-black/[0.08] dark:hover:bg-white/[0.06] border border-black/[0.1] dark:border-white/[0.08] text-theme-primary font-semibold text-sm transition-colors"
             >
@@ -219,43 +246,43 @@ export default function DashboardPage() {
         <BentoDensityChart className="col-span-12 lg:col-span-7 lg:row-span-2" />
 
         {/* Card B — Daily Goal Mega-Ring */}
-        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-1 p-5 flex flex-col items-center">
+        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-1 p-6 flex flex-col items-center">
           <div className="flex items-center justify-between w-full mb-3 px-0.5">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
-              <Target className="w-3.5 h-3.5 text-violet-400" />
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+              <Target className="w-4 h-4 text-violet-500 dark:text-violet-400" />
               Today's Goal
             </h3>
-            <span className="text-[10px] font-mono text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25">
-              {(389 / 420 * 100).toFixed(0)}%
+            <span className="text-[11px] font-mono text-violet-600 dark:text-violet-400 font-bold bg-violet-500/15 px-2 py-0.5 rounded-md border border-violet-500/25">
+              {Math.min(100, Math.round((dailyMinutes / 210) * 100))}%
             </span>
           </div>
-          <DailyGoalRing size="sm" minutesLoggedOverride={389} minutesTargetOverride={420} hideWrapperCard />
+          <DailyGoalRing size="sm" minutesLoggedOverride={dailyMinutes} minutesTargetOverride={210} hideWrapperCard />
         </div>
 
         {/* Card C — Mastered Topics */}
-        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-5 space-y-3 relative group">
+        <div className="card col-span-12 sm:col-span-6 lg:col-span-5 lg:col-start-8 lg:row-start-2 p-6 space-y-3 relative group">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
-              <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+              <Trophy className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
               Topics Mastered
             </h3>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 font-mono flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5 text-emerald-400" /> +2 today
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 font-mono flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-emerald-500 dark:text-emerald-400" /> +2 today
             </span>
           </div>
 
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black tracking-tight text-[var(--text-primary)] leading-none font-mono">
+                <span className="text-4xl font-bold tracking-tight text-[var(--text-primary)] leading-none font-mono">
                   {MOCK_STUDY_STATS.topicsMastered}
                 </span>
-                <span className="text-sm font-bold text-[var(--text-muted)] font-mono">
+                <span className="text-sm font-semibold text-[var(--text-muted)] font-mono">
                   /{MOCK_STUDY_STATS.totalTopics}
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1 font-medium flex items-center gap-1.5">
-                <span className="font-bold text-emerald-400">
+              <p className="text-xs text-[var(--text-secondary)] mt-1.5 font-medium flex items-center gap-1.5">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
                   {Math.round((MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics) * 100)}%
                 </span>
                 <span>of curriculum complete</span>
@@ -263,15 +290,15 @@ export default function DashboardPage() {
             </div>
 
             <div className="ml-auto text-right space-y-1.5">
-              <div className="flex items-center gap-2 justify-end text-[11px]">
+              <div className="flex items-center gap-2 justify-end text-xs">
                 <span className="text-[var(--text-secondary)] font-medium">Quiz accuracy</span>
-                <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-bold font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/25 font-bold font-mono">
                   {MOCK_STUDY_STATS.quizAccuracyPercent}%
                 </span>
               </div>
-              <div className="flex items-center gap-2 justify-end text-[11px]">
+              <div className="flex items-center gap-2 justify-end text-xs">
                 <span className="text-[var(--text-secondary)] font-medium">Cohort rank</span>
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/25 font-bold font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25 font-bold font-mono">
                   Top 5%
                 </span>
               </div>
@@ -280,15 +307,15 @@ export default function DashboardPage() {
 
           {/* Glowing Animated Progress Bar */}
           <div className="space-y-1 pt-1">
-            <div className="w-full h-2.5 rounded-full bg-[var(--input-bg)] overflow-hidden p-0.5 border border-white/5 relative">
+            <div className="w-full h-2.5 rounded-full bg-[var(--input-bg)] overflow-hidden p-0.5 border border-[var(--border-subtle)] relative">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.4)]"
                 style={{ width: `${(MOCK_STUDY_STATS.topicsMastered / MOCK_STUDY_STATS.totalTopics) * 100}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)] pt-0.5 font-medium">
+            <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] pt-0.5 font-medium">
               <span>Breakdown: 12 DSA · 8 Chem · 5 CN · 3 DBMS</span>
-              <span className="text-emerald-400 font-semibold">14 remaining</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">14 remaining</span>
             </div>
           </div>
         </div>
@@ -297,18 +324,18 @@ export default function DashboardPage() {
         <BentoNextTwoHours className="col-span-12 lg:col-span-5 lg:col-start-8 lg:row-start-3" />
 
         {/* Card E — Today's Task Queue */}
-        <div className="card col-span-12 lg:col-span-7 lg:row-span-1 p-5 space-y-3">
+        <div className="card col-span-12 lg:col-span-7 lg:row-span-1 p-6 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               Today&apos;s Task Queue
             </h3>
             <Link
               href="/planner"
-              className="text-[10px] font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+              className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500 flex items-center gap-1"
             >
               All tasks
-              <ChevronRight className="w-3 h-3" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           <div className="space-y-1.5">
@@ -384,16 +411,16 @@ export default function DashboardPage() {
       {/* 3. Continue Studying (Full Width 2x2 Grid) */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-violet-400" />
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-violet-500 dark:text-violet-400" />
             Continue Studying
           </h2>
           <Link
             href="/subjects"
-            className="text-xs font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+            className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500 flex items-center gap-1"
           >
             All Subjects ({MOCK_SUBJECTS.length})
-            <ChevronRight className="w-3 h-3" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -472,15 +499,15 @@ export default function DashboardPage() {
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-cyan-400" />
+            <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-cyan-500 dark:text-cyan-400" />
               Weekly Study Activity
             </h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
               {weekHours.toFixed(1)} hrs logged this week · Avg {(weekHours / 7).toFixed(1)}h / day
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <ArrowUpRight className="w-3.5 h-3.5" />
             +14% vs last week
           </span>
@@ -522,7 +549,7 @@ export default function DashboardPage() {
                         ? "bg-white/[0.02] text-[var(--text-muted)] border border-white/5"
                         : targetMet
                         ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 group-hover:bg-emerald-500 group-hover:text-black"
-                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)] group-hover:text-white group-hover:bg-violet-500/20"
+                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)] group-hover:text-[var(--text-primary)] group-hover:bg-violet-500/20"
                     )}
                   >
                     {day.isFuture ? "0.0h" : `${hours}h`}
@@ -555,7 +582,7 @@ export default function DashboardPage() {
                         ? "text-[var(--text-muted)]"
                         : targetMet
                         ? "text-emerald-400 font-medium"
-                        : "text-[var(--text-secondary)] group-hover:text-white"
+                        : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
                     )}
                   >
                     {day.day}
@@ -575,13 +602,18 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* 6. Recent Course Documents */}
+      {/* 6. Campus Cohort Leaderboard & Class Knowledge Pool */}
+      <section className="space-y-4">
+        <CohortLeaderboard />
+      </section>
+
+      {/* 7. Recent Course Documents */}
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-[var(--text-primary)]">Recent Course Documents</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">Recent Course Documents</h2>
           <Link
             href="/upload"
-            className="text-xs font-semibold text-violet-400 hover:text-violet-300"
+            className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500"
           >
             Upload New File →
           </Link>
@@ -746,42 +778,42 @@ function BentoDensityChart({ className }: { className?: string }) {
   const currentHour = new Date().getHours();
 
   return (
-    <div className={cn("card p-5 space-y-4 relative overflow-hidden", className)}>
+    <div className={cn("card p-6 space-y-4 relative overflow-hidden", className)}>
       {/* Header Row */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] flex items-center gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
+            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+              <BarChart3 className="w-4 h-4 text-violet-500 dark:text-violet-400" />
               Study Density Today
             </h3>
             {/* How to read info toggle button */}
             <button
               type="button"
               onClick={() => setShowGuide(!showGuide)}
-              className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 flex items-center gap-1 transition-all cursor-pointer"
+              className="px-2 py-0.5 rounded text-[10px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 flex items-center gap-1 transition-all cursor-pointer"
               title="How to read this graph?"
             >
               <HelpCircle className="w-3 h-3" />
               <span>How to read</span>
             </button>
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             24-Hour Timeline · Bar height = study time per hour (0–60 mins)
           </p>
         </div>
         <div className="flex items-end gap-3">
           <div>
-            <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider text-right">
+            <div className="text-[10px] font-semibold text-[var(--text-muted)] text-right">
               Total logged
             </div>
-            <div className="text-2xl font-black text-[var(--text-primary)] tracking-tight font-mono flex items-baseline gap-1 justify-end">
+            <div className="text-2xl font-bold text-[var(--text-primary)] tracking-tight font-mono flex items-baseline gap-1 justify-end">
               <span>{hours}h</span>
               <span className="text-sm font-semibold text-[var(--text-secondary)]">{String(mins).padStart(2, "0")}m</span>
             </div>
           </div>
-          <span className="px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-[10px] font-bold flex items-center gap-1">
-            <Activity className="w-2.5 h-2.5" /> +14% vs yesterday
+          <span className="px-2 py-1 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold flex items-center gap-1">
+            <Activity className="w-3 h-3" /> +14% vs yesterday
           </span>
         </div>
       </div>
@@ -1009,31 +1041,31 @@ function BentoNextTwoHours({ className }: { className?: string }) {
   }, []);
 
   return (
-    <div className={cn("card p-5 space-y-3", className)}>
+    <div className={cn("card p-6 space-y-3", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+        <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
           Next 2 Hours
         </h3>
         <Link
           href="/planner"
-          className="text-[10px] font-semibold text-violet-300 hover:text-violet-200 flex items-center gap-1"
+          className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-500 flex items-center gap-1"
         >
           Full timeline
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {upcoming.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-6 text-center">
-          <Zap className="w-8 h-8 text-[#5A5875] mb-2" />
-          <p className="text-xs font-semibold text-[#9B99B5]">No sessions scheduled</p>
-          <p className="text-[11px] text-[#5A5875] mt-1">Open Planner to plan your next block</p>
+          <Zap className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+          <p className="text-xs font-semibold text-[var(--text-secondary)]">No sessions scheduled</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">Open Planner to plan your next block</p>
           <Link
             href="/planner"
-            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-bold text-white border border-white/[0.08]"
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] text-[11px] font-bold text-[var(--text-primary)] border border-[var(--border-card)] shadow-xs transition-colors"
           >
-            <Play className="w-2.5 h-2.5 fill-white" />
+            <Play className="w-2.5 h-2.5 fill-current text-violet-400" />
             Plan a session
           </Link>
         </div>
@@ -1044,14 +1076,14 @@ function BentoNextTwoHours({ className }: { className?: string }) {
             return (
               <div
                 key={ev.id}
-                className="relative flex items-start gap-3 p-2.5 rounded-xl border border-white/[0.05] bg-white/[0.015] hover:bg-white/[0.03] transition-colors"
+                className="relative flex items-start gap-3 p-2.5 rounded-xl border border-[var(--border-card)] bg-[var(--bg-card)] hover:bg-[var(--bg-elevated)] transition-colors"
               >
                 <div
                   className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
                   style={{ backgroundColor: ev.subjectColor }}
                 />
                 <div className="pl-2 flex flex-col items-center gap-1 shrink-0">
-                  <span className="text-[10px] font-black font-mono text-white">
+                  <span className="text-[10px] font-black font-mono text-[var(--text-primary)]">
                     {String(Math.floor(start / 60)).padStart(2, "0")}:
                     {String(start % 60).padStart(2, "0")}
                   </span>
@@ -1060,7 +1092,7 @@ function BentoNextTwoHours({ className }: { className?: string }) {
                       "text-[9px] font-semibold px-1.5 py-0.5 rounded-md",
                       i === 0
                         ? "bg-violet-500/15 text-violet-300 border border-violet-500/25"
-                        : "bg-white/[0.04] text-[#9B99B5]"
+                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)]"
                     )}
                   >
                     {i === 0
@@ -1092,16 +1124,16 @@ function BentoNextTwoHours({ className }: { className?: string }) {
                       </span>
                     )}
                     {ev.type === "revision" && (
-                      <span className="text-[9px] font-semibold px-1.5 py-px rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25">
+                      <span className="text-[9px] font-semibold px-1.5 py-px rounded-md bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25">
                         Revision
                       </span>
                     )}
                   </div>
-                  <p className="text-xs font-bold text-[#F1F1F8] mt-0.5 truncate">
+                  <p className="text-xs font-semibold text-[var(--text-primary)] mt-0.5 truncate">
                     {ev.title}
                   </p>
                   {ev.roomOrPlatform && (
-                    <p className="text-[10px] text-[#5A5875] truncate flex items-center gap-1 mt-0.5">
+                    <p className="text-[10px] text-[var(--text-muted)] truncate flex items-center gap-1 mt-0.5">
                       <BookOpen className="w-2.5 h-2.5" />
                       {ev.roomOrPlatform}
                     </p>

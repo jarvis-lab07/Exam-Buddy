@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Clock, AlertTriangle, CheckCircle, Trophy, Zap, Target, ArrowRight, RefreshCw, BarChart2 } from 'lucide-react';
+import Link from 'next/link';
+import { X, Clock, AlertTriangle, CheckCircle, Trophy, Zap, Target, ArrowRight, RefreshCw, BarChart2, AlertCircle, BookOpen } from 'lucide-react';
 import { calculateExamScore, ExamSimulationSettings, ExamResultSummary } from '@/lib/exam-simulator';
 
 interface CompetitiveExamSimulatorModalProps {
@@ -89,6 +90,56 @@ export function CompetitiveExamSimulatorModal({
     }));
     const examScore = calculateExamScore(answerData, settings);
     setResult(examScore);
+
+    // Auto-save incorrect answers to Mistake Notebook
+    try {
+      const mistakesToAdd: any[] = [];
+      const rawMistakesLog: any[] = [];
+
+      selectedAnswers.forEach((ans, idx) => {
+        if (ans !== -1 && ans !== DEFAULT_QUESTIONS[idx].correctOption) {
+          const q = DEFAULT_QUESTIONS[idx];
+          mistakesToAdd.push({
+            id: `mistake-${Date.now()}-${idx}`,
+            subjectId: 'all-viva',
+            subjectCode: 'EXAM-MISTAKE',
+            question: `[Exam Error] ${q.question}`,
+            answer: `**Your Answer:** ${q.options[ans]} (❌ Incorrect)\n\n**Correct Answer:** ${q.options[q.correctOption]} (✅)\n\n**Trap Explanation:** ${q.explanation}`,
+            deckType: 'mistake-notebook',
+            masteryStatus: 'learning',
+            easeFactor: 1.7,
+            intervalDays: 1,
+            repetitions: 0,
+            nextReviewDate: new Date().toISOString(),
+            tags: ['Exam Trap', 'Mistake Notebook'],
+          });
+
+          rawMistakesLog.push({
+            id: `mistake-log-${Date.now()}-${idx}`,
+            subjectCode: 'EXAM',
+            topicName: 'Simulation Review',
+            question: q.question,
+            userWrongAnswer: q.options[ans],
+            correctAnswer: q.options[q.correctOption],
+            explanation: q.explanation,
+            loggedAt: 'Just now',
+            reviewed: false,
+          });
+        }
+      });
+
+      if (mistakesToAdd.length > 0) {
+        const existingFlashcards = JSON.parse(localStorage.getItem('exam_buddy_flashcards') || '[]');
+        localStorage.setItem('exam_buddy_flashcards', JSON.stringify([...mistakesToAdd, ...existingFlashcards]));
+        window.dispatchEvent(new Event('exam_buddy_flashcards_updated'));
+
+        const existingLogs = JSON.parse(localStorage.getItem('exam_buddy_mistakes_log') || '[]');
+        localStorage.setItem('exam_buddy_mistakes_log', JSON.stringify([...rawMistakesLog, ...existingLogs]));
+      }
+    } catch (e) {
+      console.error('Error auto-saving mistakes:', e);
+    }
+
     setIsFinished(true);
   };
 
@@ -119,7 +170,7 @@ export function CompetitiveExamSimulatorModal({
             <div>
               <h3 className="text-lg font-bold text-theme-primary flex items-center gap-2">
                 Competitive Exam Simulation Mode
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 font-semibold border border-rose-500/30">
                   +4 / -1 Penalty
                 </span>
               </h3>
@@ -169,12 +220,12 @@ export function CompetitiveExamSimulatorModal({
                       onClick={() => handleOptionSelect(idx)}
                       className={`w-full p-3.5 rounded-xl text-left text-xs font-medium border transition-all flex items-center justify-between ${
                         isSelected
-                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-200'
+                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-800 dark:text-indigo-200'
                           : 'bg-theme-card border-[var(--border-card)] text-theme-secondary hover:text-theme-primary hover:border-theme-hover'
                       }`}
                     >
                       <span>{opt}</span>
-                      {isSelected && <CheckCircle className="w-4 h-4 text-indigo-400 shrink-0" />}
+                      {isSelected && <CheckCircle className="w-4 h-4 text-indigo-500 dark:text-indigo-400 shrink-0" />}
                     </button>
                   );
                 })}
@@ -217,18 +268,18 @@ export function CompetitiveExamSimulatorModal({
                 Final Score: {result?.finalScore} / {result?.maxScore}
               </h4>
               <p className="text-xs text-theme-secondary">
-                Accuracy Score: <strong className="text-emerald-400">{result?.percentage}%</strong> · Speed Rating: <strong className="text-indigo-400">{result?.speedRating}</strong>
+                Accuracy Score: <strong className="text-emerald-600 dark:text-emerald-400">{result?.percentage}%</strong> · Speed Rating: <strong className="text-indigo-600 dark:text-indigo-400">{result?.speedRating}</strong>
               </p>
             </div>
 
             {/* Metrics Breakdown */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <span className="text-lg font-bold text-emerald-400">{result?.correctCount}</span>
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{result?.correctCount}</span>
                 <p className="text-[11px] text-theme-muted">Correct (+4 each)</p>
               </div>
               <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <span className="text-lg font-bold text-rose-400">{result?.incorrectCount}</span>
+                <span className="text-lg font-bold text-rose-600 dark:text-rose-400">{result?.incorrectCount}</span>
                 <p className="text-[11px] text-theme-muted">Incorrect (-1 penalty)</p>
               </div>
               <div className="p-3 rounded-xl bg-theme-input border border-[var(--border-card)]">
@@ -236,18 +287,51 @@ export function CompetitiveExamSimulatorModal({
                 <p className="text-[11px] text-theme-muted">Unattempted</p>
               </div>
               <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                <span className="text-lg font-bold text-indigo-300">{result?.avgSecondsPerQuestion}s</span>
+                <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{result?.avgSecondsPerQuestion}s</span>
                 <p className="text-[11px] text-theme-muted">Avg time/question</p>
               </div>
             </div>
 
+            {/* Auto-saved Mistake Notebook Alert Banner */}
+            {(result?.incorrectCount || 0) > 0 && (
+              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-300 shrink-0">
+                    <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-rose-700 dark:text-rose-300">
+                      {result?.incorrectCount} Question{result?.incorrectCount === 1 ? '' : 's'} Auto-Saved to Mistake Notebook
+                    </h5>
+                    <p className="text-[11px] text-theme-muted mt-0.5">
+                      We auto-generated active recall flashcards with trap explanations for all missed questions.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/flashcards?filterDeck=deck-mistakes"
+                  onClick={onClose}
+                  className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Review Deck</span>
+                </Link>
+              </div>
+            )}
+
             {/* Restart Button */}
-            <div className="flex justify-center pt-2">
+            <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={resetExam}
                 className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow transition-all"
               >
                 <RefreshCw className="w-4 h-4" /> Try Simulation Again
+              </button>
+              <button
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl bg-theme-input hover:bg-theme-elevated text-theme-secondary text-xs font-semibold border border-[var(--border-card)] transition-colors"
+              >
+                Done
               </button>
             </div>
           </div>
