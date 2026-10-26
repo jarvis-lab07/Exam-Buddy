@@ -228,22 +228,22 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200 overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-[#0b0d19] border border-white/10 rounded-2xl shadow-2xl p-6 text-slate-100 overflow-hidden my-6">
+      <div className="relative w-full max-w-lg bg-[var(--bg-surface)] border border-[var(--border-card)] rounded-2xl shadow-2xl p-6 text-[var(--text-primary)] overflow-hidden my-6">
         {/* Ambient Glows */}
         <div className="absolute -top-24 -right-24 w-56 h-56 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-violet-600/30 to-indigo-600/30 rounded-xl text-violet-400 border border-violet-500/30">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">
                 {mode === 'signin' ? 'Welcome Back to Exam-Buddy' : 'Student Registration'}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[var(--text-muted)]">
                 {mode === 'signin'
                   ? 'Access your saved notes, SM-2 flashcards & AI tutors'
                   : 'Connect with classmates in your College, Department & Division'}
@@ -252,7 +252,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--bg-elevated)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -260,7 +260,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Config Warning */}
         {!isConfigured && (
-          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-xs flex items-start gap-2">
+          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 dark:text-amber-300 text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
             <div>
               <span className="font-semibold">Setup Mode:</span> Fill in registration details to preview local Campus Cohort matching.
@@ -270,7 +270,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Error Alert */}
         {error && (
-          <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 dark:text-rose-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
@@ -278,7 +278,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Success Alert */}
         {message && (
-          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500 dark:text-emerald-300 text-xs flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
             <span>{message}</span>
           </div>
@@ -290,7 +290,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-3 shadow-md hover:shadow-lg disabled:opacity-50"
+            className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-3 shadow-md hover:shadow-lg disabled:opacity-50 border border-slate-200"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -314,11 +314,11 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </button>
 
           <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-white/[0.08] w-full" />
-            <span className="bg-[#0b0d19] px-3 text-[11px] text-slate-500 uppercase tracking-widest font-semibold shrink-0">
+            <div className="border-t border-[var(--border-card)] w-full" />
+            <span className="bg-[var(--bg-surface)] px-3 text-[11px] text-[var(--text-muted)] uppercase tracking-widest font-semibold shrink-0">
               Or with Email
             </span>
-            <div className="border-t border-white/[0.08] w-full" />
+            <div className="border-t border-[var(--border-card)] w-full" />
           </div>
         </div>
 

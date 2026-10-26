@@ -277,7 +277,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-xl rounded-2xl bg-[#0F111E] border border-white/[0.1] shadow-2xl p-5 sm:p-7 space-y-5 text-[#F1F1F8] border-t-2 border-violet-500/40"
+        className="relative w-full max-w-xl rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl p-5 sm:p-7 space-y-5 text-[var(--text-primary)] border-t-2 border-violet-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -287,20 +287,20 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
               <Key className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 AI Engine & Local LLM Setup
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 dark:text-emerald-300 border border-emerald-500/25">
                   BYOK & Local
                 </span>
               </h2>
-              <p className="text-xs text-[#9B99B5] mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Connect cloud providers via API keys or run 100% offline via local Ollama.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -386,13 +386,13 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                     value={ollamaEndpoint}
                     onChange={(e) => setOllamaEndpointState(e.target.value)}
                     placeholder="http://localhost:11434"
-                    className="w-full h-10 px-3 pr-24 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white font-mono focus:outline-none focus:border-cyan-500/50"
+                    className="w-full h-10 px-3 pr-24 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-cyan-500/50"
                   />
                   <button
                     type="button"
                     onClick={handleDetectOllama}
                     disabled={isDetectingOllama}
-                    className="absolute right-1.5 h-7 px-2.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                    className="absolute right-1.5 h-7 px-2.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-500 dark:text-cyan-300 text-[11px] font-medium flex items-center gap-1 transition-colors"
                   >
                     {isDetectingOllama ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -405,7 +405,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                <label className="text-[11px] text-[var(--text-muted)] font-medium block mb-1">
                   Active Model
                 </label>
                 {ollamaModelsList.length > 0 ? (
@@ -415,7 +415,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                       setOllamaModelState(e.target.value);
                       saveOllamaModel(e.target.value);
                     }}
-                    className="w-full h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white focus:outline-none focus:border-cyan-500/50"
+                    className="w-full h-10 px-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500/50"
                   >
                     {ollamaModelsList.map((m) => (
                       <option key={m.name} value={m.name}>
@@ -432,18 +432,18 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                       saveOllamaModel(e.target.value);
                     }}
                     placeholder="llama3.2, llama3.1, deepseek-r1:8b, mistral..."
-                    className="w-full h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white font-mono focus:outline-none focus:border-cyan-500/50"
+                    className="w-full h-10 px-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-cyan-500/50"
                   />
                 )}
               </div>
 
               {/* Quick CLI tip */}
-              <div className="p-3 rounded-xl bg-[#090A12] border border-white/[0.06] text-xs space-y-1">
-                <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+              <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs space-y-1">
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-[11px]">
                   <Terminal className="w-3.5 h-3.5 text-cyan-400" />
                   <span>To install and run locally in your terminal:</span>
                 </div>
-                <code className="text-cyan-300 font-mono text-[11px] block select-all">
+                <code className="text-cyan-500 dark:text-cyan-300 font-mono text-[11px] block select-all">
                   ollama run llama3.2
                 </code>
               </div>
@@ -523,12 +523,12 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                       }}
                       onKeyDown={(e) => { if (e.key === "Enter") handleAddKey(); }}
                       placeholder={currentProviderMeta.placeholder}
-                      className="w-full h-10 pl-4 pr-10 rounded-xl bg-[#141624] border border-white/[0.09] text-sm text-white placeholder:text-slate-500 font-mono focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
+                      className="w-full h-10 pl-4 pr-10 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] font-mono focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
                     />
                     <button
                       type="button"
                       onClick={() => setShowKey(!showKey)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -543,14 +543,14 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                     Add
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1.5">
+                <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
                   💡 Add 2–5 keys from the same provider to bypass rate limits automatically
                 </p>
               </div>
 
               {/* Cloud Model Selector */}
               <div>
-                <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                <label className="text-[11px] text-[var(--text-muted)] font-medium block mb-1">
                   Active Model
                   <span className="ml-1 text-violet-400 font-normal">(you can type any model ID)</span>
                 </label>
@@ -568,7 +568,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                           saveSelectedModel(selectedProvider, val);
                         }
                       }}
-                      className="flex-1 h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white focus:outline-none focus:border-violet-500/50 font-mono"
+                      className="flex-1 h-10 px-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:border-violet-500/50 font-mono"
                     >
                       {currentProviderMeta.popularModels.map((m) => (
                         <option key={m} value={m}>{m}</option>
@@ -595,7 +595,7 @@ export function ApiKeyModal({ isOpen, onClose, onKeysUpdated, initialProvider }:
                         }
                       }}
                       placeholder="e.g. llama-3.3-70b-versatile, gpt-4o, gemini-2.5-flash..."
-                      className="flex-1 h-10 px-3 rounded-xl bg-[#141624] border border-white/[0.09] text-xs text-white font-mono focus:outline-none focus:border-violet-500/50"
+                      className="flex-1 h-10 px-3 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-xs text-[var(--text-primary)] font-mono focus:outline-none focus:border-violet-500/50"
                     />
                     <button
                       type="button"

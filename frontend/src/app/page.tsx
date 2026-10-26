@@ -549,7 +549,7 @@ export default function DashboardPage() {
                         ? "bg-white/[0.02] text-[var(--text-muted)] border border-white/5"
                         : targetMet
                         ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 group-hover:bg-emerald-500 group-hover:text-black"
-                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)] group-hover:text-white group-hover:bg-violet-500/20"
+                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)] group-hover:text-[var(--text-primary)] group-hover:bg-violet-500/20"
                     )}
                   >
                     {day.isFuture ? "0.0h" : `${hours}h`}
@@ -582,7 +582,7 @@ export default function DashboardPage() {
                         ? "text-[var(--text-muted)]"
                         : targetMet
                         ? "text-emerald-400 font-medium"
-                        : "text-[var(--text-secondary)] group-hover:text-white"
+                        : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
                     )}
                   >
                     {day.day}
@@ -1043,7 +1043,7 @@ function BentoNextTwoHours({ className }: { className?: string }) {
   return (
     <div className={cn("card p-5 space-y-3", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9B99B5] flex items-center gap-1.5">
+        <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-secondary)] flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-cyan-400" />
           Next 2 Hours
         </h3>
@@ -1058,14 +1058,14 @@ function BentoNextTwoHours({ className }: { className?: string }) {
 
       {upcoming.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-6 text-center">
-          <Zap className="w-8 h-8 text-[#5A5875] mb-2" />
-          <p className="text-xs font-semibold text-[#9B99B5]">No sessions scheduled</p>
-          <p className="text-[11px] text-[#5A5875] mt-1">Open Planner to plan your next block</p>
+          <Zap className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+          <p className="text-xs font-semibold text-[var(--text-secondary)]">No sessions scheduled</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">Open Planner to plan your next block</p>
           <Link
             href="/planner"
-            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-bold text-white border border-white/[0.08]"
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-card)] text-[11px] font-bold text-[var(--text-primary)] border border-[var(--border-card)] shadow-xs transition-colors"
           >
-            <Play className="w-2.5 h-2.5 fill-white" />
+            <Play className="w-2.5 h-2.5 fill-current text-violet-400" />
             Plan a session
           </Link>
         </div>
@@ -1076,14 +1076,14 @@ function BentoNextTwoHours({ className }: { className?: string }) {
             return (
               <div
                 key={ev.id}
-                className="relative flex items-start gap-3 p-2.5 rounded-xl border border-white/[0.05] bg-white/[0.015] hover:bg-white/[0.03] transition-colors"
+                className="relative flex items-start gap-3 p-2.5 rounded-xl border border-[var(--border-card)] bg-[var(--bg-card)] hover:bg-[var(--bg-elevated)] transition-colors"
               >
                 <div
                   className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
                   style={{ backgroundColor: ev.subjectColor }}
                 />
                 <div className="pl-2 flex flex-col items-center gap-1 shrink-0">
-                  <span className="text-[10px] font-black font-mono text-white">
+                  <span className="text-[10px] font-black font-mono text-[var(--text-primary)]">
                     {String(Math.floor(start / 60)).padStart(2, "0")}:
                     {String(start % 60).padStart(2, "0")}
                   </span>
@@ -1092,7 +1092,7 @@ function BentoNextTwoHours({ className }: { className?: string }) {
                       "text-[9px] font-semibold px-1.5 py-0.5 rounded-md",
                       i === 0
                         ? "bg-violet-500/15 text-violet-300 border border-violet-500/25"
-                        : "bg-white/[0.04] text-[#9B99B5]"
+                        : "bg-[var(--input-bg)] text-[var(--text-secondary)] border border-[var(--border-card)]"
                     )}
                   >
                     {i === 0

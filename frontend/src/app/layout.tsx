@@ -15,8 +15,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var mode = localStorage.getItem("exam_buddy_theme_mode") || "dark";
+                  document.documentElement.setAttribute("data-theme", mode);
+                  document.documentElement.classList.remove("dark", "light", "nature");
+                  if (mode === "dark") {
+                    document.documentElement.classList.add("dark");
+                  } else if (mode === "light") {
+                    document.documentElement.classList.add("light");
+                  } else if (mode === "nature") {
+                    document.documentElement.classList.add("nature", "dark");
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

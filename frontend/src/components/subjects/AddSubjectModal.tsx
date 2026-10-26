@@ -111,18 +111,18 @@ export function AddSubjectModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg glass-card rounded-2xl border border-white/[0.15] shadow-2xl p-6 sm:p-8 space-y-6 relative"
+        className="w-full max-w-lg rounded-2xl border border-[var(--border-card)] bg-[var(--bg-surface)] shadow-2xl p-6 sm:p-8 space-y-6 relative text-[var(--text-primary)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+        <div className="flex items-center justify-between border-b border-[var(--border-card)] pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Add New Subject & Syllabus</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">Add New Subject & Syllabus</h2>
+              <p className="text-xs text-[var(--text-muted)]">
                 Setup course roadmap for AI study notes and active recall
               </p>
             </div>
@@ -130,7 +130,7 @@ export function AddSubjectModal({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -140,7 +140,7 @@ export function AddSubjectModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Row 1: Subject Title */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300">
+            <label className="text-xs font-semibold text-[var(--text-secondary)]">
               Subject Title <span className="text-rose-400">*</span>
             </label>
             <input
@@ -149,39 +149,39 @@ export function AddSubjectModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Operating Systems"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-indigo-500/50"
             />
           </div>
 
           {/* Row 2: Subject Code (Optional) + University Course Code (Optional) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-slate-400" />
                 Short Subject Code
-                <span className="text-slate-500 font-normal">(auto-filled if blank)</span>
+                <span className="text-[var(--text-muted)] font-normal">(auto-filled if blank)</span>
               </label>
               <input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="e.g. CS304"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 uppercase font-mono focus:outline-none focus:border-indigo-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] uppercase font-mono focus:outline-none focus:border-indigo-500/50"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <label className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-slate-400" />
                 University Course Code
-                <span className="text-slate-500 font-normal">(optional)</span>
+                <span className="text-[var(--text-muted)] font-normal">(optional)</span>
               </label>
               <input
                 type="text"
                 value={courseCode}
                 onChange={(e) => setCourseCode(e.target.value)}
                 placeholder="e.g. BTECH-CS-401 or 18CS42"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 uppercase font-mono focus:outline-none focus:border-indigo-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] uppercase font-mono focus:outline-none focus:border-indigo-500/50"
               />
             </div>
           </div>
@@ -189,11 +189,11 @@ export function AddSubjectModal({
           {/* Row 3: Degree & Term */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Degree Field</label>
+              <label className="text-xs font-semibold text-[var(--text-secondary)]">Degree Field</label>
               <select
                 value={degree}
                 onChange={(e) => setDegree(e.target.value as DegreeType)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#0D111D] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] focus:outline-none focus:border-indigo-500/50"
               >
                 <option value="Engineering">Engineering</option>
                 <option value="Medicine">Medicine</option>
@@ -206,13 +206,13 @@ export function AddSubjectModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Semester / Term</label>
+              <label className="text-xs font-semibold text-[var(--text-secondary)]">Semester / Term</label>
               <input
                 type="text"
                 value={semesterOrYear}
                 onChange={(e) => setSemesterOrYear(e.target.value)}
                 placeholder="e.g. Semester 3 or Year 2"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--input-border)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-indigo-500/50"
               />
             </div>
           </div>

@@ -290,13 +290,13 @@ export default function SubjectsPage() {
         </section>
       ) : (
         /* Empty State */
-        <section className="glass-card p-12 rounded-2xl border border-white/[0.08] text-center space-y-4 max-w-md mx-auto">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/[0.04] border border-white/[0.08] mx-auto text-slate-400">
+        <section className="glass-card p-12 rounded-2xl border border-[var(--border-card)] text-center space-y-4 max-w-md mx-auto">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[var(--input-bg)] border border-[var(--border-card)] mx-auto text-[var(--text-muted)]">
             <Search className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">No matching subjects found</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-base font-bold text-[var(--text-primary)]">No matching subjects found</h3>
+            <p className="text-xs text-[var(--text-muted)]">
               No courses matched &ldquo;{searchQuery || selectedDegree}&rdquo;. Try clearing filters or add a new course syllabus.
             </p>
           </div>
@@ -307,7 +307,7 @@ export default function SubjectsPage() {
                 setSelectedTerm("All Terms");
                 setSearchQuery("");
               }}
-              className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] text-xs font-semibold text-slate-300 transition-colors"
+              className="px-4 py-2 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] border border-[var(--border-card)] text-xs font-semibold text-[var(--text-secondary)] transition-colors"
             >
               Reset Filters
             </button>
