@@ -19,7 +19,6 @@ import {
 import { AiSearchModal } from "@/components/search/AiSearchModal";
 import { ApiKeyModal } from "@/components/ai/ApiKeyModal";
 import { AuthModal } from "@/components/auth/AuthModal";
-import { DailySecurityModal } from "@/components/auth/DailySecurityModal";
 import { ClassroomExamSyncModal } from "@/components/cohorts/ClassroomExamSyncModal";
 import { ProfileEditModal } from "@/components/profile/ProfileEditModal";
 import { CalendarCheck, User } from "lucide-react";
@@ -44,13 +43,7 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
   const [activeProvider, setActiveProvider] = useState<AIProvider>("gemini");
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  const {
-    user,
-    signOut,
-    isDailyUnlocked,
-    isSecurityModalOpen,
-    setIsSecurityModalOpen,
-  } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
 
   const refreshKeyStatus = () => {
@@ -303,11 +296,6 @@ export function Header({ onToggleSidebar, onToggleFocusDock, focusDockExpanded }
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      <DailySecurityModal
-        isOpen={isSecurityModalOpen}
-        onClose={() => setIsSecurityModalOpen(false)}
       />
 
       <ClassroomExamSyncModal

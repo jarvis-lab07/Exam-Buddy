@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { GoogleAccountPickerModal } from './GoogleAccountPickerModal';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -121,10 +120,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const [isGooglePickerOpen, setIsGooglePickerOpen] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { isConfigured, refreshSession, loginWithGoogleDemo, signInWithGoogle, setIsSecurityModalOpen } = useAuth();
+  const { isConfigured, refreshSession, signInWithGoogle } = useAuth();
   const supabase = createClient();
 
   if (!isOpen) return null;
@@ -145,22 +143,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setIsAddingNewCollege(false);
   };
 
-  // Google / Gmail OAuth Login - Real Supabase PKCE flow with demo fallback
+  // Google / Gmail OAuth Login - Real Google accounts.google.com authentication
   const handleGoogleSignIn = async () => {
     setError(null);
     setMessage(null);
-
-    if (!isConfigured) {
-      // In offline/unconfigured environment, offer interactive demo profile picker
-      setIsGooglePickerOpen(true);
-      return;
-    }
+    setGoogleLoading(true);
 
     try {
-      setGoogleLoading(true);
       const { error } = await signInWithGoogle();
       if (error) {
-        setError(`Google sign-in error: ${error.message}`);
+        setError(error.message);
         setGoogleLoading(false);
       }
       // If successful, browser initiates OAuth redirect to Google consent screen
@@ -168,12 +160,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setError(err.message || 'Failed to initialize Google authentication');
       setGoogleLoading(false);
     }
-  };
-
-  const handleSelectGoogleAccount = (selectedEmail: string, selectedName: string) => {
-    setIsGooglePickerOpen(false);
-    loginWithGoogleDemo(selectedEmail, selectedName);
-    onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -638,12 +624,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           )}
         </div>
       </div>
-
-      <GoogleAccountPickerModal
-        isOpen={isGooglePickerOpen}
-        onClose={() => setIsGooglePickerOpen(false)}
-        onSelectAccount={handleSelectGoogleAccount}
-      />
     </div>
   );
 }
