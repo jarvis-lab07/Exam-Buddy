@@ -652,7 +652,7 @@ function ChatContent() {
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">AI Tutor</h1>
+            <h1 className="text-base sm:text-lg font-bold text-theme-primary tracking-tight">AI Tutor</h1>
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25 hidden sm:inline-block">
               RAG 4-Scope
             </span>
