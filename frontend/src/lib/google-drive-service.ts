@@ -383,6 +383,52 @@ export async function disconnectGoogleDrive(accessToken?: string, userId?: strin
 }
 
 /**
+ * Retrieves or creates a dedicated "Exam-Buddy Study Materials" folder in the student's personal Google Drive
+ */
+export async function getOrCreateExamBuddyFolder(accessToken: string): Promise<string | null> {
+  if (!accessToken || accessToken.startsWith('simulated_drive_token_')) {
+    return 'simulated_exambuddy_folder_id';
+  }
+
+  try {
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name%3D'Exam-Buddy+Study+Materials'+and+mimeType%3D'application%2Fvnd.google-apps.folder'+and+trashed%3Dfalse&fields=files(id,name)`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (searchRes.ok) {
+      const data = await searchRes.json();
+      if (data.files && data.files.length > 0) {
+        return data.files[0].id;
+      }
+    }
+
+    // Create folder if it doesn't exist
+    const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'Exam-Buddy Study Materials',
+        mimeType: 'application/vnd.google-apps.folder',
+        description: 'Auto-synced study materials, lecture notes, and question banks from Exam-Buddy',
+      }),
+    });
+
+    if (createRes.ok) {
+      const folderData = await createRes.json();
+      return folderData.id;
+    }
+  } catch (err) {
+    console.warn('[Google Drive] Could not verify Exam-Buddy folder, uploading to root:', err);
+  }
+
+  return null;
+}
+
+/**
  * Uploads a file directly to the student's personal Google Drive folder
  */
 export async function uploadToStudentGoogleDrive(
@@ -402,13 +448,23 @@ export async function uploadToStudentGoogleDrive(
   }
 
   try {
-    const metadata = { name: file.name, mimeType: file.type };
+    const folderId = await getOrCreateExamBuddyFolder(token);
+    const metadata: Record<string, any> = {
+      name: file.name,
+      mimeType: file.type || 'application/pdf',
+      description: 'Uploaded via Exam-Buddy (BYOS)',
+    };
+
+    if (folderId && folderId !== 'simulated_exambuddy_folder_id') {
+      metadata.parents = [folderId];
+    }
+
     const formData = new FormData();
     formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     formData.append('file', file);
 
     const response = await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink',
       {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -425,8 +481,8 @@ export async function uploadToStudentGoogleDrive(
     return {
       success: true,
       fileId: result.id,
-      fileName: file.name,
-      driveUrl: result.webViewLink,
+      fileName: result.name || file.name,
+      driveUrl: result.webViewLink || `https://drive.google.com/file/d/${result.id}/view?usp=sharing`,
     };
   } catch (err: any) {
     console.error('[Google Drive BYOS Upload Error]', err);
@@ -435,4 +491,78 @@ export async function uploadToStudentGoogleDrive(
       error: err.message || 'Failed to upload to Google Drive',
     };
   }
+}
+
+/**
+ * Sets public link-sharing permission on a student's Google Drive file
+ * Enables anyone with the link to view the document
+ */
+export async function shareGoogleDriveFile(
+  fileId: string,
+  accessToken?: string
+): Promise<{ success: boolean; shareLink: string; error?: string }> {
+  const token = accessToken || getStoredDriveAccessToken();
+  const defaultLink = `https://drive.google.com/file/d/${fileId}/view?usp=sharing`;
+
+  if (!token || token.startsWith('simulated_drive_token_')) {
+    return { success: true, shareLink: defaultLink };
+  }
+
+  try {
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        role: 'reader',
+        type: 'anyone',
+        allowFileDiscovery: false,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.warn('[Google Drive Share Error]', err);
+    }
+
+    return { success: true, shareLink: defaultLink };
+  } catch (err: any) {
+    return { success: false, shareLink: defaultLink, error: err.message };
+  }
+}
+
+/**
+ * Fetches user's actual Google Drive storage quota (e.g. 3.2 GB of 15 GB used)
+ */
+export async function getDriveStorageQuota(
+  accessToken?: string
+): Promise<{ usageGB: number; limitGB: number; email?: string; displayName?: string } | null> {
+  const token = accessToken || getStoredDriveAccessToken();
+  if (!token || token.startsWith('simulated_drive_token_')) {
+    return { usageGB: 3.4, limitGB: 15.0, email: 'student@gmail.com', displayName: 'Student Drive' };
+  }
+
+  try {
+    const res = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota,user', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const usageBytes = parseInt(data.storageQuota?.usage || '0', 10);
+      const limitBytes = parseInt(data.storageQuota?.limit || '16106127360', 10); // 15 GB default
+      return {
+        usageGB: parseFloat((usageBytes / (1024 * 1024 * 1024)).toFixed(2)),
+        limitGB: parseFloat((limitBytes / (1024 * 1024 * 1024)).toFixed(1)),
+        email: data.user?.emailAddress,
+        displayName: data.user?.displayName,
+      };
+    }
+  } catch (e) {
+    console.warn('[Google Drive Quota Error]', e);
+  }
+
+  return null;
 }

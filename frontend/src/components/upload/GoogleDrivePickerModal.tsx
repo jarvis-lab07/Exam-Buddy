@@ -18,6 +18,10 @@ import {
   RefreshCw,
   FolderSync,
   Layers,
+  UploadCloud,
+  Share2,
+  Check,
+  Copy,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -29,6 +33,9 @@ import {
   importGoogleDriveFile,
   disconnectGoogleDrive,
   openGooglePicker,
+  uploadToStudentGoogleDrive,
+  shareGoogleDriveFile,
+  getDriveStorageQuota,
 } from '@/lib/google-drive-service';
 import { DocumentUploadItem } from '@/types';
 
@@ -62,6 +69,11 @@ export function GoogleDrivePickerModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [copiedFileId, setCopiedFileId] = useState<string | null>(null);
+  const [isUploadingToDrive, setIsUploadingToDrive] = useState(false);
+  const [driveQuota, setDriveQuota] = useState<{ usageGB: number; limitGB: number; email?: string } | null>(null);
+
+  const driveUploadInputRef = React.useRef<HTMLInputElement>(null);
 
   // Import Progress tracking
   const [importProgress, setImportProgress] = useState<{
@@ -80,6 +92,9 @@ export function GoogleDrivePickerModal({
         setAccessToken(storedToken);
         setConnectionState('connected');
         loadFiles(storedToken);
+        getDriveStorageQuota(storedToken).then((q) => {
+          if (q) setDriveQuota(q);
+        });
       } else {
         setConnectionState('not_connected');
         setFiles([]);
@@ -103,6 +118,64 @@ export function GoogleDrivePickerModal({
       setFiles(res.files);
     }
     setLoadingFiles(false);
+  };
+
+  const handleUploadDirectToDrive = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !accessToken) return;
+
+    setIsUploadingToDrive(true);
+    setToastMsg(`Uploading "${file.name}" to your Google Drive (/Exam-Buddy Study Materials/)...`);
+
+    try {
+      const uploadRes = await uploadToStudentGoogleDrive(file, accessToken);
+      if (!uploadRes.success || !uploadRes.fileId) {
+        throw new Error(uploadRes.error || 'Failed to upload file to Google Drive');
+      }
+
+      setToastMsg(`Uploaded to Drive! Now indexing into Exam-Buddy vector database...`);
+
+      const importRes = await importGoogleDriveFile({
+        fileId: uploadRes.fileId,
+        fileName: file.name,
+        mimeType: file.type || 'application/pdf',
+        accessToken,
+      });
+
+      if (importRes.success && importRes.document) {
+        if (onFileUploaded) onFileUploaded(importRes.document);
+        setToastMsg(`Successfully saved to your personal Drive and indexed into Exam-Buddy!`);
+      } else {
+        setToastMsg(`Saved to personal Google Drive (${uploadRes.fileName})!`);
+      }
+
+      // Reload files list
+      await loadFiles(accessToken, searchQuery);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Drive upload error');
+    } finally {
+      setIsUploadingToDrive(false);
+      if (driveUploadInputRef.current) driveUploadInputRef.current.value = '';
+      setTimeout(() => setToastMsg(null), 4000);
+    }
+  };
+
+  const handleCopyFileLink = async (e: React.MouseEvent, file: DriveItem) => {
+    e.stopPropagation();
+    const shareRes = await shareGoogleDriveFile(file.id, accessToken || undefined);
+    const link = shareRes.shareLink || file.driveUrl;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedFileId(file.id);
+      setToastMsg(`Google Drive link for "${file.name}" copied to clipboard! Anyone with link can view.`);
+      setTimeout(() => {
+        setCopiedFileId(null);
+        setToastMsg(null);
+      }, 3500);
+    } catch {
+      prompt('Copy Google Drive Share Link:', link);
+    }
   };
 
   const handleConnect = async () => {
@@ -346,17 +419,41 @@ export function GoogleDrivePickerModal({
           </div>
         ) : (
           <div className="mt-4 space-y-3">
-            {/* Account Status bar */}
+            {/* Account Status & Actions Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[var(--bg-elevated)] border border-[var(--border-card)] rounded-2xl text-xs">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[var(--text-muted)] font-medium">Connected Account:</span>
+                <span className="text-[var(--text-muted)] font-medium">Personal Drive:</span>
                 <span className="font-semibold text-[var(--text-primary)] bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/25">
-                  {user?.email || 'student.drive@gmail.com'}
+                  {driveQuota?.email || user?.email || 'student.drive@gmail.com'}
                 </span>
+                {driveQuota && (
+                  <span className="text-[10px] text-blue-400 font-semibold bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                    {driveQuota.usageGB} / {driveQuota.limitGB} GB (0 MB Server)
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={driveUploadInputRef}
+                  onChange={handleUploadDirectToDrive}
+                  className="hidden"
+                  accept=".pdf,.docx,.txt,.doc"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => driveUploadInputRef.current?.click()}
+                  disabled={isUploadingToDrive}
+                  className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-[11px] font-semibold text-white shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Upload a new note or PDF directly to your personal Google Drive"
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>{isUploadingToDrive ? 'Uploading...' : 'Upload to Drive'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleOpenNativePicker}
@@ -415,7 +512,7 @@ export function GoogleDrivePickerModal({
                   <FolderSync className="w-8 h-8 mx-auto text-[var(--text-muted)] opacity-50" />
                   <p className="font-semibold text-[var(--text-secondary)]">No supported files found</p>
                   <p className="text-[11px]">
-                    Exam-Buddy supports PDFs, DOCX, TXT, and Google Docs. Try searching or launch Google Picker.
+                    Exam-Buddy supports PDFs, DOCX, TXT, and Google Docs. Try uploading above or launch Google Picker.
                   </p>
                 </div>
               ) : (
@@ -452,14 +549,43 @@ export function GoogleDrivePickerModal({
                         </div>
                       </div>
 
-                      <div
-                        className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? 'bg-blue-600 border-blue-500 text-white'
-                            : 'border-[var(--border-card)] bg-[var(--input-bg)]'
-                        }`}
-                      >
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Direct Drive link */}
+                        <a
+                          href={file.driveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                          title="Open in Google Drive"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+
+                        {/* Direct Share / Copy Link */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyFileLink(e, file)}
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+                          title="Copy shareable Google Drive link"
+                        >
+                          {copiedFileId === file.id ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Share2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+
+                        {/* Selection Checkbox */}
+                        <div
+                          className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected
+                              ? 'bg-blue-600 border-blue-500 text-white'
+                              : 'border-[var(--border-card)] bg-[var(--input-bg)]'
+                          }`}
+                        >
+                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        </div>
                       </div>
                     </div>
                   );

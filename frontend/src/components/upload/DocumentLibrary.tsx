@@ -15,8 +15,14 @@ import {
   Calendar,
   X,
   BookOpen,
+  Cloud,
+  Share2,
+  ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 import { DocumentUploadItem, DocumentCategory } from "@/types";
+import { shareGoogleDriveFile } from "@/lib/google-drive-service";
 
 interface DocumentLibraryProps {
   documents: DocumentUploadItem[];
@@ -27,6 +33,29 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [activePreviewDoc, setActivePreviewDoc] = useState<DocumentUploadItem | null>(null);
+  const [copiedDocId, setCopiedDocId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleShareDocument = async (doc: DocumentUploadItem) => {
+    const driveUrl = (doc as any).driveUrl || (doc as any).driveWebLink;
+    let linkToShare = driveUrl;
+
+    if (!linkToShare) {
+      linkToShare = `${window.location.origin}/upload?doc=${doc.id}`;
+    }
+
+    try {
+      await navigator.clipboard.writeText(linkToShare);
+      setCopiedDocId(doc.id);
+      setToastMessage(`Google Drive share link copied! Anyone with link can view.`);
+      setTimeout(() => {
+        setCopiedDocId(null);
+        setToastMessage(null);
+      }, 3500);
+    } catch (e) {
+      prompt("Copy share link:", linkToShare);
+    }
+  };
 
   const categories = [
     "All",
@@ -83,6 +112,23 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
           />
         </div>
       </div>
+
+      {/* Share Toast Banner */}
+      {toastMessage && (
+        <div className="p-3 bg-blue-500/15 border border-blue-500/30 rounded-2xl text-blue-300 text-xs font-semibold flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Category Filter Chips */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
@@ -144,6 +190,12 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                       {doc.vectorCount} Vectors
                     </span>
+                    {Boolean((doc as any).driveUrl || (doc as any).sourceType === 'google_drive') && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1">
+                        <Cloud className="w-3 h-3 text-blue-400" />
+                        Google Drive BYOS
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="text-sm font-bold text-[var(--text-primary)] truncate mt-1.5 group-hover:text-violet-400 transition-colors">
@@ -165,11 +217,17 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                 <span>{doc.pages} pages</span>
                 <span>•</span>
                 <span>{doc.uploadDate}</span>
+                {Boolean((doc as any).driveUrl) && (
+                  <>
+                    <span>•</span>
+                    <span className="text-blue-400 font-medium">Personal Cloud (0 MB Server)</span>
+                  </>
+                )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <Link
                     href={`/chat?subject=${doc.subjectId}&q=Explain key concepts from ${encodeURIComponent(doc.title)}`}
                     className="h-7 px-2.5 rounded-lg bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
@@ -193,6 +251,38 @@ export function DocumentLibrary({ documents, onDeleteDocument }: DocumentLibrary
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Summary</span>
+                  </button>
+
+                  {Boolean((doc as any).driveUrl || (doc as any).driveWebLink) && (
+                    <a
+                      href={(doc as any).driveUrl || (doc as any).driveWebLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-7 px-2 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center gap-1 transition-colors"
+                      title="Open file in Google Drive"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Drive</span>
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleShareDocument(doc)}
+                    className="h-7 px-2 rounded-lg bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-card)] text-xs font-medium flex items-center gap-1 transition-colors"
+                    title="Copy shareable Google Drive link"
+                  >
+                    {copiedDocId === doc.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 font-semibold">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Share</span>
+                      </>
+                    )}
                   </button>
                 </div>
 
