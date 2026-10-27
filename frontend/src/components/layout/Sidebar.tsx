@@ -24,6 +24,7 @@ import {
   Brain,
   Play,
   Trophy,
+  Cloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_USER } from "@/lib/mock-data";
@@ -33,6 +34,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PomodoroTimer } from "@/components/focus/PomodoroTimer";
 import { AmbientPlayer } from "@/components/focus/AmbientPlayer";
 import { usePomodoro } from "@/contexts/PomodoroContext";
+import { isDriveConnectedInStorage, getDriveStorageQuota } from "@/lib/google-drive-service";
+import { getAIAnalyticsSummary } from "@/lib/ai-gateway/logger";
+import { getActiveProvider, getSelectedModel } from "@/lib/ai-service";
 
 export type SidebarState = "open" | "icon" | "hidden";
 
@@ -124,29 +128,55 @@ export function Sidebar({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isFocusOpen, setIsFocusOpen] = useState(false);
 
+  // Real data state
+  const [realStorage, setRealStorage] = useState<{
+    usedDisplay: string;
+    totalDisplay: string;
+    percent: number;
+    isDrive: boolean;
+  }>({
+    usedDisplay: "0 MB",
+    totalDisplay: "15 GB",
+    percent: 0,
+    isDrive: false,
+  });
+
+  const [realTokens, setRealTokens] = useState<{
+    used: number;
+    total: number;
+    percent: number;
+    display: string;
+  }>({
+    used: 0,
+    total: 1000000,
+    percent: 0,
+    display: "0 / 1M Free Tokens",
+  });
+
+  const [activeModelName, setActiveModelName] = useState<string>("Gemini 2.5 Flash");
+
   useEffect(() => {
+    // 1. User Profile Sync
     if (user) {
-      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student User';
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Student User';
       const emailStr = user.email || 'student@campus.edu';
       const handleStr = `@${emailStr.split('@')[0]}`;
+      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
       const colStr = user.user_metadata?.college || 'R. C. Patel Institute of Technology, Shirpur (RCPIT)';
       const deptStr = user.user_metadata?.department || 'Computer Engineering';
-      const semStr = user.user_metadata?.semester || 'Semester 5 (3rd Year)';
+      const semStr = user.user_metadata?.semester || 'Semester 6';
 
       setUserProfile({
         name: fullName,
         email: emailStr,
         username: handleStr,
+        avatarUrl,
         college: colStr,
         branch: deptStr,
         department: deptStr,
         year: user.user_metadata?.currentYear || '3rd Year',
         semester: semStr,
         activeCohort: `${colStr.split(' ')[0]} • ${deptStr.split(' ')[0]}`,
-        cloudStorageUsedGB: 3.4,
-        cloudStorageTotalGB: 10,
-        aiTokensUsed: 45000,
-        aiTokensTotal: 100000,
       });
     } else {
       try {
@@ -159,6 +189,7 @@ export function Sidebar({
               name: parsed.name || parsed.full_name || 'Student',
               email: parsed.email,
               username: `@${parsed.email.split('@')[0]}`,
+              avatarUrl: parsed.avatarUrl || parsed.avatar,
               college: parsed.college || MOCK_USER.college,
               branch: parsed.department || parsed.branch || MOCK_USER.branch,
             });
@@ -168,14 +199,97 @@ export function Sidebar({
         console.error(e);
       }
     }
-  }, [user]);
 
-  const storagePercent = Math.round(
-    (((userProfile.cloudStorageUsedGB || 3.4) / (userProfile.cloudStorageTotalGB || 10)) * 100)
-  );
-  const tokenPercent = Math.round(
-    (((userProfile.aiTokensUsed || 45000) / (userProfile.aiTokensTotal || 100000)) * 100)
-  );
+    // 2. Real Storage: Check Google Drive BYOS Quota or Local Documents
+    const syncRealStorage = async () => {
+      const isDrive = isDriveConnectedInStorage();
+      if (isDrive) {
+        const quota = await getDriveStorageQuota();
+        if (quota) {
+          const pct = Math.min(100, Math.round((quota.usageGB / quota.limitGB) * 100));
+          setRealStorage({
+            usedDisplay: `${quota.usageGB} GB`,
+            totalDisplay: `${quota.limitGB} GB`,
+            percent: pct,
+            isDrive: true,
+          });
+          return;
+        }
+      }
+
+      // Calculate actual size of documents stored in localStorage
+      try {
+        const storedDocs = localStorage.getItem("exam_buddy_documents");
+        if (storedDocs) {
+          const parsed = JSON.parse(storedDocs);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            let totalMb = 0;
+            for (const d of parsed) {
+              const s = parseFloat(d.fileSize || d.size || "1.5");
+              if (!isNaN(s)) totalMb += s;
+            }
+            const displayMb = totalMb >= 1024 ? `${(totalMb / 1024).toFixed(1)} GB` : `${totalMb.toFixed(1)} MB`;
+            const pct = Math.min(100, Math.max(1, Math.round((totalMb / (15 * 1024)) * 100)));
+            setRealStorage({
+              usedDisplay: displayMb,
+              totalDisplay: "15 GB",
+              percent: pct,
+              isDrive: false,
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      setRealStorage({
+        usedDisplay: "0 MB",
+        totalDisplay: "15 GB",
+        percent: 0,
+        isDrive: false,
+      });
+    };
+
+    syncRealStorage();
+
+    // 3. Real AI Tokens Telemetry from Logger
+    try {
+      const summary = getAIAnalyticsSummary();
+      const used = summary.totalTokensUsed || 0;
+      const total = 1000000; // 1M daily free tier tokens
+      const pct = Math.min(100, Math.round((used / total) * 100));
+      const display = used > 0
+        ? `${(used / 1000).toFixed(1)}k / 1M Tokens`
+        : `0 / 1M Free Tokens`;
+
+      setRealTokens({
+        used,
+        total,
+        percent: pct,
+        display,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    // 4. Real Active AI Model from AI Service
+    try {
+      const provider = getActiveProvider();
+      const model = getSelectedModel(provider);
+      const providerNames: Record<string, string> = {
+        gemini: "Gemini 2.5 Flash",
+        groq: "Llama 3.3 70B",
+        ollama: "Ollama Local",
+        openai: "GPT-4o",
+        anthropic: "Claude 3.7",
+      };
+      const name = providerNames[provider] || model || "Gemini 2.5 Flash";
+      setActiveModelName(`${name} (Active)`);
+    } catch (e) {
+      setActiveModelName("Gemini 2.5 Flash (Active)");
+    }
+  }, [user]);
 
   return (
     <>
@@ -333,9 +447,17 @@ export function Sidebar({
             )}
             title="Click to edit student profile"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
-              {userProfile.name.charAt(0).toUpperCase()}
-            </div>
+            {userProfile.avatarUrl ? (
+              <img
+                src={userProfile.avatarUrl}
+                alt={userProfile.name}
+                className="w-8 h-8 rounded-full object-cover shrink-0 shadow-sm border border-violet-500/30"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
+                {userProfile.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className={cn("min-w-0 flex-1", isIcon && "lg:hidden")}>
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-[var(--text-primary)] truncate group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-colors">
@@ -349,48 +471,69 @@ export function Sidebar({
             </div>
           </div>
 
+          {/* Real Storage Row (Google Drive BYOS / Local) */}
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
-                <HardDrive className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
-                <span>{userProfile.cloudStorageUsedGB || 3.4} / {userProfile.cloudStorageTotalGB || 10} GB</span>
-              </div>
+              <Link
+                href="/upload"
+                className="flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-cyan-400 font-medium transition-colors"
+                title={realStorage.isDrive ? "Google Drive BYOS (0 MB Server)" : "Personal Knowledge Storage"}
+              >
+                {realStorage.isDrive ? (
+                  <Cloud className="w-3.5 h-3.5 text-blue-400" />
+                ) : (
+                  <HardDrive className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" />
+                )}
+                <span>{realStorage.usedDisplay} / {realStorage.totalDisplay}</span>
+              </Link>
+              {realStorage.isDrive && (
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                  BYOS
+                </span>
+              )}
             </div>
             <div className="w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-card)]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300"
-                style={{ width: `${storagePercent}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                style={{ width: `${Math.max(2, realStorage.percent)}%` }}
               />
             </div>
           </div>
 
+          {/* Real AI Tokens Telemetry */}
           <div className={cn(isIcon && "lg:hidden")}>
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 text-[var(--text-secondary)] font-medium">
+              <Link
+                href="/ai-manager"
+                className="flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-violet-400 font-medium transition-colors"
+                title="AI Gateway Token Telemetry"
+              >
                 <Sparkles className="w-3.5 h-3.5 text-violet-500 dark:text-violet-400" />
-                <span>{Math.round((userProfile.aiTokensUsed || 45000) / 1000)}k / {Math.round((userProfile.aiTokensTotal || 100000) / 1000)}k</span>
-              </div>
+                <span>{realTokens.display}</span>
+              </Link>
             </div>
             <div className="w-full h-1.5 rounded-full bg-[var(--input-bg)] overflow-hidden border border-[var(--border-card)]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600"
-                style={{ width: `${tokenPercent}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-300"
+                style={{ width: `${Math.max(2, realTokens.percent)}%` }}
               />
             </div>
           </div>
 
-          <div
+          {/* Real Active AI Model Engine */}
+          <Link
+            href="/ai-manager"
             className={cn(
-              "flex items-center gap-2 text-[11px] text-[var(--text-muted)]",
+              "flex items-center gap-2 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors",
               isIcon && "lg:justify-center"
             )}
-            title="Claude 3.7 + GPT-4o"
+            title="Configure Active AI Engine in AI Manager"
           >
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-500 animate-pulse" />
             </span>
-            <span className={cn(isIcon && "lg:hidden")}>Claude 3.7 + GPT-4o</span>
-          </div>
+            <span className={cn("truncate", isIcon && "lg:hidden")}>{activeModelName}</span>
+          </Link>
         </div>
       </aside>
 
